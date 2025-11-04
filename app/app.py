@@ -1,16 +1,15 @@
 import os
 from flask import Flask, render_template
 from dotenv import load_dotenv
-from routes import register_routes
 
 load_dotenv()
 
-from routes.sleep import sleep_bp
-from routes.nutrition import nutrition_bp
-from routes.calculator_routes import calculator_bp
-from routes.heart import heart_disease_bp
-from routes.migraine import migraine_bp
-from routes.health_score import health_score_bp
+from app.routes.sleep import sleep_bp
+from app.routes.nutrition import nutrition_bp
+from app.routes.calculator_routes import calculator_bp
+from app.routes.heart import heart_disease_bp
+from app.routes.migraine import migraine_bp
+from app.routes.health_score import health_score_bp
 
 def create_app():
     app = Flask(__name__, template_folder='templates', static_folder='static')
