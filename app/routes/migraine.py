@@ -42,17 +42,46 @@ def predict_migraine():
             # Create DataFrame
             input_df = pd.DataFrame([input_dict])
             
-            # Add engineered features (same as training)
+            # 🎯 Add ALL engineered features (MUST match training exactly!)
+            # Sleep-related features
             input_df['Sleep_Stress'] = input_df['Sleep Hours'] * input_df['Stress']
-            input_df['Water_Caffeine'] = input_df['Water Intake'] * input_df['Caffeine']
-            input_df['Screen_Sleep'] = input_df['Screen Time'] * input_df['Sleep Hours']
-            input_df['Activity_Stress'] = input_df['Physical Activity'] * input_df['Stress']
+            input_df['Poor_Sleep'] = ((input_df['Sleep Hours'] < 6) | (input_df['Sleep Hours'] > 9)).astype(int)
+            input_df['Sleep_Quality_Score'] = (input_df['Sleep Hours'] - 7).abs()
+            
+            # Hydration & Caffeine
+            input_df['Water_Caffeine_Ratio'] = input_df['Water Intake'] / (input_df['Caffeine'] + 1)
             input_df['Dehydration_Risk'] = ((input_df['Caffeine'] > 2) & (input_df['Water Intake'] < 2)).astype(int)
-            input_df['Poor_Sleep_Quality'] = ((input_df['Sleep Hours'] < 6) | (input_df['Stress'] > 7)).astype(int)
-            input_df['High_Risk_Combo'] = ((input_df['Stress'] > 6) & (input_df['Sleep Hours'] < 6) & (input_df['Caffeine'] > 2)).astype(int)
+            input_df['High_Caffeine'] = (input_df['Caffeine'] > 3).astype(int)
+            
+            # Lifestyle risk factors
+            input_df['Screen_Sleep'] = input_df['Screen Time'] * (10 - input_df['Sleep Hours'])
+            input_df['Activity_Stress'] = input_df['Physical Activity'] * (10 - input_df['Stress'])
+            input_df['Lifestyle_Risk'] = input_df['Skipped Meals'] + (input_df['Physical Activity'] == 0).astype(int)
+            
+            # Combined risk scores
+            input_df['High_Risk_Combo'] = (
+                (input_df['Stress'] > 6) & 
+                (input_df['Sleep Hours'] < 6) & 
+                (input_df['Caffeine'] > 2)
+            ).astype(int)
+            
+            input_df['Triple_Threat'] = (
+                (input_df['Stress'] > 7) & 
+                (input_df['Screen Time'] > 6) & 
+                (input_df['Sleep Hours'] < 5)
+            ).astype(int)
+            
+            # Menstrual + hormonal factors
+            input_df['Female_Menstruating'] = ((input_df['Gender'] == 0) & (input_df['Menstruating'] == 1)).astype(int)
+            input_df['Hormonal_Risk'] = input_df['Female_Menstruating'] * (input_df['Stress'] + input_df['Poor_Sleep'])
+            
+            # Polynomial features
+            input_df['Stress_Squared'] = input_df['Stress'] ** 2
+            input_df['Caffeine_Squared'] = input_df['Caffeine'] ** 2
+            input_df['Age_Group'] = pd.cut(input_df['Age'], bins=[0, 25, 40, 60, 100], labels=[0, 1, 2, 3]).astype(int)
             
             # Ensure column order matches training
-            input_df = input_df[columns]
+            input_df = input_df.reindex(columns=columns, fill_value=0)
             
             # Scale
             input_scaled = scaler.transform(input_df)
