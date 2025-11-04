@@ -10,3 +10,5 @@ imbalanced-learn
 openai
 google-generativeai
 python-dotenv
+gunicorn
+xgboost
