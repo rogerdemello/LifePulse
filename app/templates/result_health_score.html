@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Overall Health Score Result - LifePulse{% endblock %}
+{% block description %}Your comprehensive health score analysis based on lifestyle factors with personalized recommendations for improvement.{% endblock %}
+
+{% block content %}
+<style>
+  .header-gradient-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  }
+  .header-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  .header-gradient-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+  .header-gradient-danger {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  }
+</style>
+
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold mb-2">🎯 Your Overall Health Score</h2>
+    <p class="text-muted">Comprehensive health evaluation based on your lifestyle</p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      
+      <!-- Score Display Card -->
+      <div class="card shadow border-0 mb-4">
+        <div class="card-header text-white py-4 header-gradient-{{ color }}">
+          <div class="text-center">
+            <h3 class="mb-1">Health Score Assessment</h3>
+            <p class="mb-0 opacity-90">Your overall health rating</p>
+          </div>
+        </div>
+
+        <div class="card-body text-center p-5">
+          
+          <!-- Circular Progress -->
+          <div class="position-relative d-inline-block mb-4">
+            <svg width="220" height="220">
+              <!-- Background circle -->
+              <circle cx="110" cy="110" r="90" fill="none" stroke="#e0e0e0" stroke-width="18"/>
+              <!-- Progress circle -->
+              <circle cx="110" cy="110" r="90" fill="none" 
+                      stroke="{% if color == 'success' %}#28a745{% elif color == 'primary' %}#667eea{% elif color == 'warning' %}#ffc107{% else %}#dc3545{% endif %}" 
+                      stroke-width="18"
+                      stroke-dasharray="{{ (score / 100) * 565.2 }} 565.2"
+                      stroke-linecap="round"
+                      transform="rotate(-90 110 110)"
+                      style="transition: stroke-dasharray 1s ease-in-out;"/>
+              <!-- Score text -->
+              <text x="110" y="105" text-anchor="middle" dy="10" font-size="56" font-weight="bold" 
+                    fill="{% if color == 'success' %}#28a745{% elif color == 'primary' %}#667eea{% elif color == 'warning' %}#ffc107{% else %}#dc3545{% endif %}">
+                {{ score }}
+              </text>
+              <text x="110" y="140" text-anchor="middle" font-size="18" fill="#999">
+                out of 100
+              </text>
+            </svg>
+          </div>
+          
+          <h3 class="mb-3">
+            <span class="badge bg-{{ color }} px-4 py-3 fs-4">
+              {% if rating == "Excellent" %}🌟 {{ rating }}
+              {% elif rating == "Very Good" %}✨ {{ rating }}
+              {% elif rating == "Good" %}👍 {{ rating }}
+              {% elif rating == "Fair" %}⚠️ {{ rating }}
+              {% else %}❗ {{ rating }}
+              {% endif %}
+            </span>
+          </h3>
+          
+          <p class="text-muted lead mb-2">{{ interpretation }}</p>
+          
+          {% if rating == "Excellent" or rating == "Very Good" %}
+            <p class="text-success fw-semibold">Outstanding! You're maintaining excellent health habits that support longevity and wellbeing.</p>
+          {% elif rating == "Good" %}
+            <p class="text-primary fw-semibold">Great job! Your health is in good shape with opportunities for enhancement.</p>
+          {% elif rating == "Fair" %}
+            <p class="text-warning fw-semibold">Your health is acceptable, but there's significant room for improvement to optimize wellbeing.</p>
+          {% else %}
+            <p class="text-danger fw-semibold">Your health needs attention. Consider making lifestyle changes with professional guidance.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Health Factors Breakdown -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <h5 class="mb-0">📋 Your Health Factors</h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="card border-0 h-100" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                <div class="card-body text-center p-3">
+                  <div class="mb-2" style="font-size: 2rem;">⚖️</div>
+                  <h6 class="fw-bold mb-1">Body Mass Index</h6>
+                  <h4 class="mb-1">{{ bmi }}</h4>
+                  <span class="badge {% if bmi_cat == 'Normal' %}bg-success{% elif bmi_cat == 'Overweight' %}bg-warning text-dark{% else %}bg-danger text-white{% endif %}">
+                    {{ bmi_cat }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="card border-0 h-100" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                <div class="card-body text-center p-3">
+                  <div class="mb-2" style="font-size: 2rem;">🏃</div>
+                  <h6 class="fw-bold mb-1">Exercise Frequency</h6>
+                  <h4 class="mb-1">{{ exercise }}</h4>
+                  <span class="text-muted">days/week</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="card border-0 h-100" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                <div class="card-body text-center p-3">
+                  <div class="mb-2" style="font-size: 2rem;">🥗</div>
+                  <h6 class="fw-bold mb-1">Diet Quality</h6>
+                  <h4 class="mb-1">{{ diet }}/10</h4>
+                  <span class="badge {% if diet >= 7 %}bg-success{% elif diet >= 5 %}bg-warning text-dark{% else %}bg-danger text-white{% endif %}">
+                    {% if diet >= 7 %}Good{% elif diet >= 5 %}Fair{% else %}Poor{% endif %}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="card border-0 h-100" style="background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);">
+                <div class="card-body text-center p-3">
+                  <div class="mb-2" style="font-size: 2rem;">😴</div>
+                  <h6 class="fw-bold mb-1">Sleep Duration</h6>
+                  <h4 class="mb-1">{{ sleep }}h</h4>
+                  <span class="badge {% if sleep >= 7 and sleep <= 9 %}bg-success{% elif sleep >= 6 %}bg-warning text-dark{% else %}bg-danger text-white{% endif %}">
+                    {% if sleep >= 7 and sleep <= 9 %}Optimal{% elif sleep >= 6 %}Adequate{% else %}Insufficient{% endif %}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="card border-0 h-100" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
+                <div class="card-body text-center p-3">
+                  <div class="mb-2" style="font-size: 2rem;">🚬</div>
+                  <h6 class="fw-bold mb-1">Smoking Status</h6>
+                  <p class="mb-1 small fw-semibold">
+                    {% if smoking == 0 %}Non-smoker
+                    {% elif smoking == 1 %}Former smoker
+                    {% elif smoking == 2 %}Light smoker
+                    {% elif smoking == 3 %}Moderate smoker
+                    {% else %}Heavy smoker{% endif %}
+                  </p>
+                  <span class="badge {% if smoking == 0 %}bg-success{% elif smoking == 1 %}bg-info{% else %}bg-danger text-white{% endif %}">
+                    {% if smoking == 0 %}Excellent{% elif smoking == 1 %}Good{% else %}Risk{% endif %}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="card border-0 h-100" style="background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);">
+                <div class="card-body text-center p-3">
+                  <div class="mb-2" style="font-size: 2rem;">🍷</div>
+                  <h6 class="fw-bold mb-1">Alcohol Use</h6>
+                  <p class="mb-1 small fw-semibold">
+                    {% if alcohol == 0 %}None
+                    {% elif alcohol == 1 %}Rare
+                    {% elif alcohol == 2 %}Light
+                    {% elif alcohol == 3 %}Moderate
+                    {% elif alcohol == 4 %}Heavy
+                    {% else %}Very Heavy{% endif %}
+                  </p>
+                  <span class="badge {% if alcohol <= 2 %}bg-success{% elif alcohol == 3 %}bg-warning text-dark{% else %}bg-danger text-white{% endif %}">
+                    {% if alcohol <= 2 %}Safe{% elif alcohol == 3 %}Caution{% else %}Risk{% endif %}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personalized Recommendations -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-success text-white py-3">
+          <h5 class="mb-0">💡 Personalized Recommendations</h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="fw-bold text-success mb-3">🎯 Priority Actions</h6>
+              <ul class="list-unstyled">
+                {% if bmi < 18.5 %}
+                  <li class="mb-2">⚖️ <strong>BMI Low:</strong> Consult nutritionist for healthy weight gain plan</li>
+                {% elif bmi > 30 %}
+                  <li class="mb-2">⚖️ <strong>BMI High:</strong> Weight management through diet & exercise (aim for 5-10% reduction)</li>
+                {% elif bmi > 25 %}
+                  <li class="mb-2">⚖️ <strong>BMI Elevated:</strong> Increase physical activity, monitor portions</li>
+                {% endif %}
+                
+                {% if exercise < 3 %}
+                  <li class="mb-2">🏃 <strong>Exercise:</strong> Target 150 min/week moderate activity (brisk walking, cycling)</li>
+                {% elif exercise < 5 %}
+                  <li class="mb-2">🏃 <strong>Exercise:</strong> Great start! Aim for 5 days/week for optimal benefits</li>
+                {% endif %}
+                
+                {% if diet < 6 %}
+                  <li class="mb-2">🥗 <strong>Nutrition:</strong> Focus on whole foods, 5 servings fruits/vegetables daily</li>
+                {% endif %}
+                
+                {% if sleep < 7 %}
+                  <li class="mb-2">😴 <strong>Sleep:</strong> Increase to 7-9 hours - critical for health & recovery</li>
+                {% elif sleep > 9 %}
+                  <li class="mb-2">😴 <strong>Sleep:</strong> Excessive sleep may indicate health issues - consult doctor</li>
+                {% endif %}
+                
+                {% if smoking > 0 %}
+                  <li class="mb-2">🚬 <strong>Smoking:</strong> Quit smoking - single best health decision (consider nicotine replacement)</li>
+                {% endif %}
+                
+                {% if alcohol > 2 %}
+                  <li class="mb-2">🍷 <strong>Alcohol:</strong> Reduce to moderate levels (≤7 drinks/week women, ≤14 men)</li>
+                {% endif %}
+              </ul>
+            </div>
+
+            <div class="col-md-6">
+              <h6 class="fw-bold text-primary mb-3">✅ Maintenance Tips</h6>
+              <ul class="list-unstyled">
+                {% if score >= 80 %}
+                  <li class="mb-2">🌟 Excellent work! Keep maintaining these healthy habits</li>
+                  <li class="mb-2">📊 Track progress with regular health check-ups</li>
+                  <li class="mb-2">🎯 Set new fitness or wellness goals</li>
+                {% else %}
+                  <li class="mb-2">📅 Create realistic 30-day health goals</li>
+                  <li class="mb-2">🤝 Find accountability partner or join support group</li>
+                  <li class="mb-2">📱 Use apps to track activity, nutrition, sleep</li>
+                {% endif %}
+                <li class="mb-2">💧 Stay hydrated (2-3L water daily)</li>
+                <li class="mb-2">🧘 Practice stress management (meditation, yoga)</li>
+                <li class="mb-2">👨‍⚕️ Regular check-ups (BP, cholesterol, glucose)</li>
+                <li class="mb-2">🦷 Don't neglect dental health (2x daily brushing)</li>
+                <li class="mb-2">☀️ Get daily sunlight exposure (Vitamin D)</li>
+              </ul>
+            </div>
+          </div>
+
+          {% if score < 70 %}
+          <div class="alert alert-warning border-0 mt-4 mb-0">
+            <h6 class="fw-bold mb-2">📞 Consider Professional Support</h6>
+            <p class="mb-0 small">
+              Your score suggests consulting healthcare professionals could be beneficial. Consider:
+              <strong>Primary care physician</strong> (comprehensive evaluation), 
+              <strong>Registered dietitian</strong> (nutrition planning), 
+              <strong>Personal trainer</strong> (exercise program), or 
+              <strong>Health coach</strong> (behavior change support).
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Model Info -->
+      <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
+              <p class="mb-0 small">
+                This tool uses a Random Forest regression model trained on comprehensive health data, achieving 
+                <strong>83.4% accuracy (R² score)</strong>. The score (0-100) reflects modifiable lifestyle factors' 
+                impact on overall health. <span class="text-danger fw-bold">This is an assessment tool, not medical advice.</span> 
+                Consult healthcare professionals for personalized recommendations and medical decisions.
+              </p>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="badge bg-primary px-3 py-2 fs-6">83.4% R² Score</div>
+              <div class="mt-2">
+                <small class="text-muted">Random Forest Model</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="text-center mt-4">
+        <a href="{{ url_for('health_score.predict_health_score') }}" class="btn btn-primary btn-lg px-4 me-2">
+          🔁 Calculate Again
+        </a>
+        <a href="/" class="btn btn-outline-secondary btn-lg px-4">
+          🏠 Back to Home
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes progressAnimation {
+  from {
+    stroke-dasharray: 0 565.2;
+  }
+}
+</style>
+
+{% endblock %}

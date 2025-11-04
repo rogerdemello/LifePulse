@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+
+      <div class="card shadow border-0">
+        <div class="card-body text-center">
+          <h2 class="mb-4">Prediction Result</h2>
+
+          {% if prediction %}
+            <div class="alert alert-info fs-5">
+              <strong>Outcome:</strong> {{ prediction }}
+            </div>
+          {% endif %}
+
+          {% if confidence %}
+            <p class="text-muted">Model confidence: {{ confidence }}%</p>
+          {% endif %}
+
+          {% if input_data %}
+            <hr>
+            <h5 class="mt-4">Your Submitted Information</h5>
+            <ul class="list-group text-start">
+              {% for key, value in input_data.items() %}
+                <li class="list-group-item d-flex justify-content-between">
+                  <span><strong>{{ key.replace('_', ' ').title() }}</strong></span>
+                  <span>{{ value }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+
+          <div class="mt-4">
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

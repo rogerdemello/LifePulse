@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Health Calculator{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4 text-center">🧮 Health Calculator</h2>
+  <p class="text-center text-muted mb-5">Calculate your BMI, BMR, daily calorie needs, and more health metrics</p>
+
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <form method="POST" action="{{ url_for('calculator.show_health_result') }}" class="row g-3">
+
+            <!-- Personal Information Section -->
+            <div class="col-12">
+              <h5 class="fw-bold text-primary mb-3">👤 Personal Information</h5>
+            </div>
+
+            <!-- Gender -->
+            <div class="col-md-4">
+              <label for="gender" class="form-label">Gender</label>
+              <select class="form-select" name="gender" required>
+                <option value="">Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+
+            <!-- Age -->
+            <div class="col-md-4">
+              <label for="age" class="form-label">Age</label>
+              <input type="number" name="age" class="form-control" min="10" max="120" placeholder="e.g., 30" required>
+            </div>
+
+            <!-- Activity Level -->
+            <div class="col-md-4">
+              <label for="activity" class="form-label">Activity Level</label>
+              <select name="activity" class="form-select" required>
+                <option value="">Select level</option>
+                <option value="sedentary">Sedentary (little/no exercise)</option>
+                <option value="light">Light (1-3 days/week)</option>
+                <option value="moderate">Moderate (3-5 days/week)</option>
+                <option value="active">Active (6-7 days/week)</option>
+                <option value="very_active">Very Active (intense exercise)</option>
+              </select>
+            </div>
+
+            <!-- Body Measurements Section -->
+            <div class="col-12 mt-4">
+              <h5 class="fw-bold text-primary mb-3">📏 Body Measurements</h5>
+            </div>
+
+            <!-- Height -->
+            <div class="col-md-4">
+              <label for="height" class="form-label">Height (cm)</label>
+              <input type="number" name="height" class="form-control" min="50" max="250" placeholder="e.g., 170" required>
+              <small class="text-muted">1 inch = 2.54 cm</small>
+            </div>
+
+            <!-- Weight -->
+            <div class="col-md-4">
+              <label for="weight" class="form-label">Weight (kg)</label>
+              <input type="number" name="weight" class="form-control" min="10" max="300" placeholder="e.g., 70" required>
+              <small class="text-muted">1 lb = 0.45 kg</small>
+            </div>
+
+            <!-- Waist -->
+            <div class="col-md-4">
+              <label for="waist" class="form-label">Waist (cm)</label>
+              <input type="number" name="waist" class="form-control" min="30" max="200" placeholder="e.g., 85" required>
+              <small class="text-muted">Around navel</small>
+            </div>
+
+            <!-- Hip -->
+            <div class="col-md-6">
+              <label for="hip" class="form-label">Hip Circumference (cm)</label>
+              <input type="number" name="hip" class="form-control" min="30" max="200" placeholder="e.g., 95" required>
+              <small class="text-muted">Widest part of hips</small>
+            </div>
+
+            <!-- Blood Pressure Section -->
+            <div class="col-12 mt-4">
+              <h5 class="fw-bold text-primary mb-3">🩺 Blood Pressure</h5>
+            </div>
+
+            <!-- Systolic BP -->
+            <div class="col-md-6">
+              <label for="systolic" class="form-label">Systolic (Upper)</label>
+              <input type="number" name="systolic" class="form-control" min="50" max="250" placeholder="e.g., 120" required>
+              <small class="text-muted">Normal: 90-120 mmHg</small>
+            </div>
+
+            <!-- Diastolic BP -->
+            <div class="col-md-6">
+              <label for="diastolic" class="form-label">Diastolic (Lower)</label>
+              <input type="number" name="diastolic" class="form-control" min="30" max="150" placeholder="e.g., 80" required>
+              <small class="text-muted">Normal: 60-80 mmHg</small>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="col-12 text-center mt-4">
+              <button type="submit" class="btn btn-primary btn-lg px-5">
+                📊 Calculate My Health Metrics
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <div class="text-center mt-3">
+        <a href="/" class="btn btn-outline-secondary">🏠 Back to Home</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

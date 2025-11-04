@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Predict Sleep Disorder{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold mb-2">😴 Sleep Disorder Prediction</h2>
+    <p class="text-muted">Assess your sleep health and identify potential sleep disorders</p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <form method="POST">
+            
+            <!-- Personal Information Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">👤 Personal Information</h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Gender</label>
+                  <select name="Gender" class="form-select" required>
+                    <option value="">Select gender...</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Age</label>
+                  <input type="number" name="Age" class="form-control" min="18" max="100" placeholder="e.g., 35" required>
+                  <small class="text-muted">18-100 years</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sleep Metrics Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">🌙 Sleep Metrics</h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Sleep Duration</label>
+                  <input type="number" name="SleepDuration" step="0.5" class="form-control" min="3" max="12" placeholder="e.g., 7.5" required>
+                  <small class="text-muted">Hours per night (Recommended: 7-9 hours)</small>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Quality of Sleep</label>
+                  <input type="number" name="QualitySleep" class="form-control" min="1" max="10" placeholder="Rate 1-10" required>
+                  <small class="text-muted">1 = Poor, 10 = Excellent</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lifestyle & Health Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">🏃 Lifestyle & Health</h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Physical Activity Level</label>
+                  <input type="number" name="PhysicalActivity" class="form-control" min="0" max="180" placeholder="e.g., 30" required>
+                  <small class="text-muted">Minutes of exercise per day (WHO: 150+ min/week)</small>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Stress Level</label>
+                  <input type="number" name="StressLevel" class="form-control" min="1" max="10" placeholder="Rate 1-10" required>
+                  <small class="text-muted">1 = Low stress, 10 = Very high stress</small>
+                </div>
+
+                <div class="col-md-12">
+                  <label class="form-label fw-semibold">Daily Steps</label>
+                  <input type="number" name="DailySteps" class="form-control" min="0" max="30000" placeholder="e.g., 8000" required>
+                  <small class="text-muted">Average steps per day (Target: 8,000-10,000 steps)</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vitals Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">🩺 Health Vitals</h5>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">BMI Category</label>
+                  <select name="BMICategory" class="form-select" required>
+                    <option value="">Select category...</option>
+                    <option value="Normal">Normal (18.5-24.9)</option>
+                    <option value="Normal Weight">Normal Weight</option>
+                    <option value="Overweight">Overweight (25-29.9)</option>
+                    <option value="Obese">Obese (30+)</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Blood Pressure</label>
+                  <select name="BloodPressure" class="form-select" required>
+                    <option value="">Select BP reading...</option>
+                    <optgroup label="Optimal">
+                      <option value="115/75">115/75</option>
+                    </optgroup>
+                    <optgroup label="Normal">
+                      <option value="120/80">120/80</option>
+                      <option value="125/80">125/80</option>
+                    </optgroup>
+                    <optgroup label="Elevated">
+                      <option value="129/84">129/84</option>
+                      <option value="130/85">130/85</option>
+                      <option value="130/86">130/86</option>
+                      <option value="131/86">131/86</option>
+                      <option value="132/87">132/87</option>
+                    </optgroup>
+                    <optgroup label="High">
+                      <option value="135/88">135/88</option>
+                      <option value="135/90">135/90</option>
+                      <option value="139/91">139/91</option>
+                      <option value="140/90">140/90</option>
+                      <option value="140/95">140/95</option>
+                      <option value="142/92">142/92</option>
+                    </optgroup>
+                  </select>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Resting Heart Rate</label>
+                  <input type="number" name="HeartRate" class="form-control" min="40" max="120" placeholder="e.g., 72" required>
+                  <small class="text-muted">Normal: 60-100 bpm</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-grid gap-2 mt-4">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <span style="font-size: 1.2rem;">😴</span> Analyze Sleep Health
+              </button>
+              <a href="/" class="btn btn-outline-secondary">
+                <span style="font-size: 1rem;">🏠</span> Back to Home
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Info Card -->
+      <div class="card border-0 shadow-sm mt-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="card-body text-white p-4">
+          <h6 class="fw-bold mb-2">💡 About Sleep Disorders</h6>
+          <p class="mb-0 small">
+            Our AI model analyzes your sleep patterns, lifestyle factors, and health vitals to identify potential sleep disorders 
+            like insomnia or sleep apnea. This tool uses machine learning trained on sleep health data with 87.1% accuracy. 
+            <strong>Note:</strong> This is a screening tool, not a diagnosis. Consult a sleep specialist for proper evaluation.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

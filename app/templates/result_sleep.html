@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Sleep Disorder Assessment Result - LifePulse{% endblock %}
+{% block description %}Your comprehensive sleep health analysis with personalized recommendations for better sleep quality.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold mb-2">😴 Sleep Health Analysis Results</h2>
+    <p class="text-muted">Your personalized sleep disorder screening results</p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      
+      <!-- Main Result Card -->
+      <div class="card border-0 shadow mb-4">
+        {% if prediction == "Insomnia" %}
+          <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        {% elif prediction == "Sleep Apnea" %}
+          <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+        {% else %}
+          <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+        {% endif %}
+          <div class="text-center">
+            <h3 class="mb-2">
+              {% if prediction == "Insomnia" %}
+                😫 Insomnia Detected
+              {% elif prediction == "Sleep Apnea" %}
+                😴 Sleep Apnea Indicated
+              {% else %}
+                ✅ No Sleep Disorder
+              {% endif %}
+            </h3>
+            <p class="mb-0 opacity-90">Prediction: <strong>{{ prediction }}</strong></p>
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <!-- Result Badge -->
+          <div class="text-center mb-4 py-3">
+            {% if prediction == "Insomnia" %}
+              <div class="display-1 mb-3">😫</div>
+              <h4 class="text-warning mb-3">Insomnia Pattern Detected</h4>
+              <p class="text-muted lead">
+                Your sleep patterns suggest difficulty falling or staying asleep. This may affect your daily functioning and overall health.
+              </p>
+            {% elif prediction == "Sleep Apnea" %}
+              <div class="display-1 mb-3">😴</div>
+              <h4 class="text-danger mb-3">Sleep Apnea Risk Identified</h4>
+              <p class="text-muted lead">
+                Your profile indicates potential breathing interruptions during sleep. This condition requires medical attention as it can affect oxygen levels.
+              </p>
+            {% else %}
+              <div class="display-1 mb-3">✅</div>
+              <h4 class="text-success mb-3">Healthy Sleep Profile</h4>
+              <p class="text-muted lead">
+                No significant sleep disorder detected. Your sleep health appears to be in good standing. Keep maintaining healthy habits!
+              </p>
+            {% endif %}
+          </div>
+
+          <hr class="my-4">
+
+          <!-- What This Means -->
+          <div class="mb-4">
+            <h5 class="fw-bold mb-3">📖 What This Means</h5>
+            {% if prediction == "Insomnia" %}
+              <div class="alert alert-warning border-0 shadow-sm">
+                <h6 class="fw-bold mb-2">About Insomnia:</h6>
+                <p class="mb-2">
+                  Insomnia is characterized by persistent difficulty falling asleep, staying asleep, or waking too early. 
+                  It can be caused by stress, poor sleep habits, medications, or underlying health conditions.
+                </p>
+                <p class="mb-0">
+                  <strong>Impact:</strong> Can lead to daytime fatigue, mood changes, difficulty concentrating, and reduced quality of life.
+                </p>
+              </div>
+            {% elif prediction == "Sleep Apnea" %}
+              <div class="alert alert-danger border-0 shadow-sm">
+                <h6 class="fw-bold mb-2">About Sleep Apnea:</h6>
+                <p class="mb-2">
+                  Sleep apnea involves repeated breathing interruptions during sleep. The most common type (obstructive sleep apnea) 
+                  occurs when throat muscles relax and block the airway.
+                </p>
+                <p class="mb-0">
+                  <strong>Impact:</strong> Can cause loud snoring, gasping, daytime sleepiness, and increases risk of heart problems and stroke if untreated.
+                </p>
+              </div>
+            {% else %}
+              <div class="alert alert-success border-0 shadow-sm">
+                <h6 class="fw-bold mb-2">Healthy Sleep:</h6>
+                <p class="mb-2">
+                  Your sleep patterns and health metrics don't indicate major sleep disorders. This suggests good sleep quality 
+                  and healthy lifestyle habits that support restful sleep.
+                </p>
+                <p class="mb-0">
+                  <strong>Benefits:</strong> Quality sleep supports immune function, mental health, cognitive performance, and overall wellbeing.
+                </p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendations Card -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <h5 class="mb-0">💡 Personalized Recommendations</h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <h6 class="fw-bold text-primary mb-3">🌙 Sleep Hygiene Tips</h6>
+              <ul class="list-unstyled">
+                {% if prediction == "Insomnia" %}
+                  <li class="mb-2">✓ Maintain consistent sleep-wake schedule (even weekends)</li>
+                  <li class="mb-2">✓ Create relaxing bedtime routine (reading, warm bath)</li>
+                  <li class="mb-2">✓ Avoid screens 1-2 hours before bed (blue light disrupts melatonin)</li>
+                  <li class="mb-2">✓ Keep bedroom cool (60-67°F), dark, and quiet</li>
+                  <li class="mb-2">✓ Limit caffeine after 2 PM and avoid alcohol before bed</li>
+                {% elif prediction == "Sleep Apnea" %}
+                  <li class="mb-2">🏥 <strong>Consult sleep specialist immediately</strong></li>
+                  <li class="mb-2">✓ Request polysomnography (sleep study) for diagnosis</li>
+                  <li class="mb-2">✓ Sleep on your side instead of back</li>
+                  <li class="mb-2">✓ Maintain healthy weight (if overweight)</li>
+                  <li class="mb-2">✓ Avoid alcohol and sedatives before bed</li>
+                {% else %}
+                  <li class="mb-2">✓ Continue maintaining 7-9 hours sleep nightly</li>
+                  <li class="mb-2">✓ Keep bedroom cool, dark, and quiet</li>
+                  <li class="mb-2">✓ Exercise regularly (but not 3 hours before bed)</li>
+                  <li class="mb-2">✓ Manage stress through meditation or relaxation</li>
+                  <li class="mb-2">✓ Limit daytime naps to 20-30 minutes</li>
+                {% endif %}
+              </ul>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <h6 class="fw-bold text-primary mb-3">🏃 Lifestyle Adjustments</h6>
+              <ul class="list-unstyled">
+                {% if prediction == "Insomnia" %}
+                  <li class="mb-2">✓ Practice relaxation techniques (deep breathing, progressive muscle relaxation)</li>
+                  <li class="mb-2">✓ Get morning sunlight exposure (regulates circadian rhythm)</li>
+                  <li class="mb-2">✓ Use bed only for sleep (not work or entertainment)</li>
+                  <li class="mb-2">✓ If can't sleep after 20 min, get up and do calming activity</li>
+                  <li class="mb-2">✓ Consider cognitive behavioral therapy for insomnia (CBT-I)</li>
+                {% elif prediction == "Sleep Apnea" %}
+                  <li class="mb-2">✓ Discuss CPAP therapy with doctor (gold standard treatment)</li>
+                  <li class="mb-2">✓ Elevate head of bed by 4-6 inches</li>
+                  <li class="mb-2">✓ Exercise regularly (improves symptoms)</li>
+                  <li class="mb-2">✓ Quit smoking (irritates airways)</li>
+                  <li class="mb-2">✓ Use nasal decongestant if congestion issues</li>
+                {% else %}
+                  <li class="mb-2">✓ Monitor sleep quality with journal or app</li>
+                  <li class="mb-2">✓ Stay physically active (150+ min/week)</li>
+                  <li class="mb-2">✓ Maintain balanced diet (avoid heavy meals before bed)</li>
+                  <li class="mb-2">✓ Manage stress through hobbies and social connections</li>
+                  <li class="mb-2">✓ Annual check-ups to monitor overall health</li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- When to Seek Help -->
+      {% if prediction != "None" %}
+      <div class="card border-0 shadow-sm mb-4" style="border-left: 4px solid #dc3545 !important;">
+        <div class="card-body p-4">
+          <h5 class="fw-bold text-danger mb-3">⚠️ When to Seek Medical Help</h5>
+          <p class="mb-2">Consult a healthcare provider or sleep specialist if you experience:</p>
+          <ul class="mb-0">
+            <li>Symptoms persisting for more than 3 months</li>
+            <li>Significant impact on daily functioning or quality of life</li>
+            <li>Loud snoring with gasping or choking sounds (potential sleep apnea)</li>
+            <li>Excessive daytime sleepiness despite adequate sleep time</li>
+            <li>Morning headaches or dry mouth upon waking</li>
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Model Info -->
+      <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h6 class="fw-bold mb-2">🤖 About This Analysis</h6>
+              <p class="mb-0 small">
+                This screening tool uses a machine learning model trained on sleep health data with <strong>87.1% accuracy</strong>. 
+                It analyzes sleep patterns, lifestyle factors, and health vitals to identify potential sleep disorders.
+                <span class="text-danger fw-bold">This is not a medical diagnosis.</span> Always consult a sleep specialist for proper evaluation and treatment.
+              </p>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="badge bg-primary px-3 py-2 fs-6">87.1% Accuracy</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="text-center mt-4">
+        <a href="{{ url_for('sleep.predict_sleep') }}" class="btn btn-primary btn-lg px-4 me-2">
+          🔁 Test Again
+        </a>
+        <a href="/" class="btn btn-outline-secondary btn-lg px-4">
+          🏠 Back to Home
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+</style>
+
+{% endblock %}

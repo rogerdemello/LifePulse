@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}Health Results{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold mb-2">🩺 Your Health Insights</h2>
+    <p class="text-muted">Comprehensive analysis of your health metrics</p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      
+      <!-- Metrics Cards Grid -->
+      <div class="row g-3 mb-4">
+        <!-- BMI Card -->
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm border-0 hover-lift">
+            <div class="card-body text-center p-4">
+              <div class="mb-2">
+                <span style="font-size: 2rem;">⚖️</span>
+              </div>
+              <h6 class="text-muted text-uppercase small mb-2">Body Mass Index</h6>
+              <h2 class="fw-bold mb-2">{{ bmi }}</h2>
+              <span class="badge 
+                {% if bmi_cat == 'Normal' %}bg-success{% elif bmi_cat == 'Overweight' %}bg-warning text-dark{% else %}bg-danger{% endif %} px-3 py-2">
+                {{ bmi_cat }}
+              </span>
+              <div class="mt-3">
+                <small class="text-muted">
+                  {% if bmi_cat == 'Underweight' %}
+                    Below 18.5
+                  {% elif bmi_cat == 'Normal' %}
+                    18.5 - 24.9
+                  {% elif bmi_cat == 'Overweight' %}
+                    25.0 - 29.9
+                  {% else %}
+                    30.0+
+                  {% endif %}
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BMR Card -->
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm border-0 hover-lift">
+            <div class="card-body text-center p-4">
+              <div class="mb-2">
+                <span style="font-size: 2rem;">🔥</span>
+              </div>
+              <h6 class="text-muted text-uppercase small mb-2">Basal Metabolic Rate</h6>
+              <h2 class="fw-bold mb-2">{{ bmr }}</h2>
+              <span class="text-muted">kcal/day</span>
+              <div class="mt-3">
+                <small class="text-muted">Calories burned at rest</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Calories Card -->
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm border-0 hover-lift">
+            <div class="card-body text-center p-4">
+              <div class="mb-2">
+                <span style="font-size: 2rem;">🍽️</span>
+              </div>
+              <h6 class="text-muted text-uppercase small mb-2">Daily Calorie Needs</h6>
+              <h2 class="fw-bold mb-2">{{ calorie_needs }}</h2>
+              <span class="text-muted">kcal/day</span>
+              <div class="mt-3">
+                <small class="text-muted">Based on activity level</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WHR Card -->
+        <div class="col-md-6">
+          <div class="card h-100 shadow-sm border-0 hover-lift">
+            <div class="card-body text-center p-4">
+              <div class="mb-2">
+                <span style="font-size: 2rem;">📏</span>
+              </div>
+              <h6 class="text-muted text-uppercase small mb-2">Waist-Hip Ratio</h6>
+              <h2 class="fw-bold mb-2">{{ wh_ratio }}</h2>
+              <div>
+                {% if wh_ratio > 0.9 %}
+                  <span class="badge bg-warning text-dark px-3 py-2">⚠️ Elevated Risk</span>
+                  <div class="mt-2">
+                    <small class="text-muted">Higher risk of metabolic disorders</small>
+                  </div>
+                {% else %}
+                  <span class="badge bg-success px-3 py-2">✅ Healthy Range</span>
+                  <div class="mt-2">
+                    <small class="text-muted">Good fat distribution</small>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BP Card -->
+        <div class="col-md-6">
+          <div class="card h-100 shadow-sm border-0 hover-lift">
+            <div class="card-body text-center p-4">
+              <div class="mb-2">
+                <span style="font-size: 2rem;">🩺</span>
+              </div>
+              <h6 class="text-muted text-uppercase small mb-2">Blood Pressure</h6>
+              <h3 class="fw-bold mb-2">{{ bp_cat }}</h3>
+              <div>
+                {% if bp_cat == 'Normal' %}
+                  <span class="badge bg-success px-3 py-2">✅ Healthy</span>
+                  <div class="mt-2">
+                    <small class="text-muted">Keep maintaining healthy habits</small>
+                  </div>
+                {% else %}
+                  <span class="badge bg-warning text-dark px-3 py-2">⚠️ Attention Needed</span>
+                  <div class="mt-2">
+                    <small class="text-muted">{{ bp_details if bp_details else 'Monitor regularly' }}</small>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warnings Section -->
+      {% if warnings %}
+      <div class="alert alert-warning border-0 shadow-sm mb-4" role="alert">
+        <div class="d-flex align-items-start">
+          <div class="me-3" style="font-size: 2rem;">⚠️</div>
+          <div class="flex-grow-1">
+            <h5 class="alert-heading mb-3">Important Health Considerations</h5>
+            <ul class="mb-0">
+              {% for warning in warnings %}
+                <li class="mb-2">{{ warning }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Gemini AI Health Advice -->
+      {% if advice %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <div class="d-flex align-items-center">
+            <span class="me-2" style="font-size: 1.5rem;">🤖</span>
+            <h5 class="mb-0">AI-Powered Health Recommendations</h5>
+          </div>
+        </div>
+        <div class="card-body p-4">
+          <div style="font-size: 1rem; line-height: 1.8;">{{ advice|safe }}</div>
+          <hr class="my-3">
+          <div class="d-flex align-items-center text-muted">
+            <small>
+              <strong>ⓘ Disclaimer:</strong> This AI-generated advice is for informational purposes only. 
+              Always consult a qualified healthcare professional for medical decisions.
+            </small>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Quick Stats Summary -->
+      <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3">📊 Quick Summary</h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted">Overall Assessment:</span>
+                <strong>
+                  {% if warnings|length == 0 %}
+                    <span class="text-success">✅ Excellent</span>
+                  {% elif warnings|length <= 2 %}
+                    <span class="text-warning">⚠️ Good with concerns</span>
+                  {% else %}
+                    <span class="text-danger">❗ Needs attention</span>
+                  {% endif %}
+                </strong>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted">Areas to Monitor:</span>
+                <strong>{{ warnings|length if warnings else 0 }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="text-center mt-4">
+        <a href="/health" class="btn btn-primary btn-lg px-4 me-2">
+          🔁 Calculate Again
+        </a>
+        <a href="/" class="btn btn-outline-secondary btn-lg px-4">
+          🏠 Back to Home
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+</style>
+
+{% endblock %}
+
+

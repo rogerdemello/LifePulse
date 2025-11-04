@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Migraine Risk Assessment Result - LifePulse{% endblock %}
+{% block description %}Your migraine risk evaluation with lifestyle-based triggers analysis and personalized prevention strategies.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold mb-2">🤕 Migraine Risk Assessment Results</h2>
+    <p class="text-muted">Your personalized migraine risk evaluation</p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      
+      <!-- Main Result Card -->
+      <div class="card border-0 shadow mb-4">
+        {% if 'No Migraine' in prediction %}
+          <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+        {% else %}
+          <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        {% endif %}
+          <div class="text-center">
+            <h3 class="mb-2">
+              {% if 'No Migraine' in prediction %}
+                ✅ Low Migraine Risk
+              {% else %}
+                ⚠️ Elevated Migraine Risk
+              {% endif %}
+            </h3>
+            <p class="mb-0 opacity-90">Assessment: <strong>{{ prediction }}</strong></p>
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <!-- Confidence Score -->
+          <div class="text-center mb-4 py-3">
+            {% if 'No Migraine' in prediction %}
+              <div class="display-1 mb-3">😊</div>
+              <h4 class="text-success mb-3">Low Risk Profile</h4>
+              <div class="mb-3">
+                <div class="d-inline-block px-4 py-2 rounded-pill" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                  <span class="text-white fw-bold fs-5">Confidence: {{ confidence }}%</span>
+                </div>
+              </div>
+              <p class="text-muted lead">
+                Your lifestyle factors suggest a lower likelihood of experiencing migraines. 
+                Your current habits appear to minimize common migraine triggers.
+              </p>
+            {% else %}
+              <div class="display-1 mb-3">🤕</div>
+              <h4 class="text-warning mb-3">Elevated Risk Profile</h4>
+              <div class="mb-3">
+                <div class="d-inline-block px-4 py-2 rounded-pill" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                  <span class="text-white fw-bold fs-5">Confidence: {{ confidence }}%</span>
+                </div>
+              </div>
+              <p class="text-muted lead">
+                Based on your lifestyle factors, you may be at increased risk for migraines. 
+                Several modifiable factors have been identified that you can address.
+              </p>
+            {% endif %}
+          </div>
+
+          <hr class="my-4">
+
+          <!-- Understanding Your Result -->
+          <div class="mb-4">
+            <h5 class="fw-bold mb-3">📖 Understanding Your Result</h5>
+            {% if 'No Migraine' in prediction %}
+              <div class="alert alert-success border-0 shadow-sm">
+                <h6 class="fw-bold mb-2">What This Means:</h6>
+                <p class="mb-2">
+                  A low-risk profile indicates that your current lifestyle habits—including sleep, hydration, stress management, 
+                  and dietary patterns—are aligned with migraine prevention best practices.
+                </p>
+                <p class="mb-0">
+                  <strong>Continue:</strong> Maintaining these healthy habits is key to keeping your risk low. Stay consistent 
+                  with sleep schedules, hydration, and stress management techniques.
+                </p>
+              </div>
+            {% else %}
+              <div class="alert alert-warning border-0 shadow-sm">
+                <h6 class="fw-bold mb-2">What This Means:</h6>
+                <p class="mb-2">
+                  An elevated risk profile suggests that certain lifestyle factors—such as inadequate sleep, dehydration, 
+                  high stress, irregular meals, or excessive screen time—may be creating conditions that trigger migraines.
+                </p>
+                <p class="mb-0">
+                  <strong>Good News:</strong> Most migraine triggers are modifiable! By addressing the recommendations below, 
+                  you can significantly reduce your migraine frequency and severity.
+                </p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendations Card -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <h5 class="mb-0">💡 Personalized Recommendations</h5>
+        </div>
+        <div class="card-body p-4">
+          {% if 'No Migraine' in prediction %}
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <h6 class="fw-bold text-success mb-3">✅ Keep Doing</h6>
+                <ul class="list-unstyled">
+                  <li class="mb-2">✓ Maintain your consistent sleep schedule (7-9 hours)</li>
+                  <li class="mb-2">✓ Continue staying well-hydrated throughout the day</li>
+                  <li class="mb-2">✓ Keep eating regular, balanced meals</li>
+                  <li class="mb-2">✓ Continue your physical activity routine</li>
+                  <li class="mb-2">✓ Maintain effective stress management practices</li>
+                </ul>
+              </div>
+              <div class="col-md-6 mb-3">
+                <h6 class="fw-bold text-primary mb-3">🎯 Prevention Tips</h6>
+                <ul class="list-unstyled">
+                  <li class="mb-2">📝 Keep a wellness journal to track patterns</li>
+                  <li class="mb-2">🌤️ Monitor weather changes (barometric pressure)</li>
+                  <li class="mb-2">🥗 Maintain balanced diet with regular meal times</li>
+                  <li class="mb-2">😎 Protect eyes from bright lights/screens</li>
+                  <li class="mb-2">🧘 Practice daily relaxation techniques</li>
+                </ul>
+              </div>
+            </div>
+          {% else %}
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <h6 class="fw-bold text-primary mb-3">🛏️ Sleep & Rest</h6>
+                <ul class="list-unstyled">
+                  <li class="mb-2">✓ <strong>Consistent schedule:</strong> Go to bed and wake at same time daily</li>
+                  <li class="mb-2">✓ <strong>7-9 hours:</strong> Aim for optimal sleep duration</li>
+                  <li class="mb-2">✓ <strong>Dark, cool room:</strong> Optimize sleep environment</li>
+                  <li class="mb-2">✓ <strong>Wind-down routine:</strong> 30 min before bed, no screens</li>
+                  <li class="mb-2">✓ <strong>Stress management:</strong> Try meditation, deep breathing, or yoga</li>
+                </ul>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <h6 class="fw-bold text-primary mb-3">💧 Nutrition & Hydration</h6>
+                <ul class="list-unstyled">
+                  <li class="mb-2">✓ <strong>Hydration goal:</strong> Drink 2-3 liters of water daily</li>
+                  <li class="mb-2">✓ <strong>Regular meals:</strong> Don't skip meals, especially breakfast</li>
+                  <li class="mb-2">✓ <strong>Caffeine caution:</strong> Limit to 1-2 cups, avoid after 2 PM</li>
+                  <li class="mb-2">✓ <strong>Avoid triggers:</strong> Aged cheese, processed meats, artificial sweeteners</li>
+                  <li class="mb-2">✓ <strong>Magnesium-rich:</strong> Leafy greens, nuts, whole grains</li>
+                </ul>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <h6 class="fw-bold text-primary mb-3">🏃 Physical Activity</h6>
+                <ul class="list-unstyled">
+                  <li class="mb-2">✓ <strong>Regular exercise:</strong> 30 min moderate activity, 5 days/week</li>
+                  <li class="mb-2">✓ <strong>Low-impact options:</strong> Walking, swimming, cycling, yoga</li>
+                  <li class="mb-2">✓ <strong>Warm-up gradually:</strong> Sudden intense exercise can trigger</li>
+                  <li class="mb-2">✓ <strong>Stay hydrated:</strong> Drink water before, during, after exercise</li>
+                  <li class="mb-2">✓ <strong>Listen to body:</strong> Stop if you feel migraine coming</li>
+                </ul>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <h6 class="fw-bold text-primary mb-3">💻 Screen & Environment</h6>
+                <ul class="list-unstyled">
+                  <li class="mb-2">✓ <strong>20-20-20 rule:</strong> Every 20 min, look 20 ft away for 20 sec</li>
+                  <li class="mb-2">✓ <strong>Blue light filter:</strong> Use on all devices, especially evening</li>
+                  <li class="mb-2">✓ <strong>Adjust brightness:</strong> Match screen to ambient light</li>
+                  <li class="mb-2">✓ <strong>Ergonomic setup:</strong> Proper posture, screen at eye level</li>
+                  <li class="mb-2">✓ <strong>Reduce glare:</strong> Use matte screens, adjust lighting</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Track Your Triggers -->
+            <div class="mt-4 p-3 rounded" style="background-color: #fff3cd; border-left: 4px solid #ffc107;">
+              <h6 class="fw-bold mb-2">📝 Track Your Triggers</h6>
+              <p class="mb-2 small">
+                Keep a migraine diary for at least 3 months. Record:
+              </p>
+              <ul class="small mb-0">
+                <li>Date, time, and duration of each migraine</li>
+                <li>Foods eaten 24 hours before</li>
+                <li>Sleep quality and hours</li>
+                <li>Stress levels and activities</li>
+                <li>Menstrual cycle (if applicable)</li>
+                <li>Weather conditions</li>
+              </ul>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- When to Seek Medical Help -->
+      <div class="card border-0 shadow-sm mb-4" style="border-left: 4px solid #dc3545 !important;">
+        <div class="card-body p-4">
+          <h5 class="fw-bold text-danger mb-3">⚠️ When to See a Doctor</h5>
+          <p class="mb-2">Consult a neurologist or headache specialist if you experience:</p>
+          <div class="row">
+            <div class="col-md-6">
+              <ul>
+                <li>Sudden, severe headache ("thunderclap")</li>
+                <li>Headache with fever, stiff neck, or confusion</li>
+                <li>Headache after head injury</li>
+                <li>Chronic headaches worsening over time</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <ul>
+                <li>Migraines occurring 15+ days per month</li>
+                <li>New neurological symptoms (vision changes, numbness)</li>
+                <li>Headaches disrupting daily life/work</li>
+                <li>Over-the-counter meds not helping</li>
+              </ul>
+            </div>
+          </div>
+          <div class="alert alert-info border-0 mt-3 mb-0">
+            <small>
+              <strong>💊 Treatment Options:</strong> A neurologist can prescribe preventive medications, 
+              acute treatments, or recommend specialized therapies like Botox injections or CGRP inhibitors 
+              for chronic migraines.
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model Info -->
+      <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
+              <p class="mb-0 small">
+                This tool uses an XGBoost machine learning model with feature engineering, analyzing 10+ lifestyle factors 
+                and 7 derived interactions (sleep-stress, hydration-caffeine, etc.) to predict migraine risk. 
+                Model accuracy: <strong>51%</strong> (migraine prediction is complex due to individual variability).
+                <span class="text-danger fw-bold">This is a screening tool, not a diagnosis.</span> 
+                Consult a neurologist for proper evaluation.
+              </p>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="badge bg-primary px-3 py-2 fs-6">51% Accuracy</div>
+              <div class="mt-2">
+                <small class="text-muted">XGBoost Model</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="text-center mt-4">
+        <a href="{{ url_for('migraine.predict_migraine') }}" class="btn btn-primary btn-lg px-4 me-2">
+          🔁 Test Again
+        </a>
+        <a href="/" class="btn btn-outline-secondary btn-lg px-4">
+          🏠 Back to Home
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+</style>
+
+{% endblock %}

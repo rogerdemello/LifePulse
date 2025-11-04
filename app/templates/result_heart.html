@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Heart Disease Risk Assessment Result - LifePulse{% endblock %}
+{% block description %}Your personalized heart disease risk assessment results with AI-powered analysis and health recommendations.{% endblock %}
+
+{% block content %}
+
+<div class="container py-5 text-center">
+  <h2 class="mb-4">Heart Disease Risk Result</h2>
+
+  <div class="card mx-auto shadow p-4" style="max-width: 500px;">
+    {% if prediction == "Yes" %}
+      <h4 class="text-danger">⚠️ High Risk of Heart Disease</h4>
+      <p>Based on your health indicators, there's a significant risk. Please consult a cardiologist and make lifestyle adjustments.</p>
+    {% else %}
+      <h4 class="text-success">✅ Low Risk of Heart Disease</h4>
+      <p>Your health indicators suggest low risk. Keep maintaining a healthy lifestyle.</p>
+    {% endif %}
+
+    <hr>
+
+    <p><strong>Prediction Value:</strong> {{ prediction }}</p>
+    <p><strong>Probability:</strong> {{ probability }}%</p>
+  </div>
+
+  <a href="{{ url_for('heart_disease.predict_heart_disease') }}" class="btn btn-primary mt-4">Try Again</a>
+  <a href="/" class="btn btn-secondary mt-4 ms-2">🏠 Home</a>
+</div>
+
+{% endblock %}
+

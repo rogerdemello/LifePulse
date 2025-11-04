@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Health Score Prediction{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold mb-2">🎯 Overall Health Score Assessment</h2>
+    <p class="text-muted">Get a comprehensive evaluation of your health based on lifestyle factors</p>
+  </div>
+  
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <form method="POST">
+            
+            <!-- Basic Information Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">👤 Basic Information</h5>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Age</label>
+                  <input type="number" name="Age" class="form-control" min="18" max="100" placeholder="e.g., 35" required>
+                  <small class="text-muted">18-100 years</small>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Body Mass Index (BMI)</label>
+                  <input type="number" name="BMI" step="0.1" class="form-control" min="15" max="50" placeholder="e.g., 24.5" required>
+                  <small class="text-muted">Healthy range: 18.5-24.9</small>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Sleep Duration</label>
+                  <input type="number" name="SleepHours" step="0.5" class="form-control" min="3" max="12" placeholder="e.g., 7.5" required>
+                  <small class="text-muted">Hours per night (Target: 7-9)</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lifestyle Habits Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">🏃 Lifestyle & Activity</h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Exercise Frequency</label>
+                  <select name="ExerciseFrequency" class="form-select" required>
+                    <option value="">Select activity level...</option>
+                    <option value="0">Never (0 days/week) - Sedentary</option>
+                    <option value="1">Rarely (1 day/week)</option>
+                    <option value="2">Sometimes (2 days/week)</option>
+                    <option value="3">Moderate (3 days/week) - Recommended minimum</option>
+                    <option value="4">Regular (4 days/week)</option>
+                    <option value="5">Frequent (5 days/week) - Optimal</option>
+                    <option value="6">Very Frequent (6 days/week)</option>
+                    <option value="7">Daily (7 days/week) - Athletic</option>
+                  </select>
+                  <small class="text-muted">WHO recommends 150+ min/week</small>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Diet Quality</label>
+                  <select name="DietQuality" class="form-select" required>
+                    <option value="">Rate your diet...</option>
+                    <option value="1">1 - Very Poor (fast food, processed)</option>
+                    <option value="2">2 - Poor</option>
+                    <option value="3">3 - Below Average</option>
+                    <option value="4">4 - Fair</option>
+                    <option value="5">5 - Average (mixed diet)</option>
+                    <option value="6">6 - Above Average</option>
+                    <option value="7">7 - Good (mostly healthy)</option>
+                    <option value="8">8 - Very Good (balanced, nutritious)</option>
+                    <option value="9">9 - Excellent (whole foods, varied)</option>
+                    <option value="10">10 - Outstanding (optimal nutrition)</option>
+                  </select>
+                  <small class="text-muted">Consider fruits, vegetables, whole grains, lean proteins</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Health Risk Factors Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">⚠️ Health Risk Factors</h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Smoking Status</label>
+                  <select name="SmokingStatus" class="form-select" required>
+                    <option value="">Select smoking status...</option>
+                    <option value="0">Non-smoker (Never smoked)</option>
+                    <option value="1">Former smoker (Quit)</option>
+                    <option value="2">Light smoker (< 10 cigarettes/day)</option>
+                    <option value="3">Moderate smoker (10-20 cigarettes/day)</option>
+                    <option value="4">Heavy smoker (> 20 cigarettes/day)</option>
+                  </select>
+                  <small class="text-muted">Smoking is the #1 preventable health risk</small>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Alcohol Consumption</label>
+                  <select name="AlcoholConsumption" class="form-select" required>
+                    <option value="">Select drinking pattern...</option>
+                    <option value="0">None (0 drinks/week)</option>
+                    <option value="1">Rare (1-2 drinks/week)</option>
+                    <option value="2">Light (3-5 drinks/week) - Moderate</option>
+                    <option value="3">Moderate (6-10 drinks/week)</option>
+                    <option value="4">Heavy (11-15 drinks/week) - Risky</option>
+                    <option value="5">Very Heavy (15+ drinks/week) - High risk</option>
+                  </select>
+                  <small class="text-muted">Moderate: ≤7 drinks/week (women), ≤14 (men)</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-grid gap-2 mt-4">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <span style="font-size: 1.2rem;">📊</span> Calculate My Health Score
+              </button>
+              <a href="/" class="btn btn-outline-secondary">
+                <span style="font-size: 1rem;">🏠</span> Back to Home
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- Info Cards -->
+      <div class="row g-3 mt-4">
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body text-white p-4">
+              <h6 class="fw-bold mb-2">📊 What We Measure</h6>
+              <ul class="mb-0 small">
+                <li>Body composition (BMI)</li>
+                <li>Sleep quality and duration</li>
+                <li>Physical activity levels</li>
+                <li>Nutritional habits</li>
+                <li>Substance use (smoking, alcohol)</li>
+                <li>Age-related health factors</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+            <div class="card-body text-white p-4">
+              <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
+              <p class="mb-0 small">
+                Our AI model uses Random Forest regression trained on comprehensive health data with 
+                <strong>83.4% accuracy (R²)</strong>. The score (0-100) reflects your overall health status 
+                based on modifiable lifestyle factors. <strong>Note:</strong> This is an assessment tool, 
+                not a medical diagnosis. Consult healthcare professionals for personalized advice.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

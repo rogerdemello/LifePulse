@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Migraine Prediction{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold mb-2">🤕 Migraine Risk Assessment</h2>
+    <p class="text-muted">Evaluate your migraine risk based on lifestyle and health factors</p>
+  </div>
+  
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <form method="POST">
+            
+            <!-- Personal Information Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">👤 Personal Information</h5>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Gender</label>
+                  <select name="Gender" class="form-select" required>
+                    <option value="">Select gender...</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                  <small class="text-muted">Women are 3x more likely to have migraines</small>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Age</label>
+                  <input type="number" name="Age" class="form-control" min="18" max="100" placeholder="e.g., 35" required>
+                  <small class="text-muted">Peak age: 35-45 years</small>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Menstrual Status</label>
+                  <select name="Menstruating" class="form-select" required>
+                    <option value="">Select status...</option>
+                    <option value="1">Currently Menstruating</option>
+                    <option value="0">Not Menstruating</option>
+                    <option value="2">Not Applicable</option>
+                  </select>
+                  <small class="text-muted">Hormonal factor</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sleep & Rest Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">😴 Sleep & Rest</h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Sleep Duration</label>
+                  <input type="number" name="SleepHours" step="0.5" class="form-control" min="3" max="12" placeholder="e.g., 7.5" required>
+                  <small class="text-muted">Hours per night (Optimal: 7-9 hours)</small>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Stress Level</label>
+                  <input type="number" name="Stress" class="form-control" min="1" max="10" placeholder="Rate 1-10" required>
+                  <small class="text-muted">1 = Very low, 10 = Extremely high stress</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Nutrition & Hydration Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">🍽️ Nutrition & Hydration</h5>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Water Intake</label>
+                  <input type="number" name="WaterIntake" step="0.1" class="form-control" min="0" max="5" placeholder="e.g., 2.5" required>
+                  <small class="text-muted">Liters per day (Target: 2-3L)</small>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Caffeine Intake</label>
+                  <input type="number" name="Caffeine" class="form-control" min="0" max="10" placeholder="e.g., 2" required>
+                  <small class="text-muted">Cups per day (Limit: 3-4 max)</small>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Meal Pattern</label>
+                  <select name="SkippedMeals" class="form-select" required>
+                    <option value="">Select pattern...</option>
+                    <option value="No">Regular Meals (No Skipping)</option>
+                    <option value="Yes">Skip Meals Often</option>
+                  </select>
+                  <small class="text-muted">Skipping meals can trigger migraines</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activity & Screen Time Section -->
+            <div class="mb-4">
+              <h5 class="fw-bold mb-3 text-primary">🏃 Activity & Screen Exposure</h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Physical Activity Frequency</label>
+                  <select name="PhysicalActivity" class="form-select" required>
+                    <option value="">Select frequency...</option>
+                    <option value="0">None (Sedentary)</option>
+                    <option value="1">1-2 days per week (Light)</option>
+                    <option value="2">3-5 days per week (Moderate)</option>
+                    <option value="3">Daily (Active)</option>
+                  </select>
+                  <small class="text-muted">Regular exercise can reduce migraine frequency</small>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Screen Time</label>
+                  <input type="number" name="ScreenTime" step="0.5" class="form-control" min="0" max="24" placeholder="e.g., 8" required>
+                  <small class="text-muted">Hours per day (including work, phone, TV)</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-grid gap-2 mt-4">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <span style="font-size: 1.2rem;">🔮</span> Assess Migraine Risk
+              </button>
+              <a href="/" class="btn btn-outline-secondary">
+                <span style="font-size: 1rem;">🏠</span> Back to Home
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- Info Cards -->
+      <div class="row g-3 mt-4">
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body text-white p-4">
+              <h6 class="fw-bold mb-2">💡 Common Migraine Triggers</h6>
+              <ul class="mb-0 small">
+                <li>Dehydration & skipped meals</li>
+                <li>Poor sleep or irregular sleep patterns</li>
+                <li>High stress & anxiety</li>
+                <li>Excessive caffeine or withdrawal</li>
+                <li>Prolonged screen time & bright lights</li>
+                <li>Hormonal changes (menstruation)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="card-body text-white p-4">
+              <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
+              <p class="mb-0 small">
+                Our AI model analyzes 10+ lifestyle factors to predict migraine risk using machine learning 
+                with <strong>51% accuracy</strong>. This is a screening tool based on common migraine triggers. 
+                <strong>Note:</strong> This is not a medical diagnosis. Consult a neurologist for proper evaluation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
