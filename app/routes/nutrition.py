@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request
-from utils.nutrition import (
+from app.utils.nutrition import (
     search_food_item,
     get_nutrition_details,
     food_benefits_disadvantages

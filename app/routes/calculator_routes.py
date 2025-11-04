@@ -1,6 +1,6 @@
 from flask import Blueprint, request, render_template, jsonify
-from utils.calculator import full_health_calculator
-from utils.gemini import get_health_advice  # ✅ Gemini AI integration
+from app.utils.calculator import full_health_calculator
+from app.utils.gemini import get_health_advice  # ✅ Gemini AI integration
 
 calculator_bp = Blueprint('calculator', __name__, url_prefix='/health')
 
