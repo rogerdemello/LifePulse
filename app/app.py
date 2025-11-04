@@ -7,10 +7,9 @@ load_dotenv()
 from app.routes.sleep import sleep_bp
 from app.routes.nutrition import nutrition_bp
 from app.routes.calculator_routes import calculator_bp
-from app.routes.heart import heart_disease_bp
+from app.routes.heart import heart_bp
 from app.routes.migraine import migraine_bp
 from app.routes.health_score import health_score_bp
-from app.routes.liver import liver_bp
 
 def create_app():
     app = Flask(__name__, template_folder='templates', static_folder='static')
@@ -23,10 +22,9 @@ def create_app():
     app.register_blueprint(sleep_bp)
     app.register_blueprint(nutrition_bp)
     app.register_blueprint(calculator_bp)
-    app.register_blueprint(heart_disease_bp)
+    app.register_blueprint(heart_bp)
     app.register_blueprint(migraine_bp)
     app.register_blueprint(health_score_bp)
-    app.register_blueprint(liver_bp)
 
     @app.route('/')
     def index():
