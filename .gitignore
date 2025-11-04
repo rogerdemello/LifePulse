@@ -56,5 +56,20 @@ saved_liver_model/        # Not used
 saved_models/             # Duplicate of app/models/heart/
 saved_sleep_model/        # Duplicate of app/models/sleep/
 
-# IMPORTANT: saved_regression_model/ is NEEDED - will be pushed!
-# IMPORTANT: app/models/ is NEEDED - will be pushed!
+
+# Keep only the LATEST model file to reduce size
+saved_regression_model/rf_health_model_20251103_205737.pkl
+saved_regression_model/rf_health_model_20251103_230506.pkl
+saved_regression_model/rf_health_model_20251103_232351.pkl
+saved_regression_model/features_20251103_205737.pkl
+saved_regression_model/features_20251103_230506.pkl
+saved_regression_model/features_20251103_232351.pkl
+saved_regression_model/scaler_20251103_205737.pkl
+saved_regression_model/scaler_20251103_230506.pkl
+saved_regression_model/scaler_20251103_232351.pkl
+
+# Keep only latest in app/models/sleep
+app/models/sleep/sleep_rf_model_20250704_004315.pkl
+app/models/sleep/label_encoders_20250704_004315.pkl
+app/models/sleep/scaler_20250704_004315.pkl
+app/models/sleep/target_encoder_20250704_004315.pkl
