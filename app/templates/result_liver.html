@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Liver Disease Result{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <!-- Main Result Card -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-body p-5 text-center">
+                    {% if 'No Liver Disease' in prediction %}
+                        <div class="mb-4">
+                            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                            </div>
+                        </div>
+                        <h2 class="text-success fw-bold mb-3">✅ {{ prediction }}</h2>
+                        <p class="lead text-muted">Your liver function tests appear normal</p>
+                    {% else %}
+                        <div class="mb-4">
+                            <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                                <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
+                            </div>
+                        </div>
+                        <h2 class="text-danger fw-bold mb-3">⚠️ {{ prediction }}</h2>
+                        <p class="lead text-muted">Please consult a healthcare provider immediately</p>
+                    {% endif %}
+                    
+                    <!-- Confidence Badge -->
+                    <div class="d-inline-block mt-3">
+                        <span class="badge bg-primary fs-5 px-4 py-2">
+                            Confidence: {{ confidence }}%
+                        </span>
+                    </div>
+
+                    <!-- Risk Level Badge -->
+                    <div class="mt-3">
+                        {% if risk_level == 'High' %}
+                            <span class="badge bg-danger fs-6 px-3 py-2">High Risk</span>
+                        {% elif risk_level == 'Moderate' %}
+                            <span class="badge bg-warning text-dark fs-6 px-3 py-2">Moderate Risk</span>
+                        {% else %}
+                            <span class="badge bg-success fs-6 px-3 py-2">Low Risk</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Results Summary -->
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Your Test Results</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% if test_results %}
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted">Age</small>
+                                    <p class="mb-0 fw-bold">{{ test_results.Age }} years</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted">Gender</small>
+                                    <p class="mb-0 fw-bold">{{ 'Male' if test_results.Gender == 1 else 'Female' }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted">Total Bilirubin</small>
+                                    <p class="mb-0 fw-bold">{{ test_results.Total_Bilirubin }} mg/dL</p>
+                                    <small class="text-muted">Normal: 0.3-1.2 mg/dL</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted">Direct Bilirubin</small>
+                                    <p class="mb-0 fw-bold">{{ test_results.Direct_Bilirubin }} mg/dL</p>
+                                    <small class="text-muted">Normal: 0.1-0.3 mg/dL</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted">Alkaline Phosphatase</small>
+                                    <p class="mb-0 fw-bold">{{ test_results.Alkaline_Phosphatase }} IU/L</p>
+                                    <small class="text-muted">Normal: 44-147 IU/L</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted">ALT (SGPT)</small>
+                                    <p class="mb-0 fw-bold">{{ test_results.Alamine_Aminotransferase }} IU/L</p>
+                                    <small class="text-muted">Normal: 7-56 IU/L</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted">AST (SGOT)</small>
+                                    <p class="mb-0 fw-bold">{{ test_results.Aspartate_Aminotransferase }} IU/L</p>
+                                    <small class="text-muted">Normal: 10-40 IU/L</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted">Total Protein</small>
+                                    <p class="mb-0 fw-bold">{{ test_results.Total_Protein }} g/dL</p>
+                                    <small class="text-muted">Normal: 6.0-8.3 g/dL</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted">Albumin</small>
+                                    <p class="mb-0 fw-bold">{{ test_results.Albumin }} g/dL</p>
+                                    <small class="text-muted">Normal: 3.5-5.5 g/dL</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations Section -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100 shadow border-0">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="bi bi-heart-pulse"></i> Health Recommendations</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if 'No Liver Disease' in prediction %}
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">✅ <strong>Maintain healthy weight</strong></li>
+                                    <li class="mb-2">✅ <strong>Balanced diet:</strong> Fruits, vegetables, whole grains</li>
+                                    <li class="mb-2">✅ <strong>Limit alcohol:</strong> Moderate consumption only</li>
+                                    <li class="mb-2">✅ <strong>Regular exercise:</strong> 150 min/week</li>
+                                    <li class="mb-2">✅ <strong>Stay hydrated:</strong> 8+ glasses of water daily</li>
+                                    <li class="mb-2">✅ <strong>Annual checkups:</strong> Monitor liver function</li>
+                                </ul>
+                            {% else %}
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">🚨 <strong>Consult hepatologist immediately</strong></li>
+                                    <li class="mb-2">🩺 <strong>Get comprehensive liver panel</strong></li>
+                                    <li class="mb-2">🚫 <strong>Avoid alcohol completely</strong></li>
+                                    <li class="mb-2">💊 <strong>Review medications with doctor</strong></li>
+                                    <li class="mb-2">🥗 <strong>Follow liver-friendly diet</strong></li>
+                                    <li class="mb-2">⚕️ <strong>Consider ultrasound/imaging tests</strong></li>
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100 shadow border-0">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Liver Health Tips</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="text-primary">🍎 Foods to Include:</h6>
+                            <ul class="mb-3">
+                                <li>Leafy greens (spinach, kale)</li>
+                                <li>Fatty fish (salmon, sardines)</li>
+                                <li>Nuts (walnuts, almonds)</li>
+                                <li>Olive oil</li>
+                                <li>Green tea</li>
+                            </ul>
+                            <h6 class="text-danger">🚫 Foods to Avoid:</h6>
+                            <ul>
+                                <li>Processed foods</li>
+                                <li>High-fat foods</li>
+                                <li>Excessive salt</li>
+                                <li>Sugary drinks</li>
+                                <li>Alcohol</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning Box -->
+            {% if 'Liver Disease' in prediction %}
+            <div class="alert alert-danger border-0 shadow-sm">
+                <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Immediate Action Required</h5>
+                <p class="mb-0">Liver disease detected. Please schedule an appointment with a hepatologist or gastroenterologist as soon as possible for proper diagnosis and treatment plan.</p>
+            </div>
+            {% endif %}
+
+            <!-- Disclaimer -->
+            <div class="alert alert-warning border-0 mb-4">
+                <small>
+                    <strong><i class="bi bi-shield-exclamation"></i> Medical Disclaimer:</strong> 
+                    This AI prediction is for informational purposes only and should not replace professional medical advice, diagnosis, or treatment. Always consult with qualified healthcare providers for medical decisions.
+                </small>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center">
+                <a href="{{ url_for('liver.predict_liver') }}" class="btn btn-primary btn-lg me-2">
+                    <i class="bi bi-arrow-repeat"></i> Test Again
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-house"></i> Home
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
