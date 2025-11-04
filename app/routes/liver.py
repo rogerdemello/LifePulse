@@ -29,14 +29,18 @@ try:
     print("✅ Liver disease model loaded successfully!")
 except Exception as e:
     print(f"⚠️  Liver model not found: {e}")
+    print("   Liver disease predictions will be unavailable until model is trained.")
     model = None
+    scaler = None
+    feature_names = None
 
 
 @liver_bp.route('/', methods=['GET', 'POST'])
 def predict_liver():
     if request.method == 'POST':
         if model is None:
-            return "Liver disease model not available", 500
+            return render_template('predict_liver.html', 
+                                 error="Liver disease model is not available yet. The model needs to be trained first.")
             
         try:
             # Get form data

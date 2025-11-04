@@ -10,6 +10,18 @@
         <p class="text-muted">Enter your liver function test results for AI-powered analysis</p>
     </div>
 
+    {% if error %}
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Model Not Available</h5>
+                <p class="mb-0">{{ error }}</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-lg border-0">
