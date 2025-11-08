@@ -13,6 +13,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Show loading overlay on form submission
+  const forms = document.querySelectorAll('form[method="post"]');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  
+  forms.forEach(form => {
+    form.addEventListener('submit', function(e) {
+      // Check if form is valid before showing loading
+      if (form.checkValidity()) {
+        loadingOverlay.classList.add('active');
+      }
+    });
+  });
+
   // Optional: Flash messages fade out (but NOT warning alerts)
   const flash = document.querySelector('.alert.alert-dismissible, .flash-message');
   if (flash) {
