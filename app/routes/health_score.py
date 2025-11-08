@@ -18,15 +18,23 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
 MODELS_DIR = os.path.join(BASE_DIR, 'models', 'health_score')
 
-model_path = get_latest_file(os.path.join(MODELS_DIR, 'rf_health_model_*.pkl'))
-scaler_path = get_latest_file(os.path.join(MODELS_DIR, 'scaler_*.pkl'))
-features_path = get_latest_file(os.path.join(MODELS_DIR, 'features_*.pkl'))
+try:
+    model_path = get_latest_file(os.path.join(MODELS_DIR, 'rf_health_model_*.pkl'))
+    scaler_path = get_latest_file(os.path.join(MODELS_DIR, 'scaler_*.pkl'))
+    features_path = get_latest_file(os.path.join(MODELS_DIR, 'features_*.pkl'))
 
-model = joblib.load(model_path)
-scaler = joblib.load(scaler_path)
-feature_names = joblib.load(features_path)
+    model = joblib.load(model_path)
+    scaler = joblib.load(scaler_path)
+    feature_names = joblib.load(features_path)
 
-print("✅ Health score model loaded successfully!")
+    print("✅ Health score model loaded successfully!")
+except Exception as e:
+    print(f"⚠️  Health score model not found: {e}")
+    print(f"   Looking in: {MODELS_DIR}")
+    print("   Health score predictions will be unavailable until model is trained.")
+    model = None
+    scaler = None
+    feature_names = None
 
 
 def bmi_category(bmi):
@@ -43,6 +51,10 @@ def bmi_category(bmi):
 @health_score_bp.route('/', methods=['GET', 'POST'])
 def predict_health_score():
     if request.method == 'POST':
+        if model is None:
+            return render_template('predict_health_score.html', 
+                                 error="Health score model is not available yet. Please try again later.")
+        
         try:
             form_data = request.form.to_dict()
             
