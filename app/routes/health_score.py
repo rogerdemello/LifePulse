@@ -15,8 +15,8 @@ def get_latest_file(pattern):
     return max(files, key=os.path.getctime)
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..', '..'))
-MODELS_DIR = os.path.join(BASE_DIR, 'saved_regression_model')
+BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
+MODELS_DIR = os.path.join(BASE_DIR, 'models', 'health_score')
 
 model_path = get_latest_file(os.path.join(MODELS_DIR, 'rf_health_model_*.pkl'))
 scaler_path = get_latest_file(os.path.join(MODELS_DIR, 'scaler_*.pkl'))
