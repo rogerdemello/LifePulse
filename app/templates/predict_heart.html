@@ -2,151 +2,204 @@
 {% block content %}
 
 <div class="container py-5">
-  <h2 class="mb-4 text-center">❤️ Heart Disease Risk Prediction</h2>
-  <p class="text-center text-muted mb-4">Answer these questions to assess your heart disease risk</p>
+  <div class="text-center mb-4">
+    <h2 class="fw-bold mb-2">❤️ Heart Disease Risk Prediction</h2>
+    <p class="text-muted">Answer these questions to assess your heart disease risk</p>
+  </div>
   
-  <form action="{{ url_for('heart_disease.predict_heart_disease') }}" method="POST" class="row g-3">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <form action="{{ url_for('heart_disease.predict_heart_disease') }}" method="POST">
 
-    <!-- Basic Info -->
-    <div class="col-md-4">
-      <label for="age" class="form-label">Age</label>
-      <input type="number" class="form-control" name="age" min="18" max="120" required>
+            <!-- Basic Info Section -->
+            <h5 class="fw-bold mb-3 text-primary">
+              <i class="bi bi-person-fill"></i> Basic Information
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label for="age" class="form-label">Age</label>
+                <input type="number" class="form-control" name="age" min="18" max="120" required>
+              </div>
+
+              <div class="col-md-4">
+                <label for="sex" class="form-label">Gender</label>
+                <select class="form-select" name="sex" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">Female</option>
+                  <option value="1">Male</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="bmi" class="form-label">BMI</label>
+                <input type="number" step="0.1" class="form-control" name="bmi" placeholder="e.g., 24.5" required>
+              </div>
+            </div>
+
+            <!-- Health Conditions Section -->
+            <h5 class="fw-bold mb-3 text-danger">
+              <i class="bi bi-heart-pulse-fill"></i> Health Conditions
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label for="high_bp" class="form-label">High Blood Pressure?</label>
+                <select class="form-select" name="high_bp" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="high_chol" class="form-label">High Cholesterol?</label>
+                <select class="form-select" name="high_chol" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="chol_check" class="form-label">Cholesterol Check?</label>
+                <small class="text-muted d-block mb-1">(Last 5 years)</small>
+                <select class="form-select" name="chol_check" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="stroke" class="form-label">Ever Had Stroke?</label>
+                <select class="form-select" name="stroke" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="diabetes" class="form-label">Diabetes Status</label>
+                <select class="form-select" name="diabetes" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Prediabetes</option>
+                  <option value="2">Yes</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="diff_walk" class="form-label">Difficulty Walking?</label>
+                <small class="text-muted d-block mb-1">(Stairs/climbing)</small>
+                <select class="form-select" name="diff_walk" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Lifestyle Section -->
+            <h5 class="fw-bold mb-3 text-success">
+              <i class="bi bi-activity"></i> Lifestyle Habits
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label for="phys_activity" class="form-label">Physical Activity?</label>
+                <small class="text-muted d-block mb-1">(Last 30 days)</small>
+                <select class="form-select" name="phys_activity" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="smoker" class="form-label">Smoker?</label>
+                <small class="text-muted d-block mb-1">(100+ cigarettes lifetime)</small>
+                <select class="form-select" name="smoker" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="alcohol" class="form-label">Heavy Alcohol Use?</label>
+                <small class="text-muted d-block mb-1">(M: 14+/wk, F: 7+/wk)</small>
+                <select class="form-select" name="alcohol" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="fruit" class="form-label">Daily Fruit Intake?</label>
+                <select class="form-select" name="fruit" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="veggies" class="form-label">Daily Vegetable Intake?</label>
+                <select class="form-select" name="veggies" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="gen_health" class="form-label">General Health</label>
+                <select class="form-select" name="gen_health" required>
+                  <option value="" selected disabled>Select...</option>
+                  <option value="1">Excellent</option>
+                  <option value="2">Very Good</option>
+                  <option value="3">Good</option>
+                  <option value="4">Fair</option>
+                  <option value="5">Poor</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Health Status Section -->
+            <h5 class="fw-bold mb-3 text-info">
+              <i class="bi bi-clipboard2-pulse"></i> Recent Health Status
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="phys_health" class="form-label">Physical Health Issues</label>
+                <small class="text-muted d-block mb-1">Days in last month feeling physically unwell</small>
+                <input type="number" min="0" max="30" class="form-control" name="phys_health" placeholder="0-30 days" required>
+              </div>
+
+              <div class="col-md-6">
+                <label for="ment_health" class="form-label">Mental Health Issues</label>
+                <small class="text-muted d-block mb-1">Days in last month feeling stressed/anxious</small>
+                <input type="number" min="0" max="30" class="form-control" name="ment_health" placeholder="0-30 days" required>
+              </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-grid gap-2 mt-4">
+              <button type="submit" class="btn btn-danger btn-lg">
+                <i class="bi bi-search"></i> Predict Heart Disease Risk
+              </button>
+              <a href="/" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-house-fill"></i> Back to Home
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
     </div>
-
-    <div class="col-md-4">
-      <label for="sex" class="form-label">Gender</label>
-      <select class="form-select" name="sex" required>
-        <option value="0">Female</option>
-        <option value="1">Male</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label for="bmi" class="form-label">BMI</label>
-      <input type="number" step="0.1" class="form-control" name="bmi" placeholder="e.g., 24.5" required>
-    </div>
-
-    <!-- Health Conditions -->
-    <div class="col-md-4">
-      <label for="high_bp" class="form-label">High Blood Pressure?</label>
-      <select class="form-select" name="high_bp" required>
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label for="high_chol" class="form-label">High Cholesterol?</label>
-      <select class="form-select" name="high_chol" required>
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label for="chol_check" class="form-label">Cholesterol Check (Last 5 years)?</label>
-      <select class="form-select" name="chol_check" required>
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label for="stroke" class="form-label">Ever Had Stroke?</label>
-      <select class="form-select" name="stroke" required>
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label for="diabetes" class="form-label">Diabetes Status</label>
-      <select class="form-select" name="diabetes" required>
-        <option value="0">No</option>
-        <option value="1">Prediabetes</option>
-        <option value="2">Yes</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label for="diff_walk" class="form-label">Difficulty Walking/Climbing Stairs?</label>
-      <select class="form-select" name="diff_walk" required>
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-      </select>
-    </div>
-
-    <!-- Lifestyle -->
-    <div class="col-md-4">
-      <label for="phys_activity" class="form-label">Physical Activity (Last 30 days)?</label>
-      <select class="form-select" name="phys_activity" required>
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label for="smoker" class="form-label">Smoker (100+ cigarettes lifetime)?</label>
-      <select class="form-select" name="smoker" required>
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label for="alcohol" class="form-label">Heavy Alcohol Use?</label>
-      <small class="text-muted d-block">(Men: 14+ drinks/week, Women: 7+)</small>
-      <select class="form-select" name="alcohol" required>
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label for="fruit" class="form-label">Daily Fruit Intake?</label>
-      <select class="form-select" name="fruit" required>
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label for="veggies" class="form-label">Daily Vegetable Intake?</label>
-      <select class="form-select" name="veggies" required>
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-      </select>
-    </div>
-
-    <!-- Health Status -->
-    <div class="col-md-4">
-      <label for="gen_health" class="form-label">General Health</label>
-      <select class="form-select" name="gen_health" required>
-        <option value="1">Excellent</option>
-        <option value="2">Very Good</option>
-        <option value="3">Good</option>
-        <option value="4">Fair</option>
-        <option value="5">Poor</option>
-      </select>
-    </div>
-
-    <div class="col-md-6">
-      <label for="phys_health" class="form-label">Physical Health Issues</label>
-      <small class="text-muted d-block mb-1">Days in last month feeling physically unwell</small>
-      <input type="number" min="0" max="30" class="form-control" name="phys_health" placeholder="0-30 days" required>
-    </div>
-
-    <div class="col-md-6">
-      <label for="ment_health" class="form-label">Mental Health Issues</label>
-      <small class="text-muted d-block mb-1">Days in last month feeling stressed/anxious</small>
-      <input type="number" min="0" max="30" class="form-control" name="ment_health" placeholder="0-30 days" required>
-    </div>
-
-    <div class="d-grid gap-2 mt-4">
-      <button type="submit" class="btn btn-danger btn-lg">🔍 Predict Heart Disease Risk</button>
-    </div>
-
-  </form>
+  </div>
 </div>
 
 {% endblock %}

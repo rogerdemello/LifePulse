@@ -73,3 +73,4 @@ app/models/sleep/sleep_rf_model_20250704_004315.pkl
 app/models/sleep/label_encoders_20250704_004315.pkl
 app/models/sleep/scaler_20250704_004315.pkl
 app/models/sleep/target_encoder_20250704_004315.pkl
+.vercel

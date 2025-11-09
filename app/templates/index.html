@@ -12,19 +12,30 @@
 {% block content %}
 
 <!-- Hero Section -->
-<div class="hero-section text-center py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+<div class="hero-section text-center py-5">
   <div class="container">
-    <h1 class="display-3 fw-bold mb-3" data-aos="fade-down">Welcome to LifePulse</h1>
-    <p class="lead fs-4 mb-4" data-aos="fade-up" data-aos-delay="100">AI-powered health predictions and insights at your fingertips</p>
-    <p class="mb-0" data-aos="fade-up" data-aos-delay="200">Track your wellness journey with intelligent health assessments</p>
+    <h1 class="display-3 fw-bold mb-3" data-aos="fade-down">
+      Welcome to <span style="color: #fff; text-shadow: 0 0 30px rgba(255,255,255,0.5);">LifePulse</span>
+    </h1>
+    <p class="lead fs-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+      AI-powered health predictions and insights at your fingertips
+    </p>
+    <p class="mb-4" data-aos="fade-up" data-aos-delay="200">
+      Track your wellness journey with intelligent health assessments
+    </p>
+    <div data-aos="fade-up" data-aos-delay="300">
+      <a href="#modules" class="btn btn-light btn-lg" style="background: rgba(255,255,255,0.95); color: #667eea; font-weight: 700; padding: 1rem 2.5rem; box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
+        Get Started <i class="bi bi-arrow-down-circle ms-2"></i>
+      </a>
+    </div>
   </div>
 </div>
 
 <!-- Main Content -->
-<div class="container py-5">
+<div class="container py-5" id="modules">
   <div class="text-center mb-5">
-    <h2 class="fw-bold mb-2" data-aos="fade-up">Choose Your Health Module</h2>
-    <p class="text-muted" data-aos="fade-up" data-aos-delay="100">Select a tool below to get personalized health insights</p>
+    <h2 class="fw-bold mb-3 section-title" data-aos="fade-up">Choose Your Health Module</h2>
+    <p class="text-muted fs-5" data-aos="fade-up" data-aos-delay="100">Select a tool below to get personalized health insights</p>
   </div>
 
   <div class="row g-4">
@@ -35,12 +46,14 @@
         <div class="card-body text-center p-4">
           <div class="mb-3">
             <div class="icon-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-calculator" style="font-size: 2.5rem; color: #0d6efd;"></i>
+              <i class="bi bi-calculator feature-icon" style="font-size: 2.5rem; color: #0d6efd;"></i>
             </div>
           </div>
           <h5 class="card-title fw-bold mb-3">Health Calculator</h5>
           <p class="card-text text-muted mb-4">Calculate BMI, BMR, calorie needs, blood pressure status, and more metrics</p>
-          <a href="/health" class="btn btn-primary btn-lg w-100">Start Calculation</a>
+          <a href="/health" class="btn btn-primary btn-lg w-100">
+            Start Calculation <i class="bi bi-arrow-right ms-2"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -51,12 +64,14 @@
         <div class="card-body text-center p-4">
           <div class="mb-3">
             <div class="icon-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-heart-pulse" style="font-size: 2.5rem; color: #dc3545;"></i>
+              <i class="bi bi-heart-pulse feature-icon" style="font-size: 2.5rem; color: #dc3545;"></i>
             </div>
           </div>
           <h5 class="card-title fw-bold mb-3">Heart Disease Risk</h5>
           <p class="card-text text-muted mb-4">Assess your cardiovascular health and get personalized risk analysis</p>
-          <a href="/heart_disease" class="btn btn-danger btn-lg w-100">Check Risk</a>
+          <a href="/heart_disease" class="btn btn-danger btn-lg w-100">
+            Check Risk <i class="bi bi-arrow-right ms-2"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -67,12 +82,14 @@
         <div class="card-body text-center p-4">
           <div class="mb-3">
             <div class="icon-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-moon-stars" style="font-size: 2.5rem; color: #0dcaf0;"></i>
+              <i class="bi bi-moon-stars feature-icon" style="font-size: 2.5rem; color: #0dcaf0;"></i>
             </div>
           </div>
           <h5 class="card-title fw-bold mb-3">Sleep Disorder</h5>
           <p class="card-text text-muted mb-4">Analyze your sleep patterns and identify potential sleep disorders</p>
-          <a href="/sleep" class="btn btn-info btn-lg w-100">Analyze Sleep</a>
+          <a href="/sleep" class="btn btn-info btn-lg w-100">
+            Analyze Sleep <i class="bi bi-arrow-right ms-2"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -83,12 +100,14 @@
         <div class="card-body text-center p-4">
           <div class="mb-3">
             <div class="icon-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-lightning" style="font-size: 2.5rem; color: #ffc107;"></i>
+              <i class="bi bi-lightning feature-icon" style="font-size: 2.5rem; color: #ffc107;"></i>
             </div>
           </div>
           <h5 class="card-title fw-bold mb-3">Migraine Risk</h5>
           <p class="card-text text-muted mb-4">Estimate migraine likelihood based on your lifestyle and habits</p>
-          <a href="/migraine" class="btn btn-warning btn-lg w-100">Assess Risk</a>
+          <a href="/migraine" class="btn btn-warning btn-lg w-100">
+            Assess Risk <i class="bi bi-arrow-right ms-2"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -99,12 +118,14 @@
         <div class="card-body text-center p-4">
           <div class="mb-3">
             <div class="icon-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-clipboard2-pulse" style="font-size: 2.5rem; color: #198754;"></i>
+              <i class="bi bi-clipboard2-pulse feature-icon" style="font-size: 2.5rem; color: #198754;"></i>
             </div>
           </div>
           <h5 class="card-title fw-bold mb-3">Overall Health Score</h5>
           <p class="card-text text-muted mb-4">Get comprehensive health rating based on lifestyle factors</p>
-          <a href="/health-score" class="btn btn-success btn-lg w-100">Calculate Score</a>
+          <a href="/health-score" class="btn btn-success btn-lg w-100">
+            Calculate Score <i class="bi bi-arrow-right ms-2"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -115,12 +136,14 @@
         <div class="card-body text-center p-4">
           <div class="mb-3">
             <div class="icon-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-egg-fried" style="font-size: 2.5rem; color: #198754;"></i>
+              <i class="bi bi-egg-fried feature-icon" style="font-size: 2.5rem; color: #198754;"></i>
             </div>
           </div>
           <h5 class="card-title fw-bold mb-3">Nutrition Explorer</h5>
           <p class="card-text text-muted mb-4">Discover food benefits, nutrients, and health impacts</p>
-          <a href="/nutrition" class="btn btn-success btn-lg w-100">Explore Foods</a>
+          <a href="/nutrition" class="btn btn-success btn-lg w-100">
+            Explore Foods <i class="bi bi-arrow-right ms-2"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -129,41 +152,47 @@
 
   <!-- Features Section -->
   <div class="row mt-5 pt-5">
-    <div class="col-12 text-center mb-4">
-      <h3 class="fw-bold" data-aos="fade-up">Why Choose LifePulse?</h3>
+    <div class="col-12 text-center mb-5">
+      <h3 class="fw-bold fs-2 mb-2" data-aos="fade-up">Why Choose LifePulse?</h3>
+      <p class="text-muted fs-5" data-aos="fade-up" data-aos-delay="100">Powered by advanced technology for your health</p>
     </div>
     <div class="col-md-4 text-center mb-4" data-aos="zoom-in" data-aos-delay="100">
       <div class="mb-3">
-        <i class="bi bi-cpu" style="font-size: 3rem; color: #667eea;"></i>
+        <i class="bi bi-cpu feature-icon" style="font-size: 3.5rem;"></i>
       </div>
-      <h5 class="fw-bold">AI-Powered</h5>
+      <h5 class="fw-bold mb-2">AI-Powered</h5>
       <p class="text-muted">Advanced machine learning models for accurate predictions</p>
     </div>
     <div class="col-md-4 text-center mb-4" data-aos="zoom-in" data-aos-delay="200">
       <div class="mb-3">
-        <i class="bi bi-graph-up-arrow" style="font-size: 3rem; color: #667eea;"></i>
+        <i class="bi bi-graph-up-arrow feature-icon" style="font-size: 3.5rem;"></i>
       </div>
-      <h5 class="fw-bold">Data-Driven</h5>
+      <h5 class="fw-bold mb-2">Data-Driven</h5>
       <p class="text-muted">Evidence-based insights from comprehensive health data</p>
     </div>
     <div class="col-md-4 text-center mb-4" data-aos="zoom-in" data-aos-delay="300">
       <div class="mb-3">
-        <i class="bi bi-shield-check" style="font-size: 3rem; color: #667eea;"></i>
+        <i class="bi bi-shield-check feature-icon" style="font-size: 3.5rem;"></i>
       </div>
-      <h5 class="fw-bold">Private & Secure</h5>
+      <h5 class="fw-bold mb-2">Private & Secure</h5>
       <p class="text-muted">Your health data stays with you, no storage required</p>
     </div>
   </div>
 </div>
 
-<style>
-.hover-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.hover-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
-}
-</style>
+<script>
+  // Welcome toast on first visit
+  document.addEventListener('DOMContentLoaded', () => {
+    // Check if it's first visit (you can use sessionStorage)
+    if (!sessionStorage.getItem('welcomeShown')) {
+      setTimeout(() => {
+        if (window.toast) {
+          toast.info('👋 Welcome to LifePulse! Select a health module to get started.', 5000);
+        }
+        sessionStorage.setItem('welcomeShown', 'true');
+      }, 1000);
+    }
+  });
+</script>
 
 {% endblock %}
