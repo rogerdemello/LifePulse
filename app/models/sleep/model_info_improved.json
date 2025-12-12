@@ -1,0 +1,52 @@
+{
+    "accuracy": 0.7833333333333333,
+    "cv_mean": 0.795,
+    "cv_std": 0.037305048809332324,
+    "model_params": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "class_weight": "balanced",
+        "criterion": "gini",
+        "max_depth": 15,
+        "max_features": "sqrt",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 2,
+        "min_samples_split": 5,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "n_estimators": 200,
+        "n_jobs": -1,
+        "oob_score": false,
+        "random_state": 42,
+        "verbose": 0,
+        "warm_start": false
+    },
+    "features": [
+        "Gender",
+        "Age",
+        "Occupation",
+        "Sleep Duration",
+        "Quality of Sleep",
+        "Physical Activity Level",
+        "Stress Level",
+        "Heart Rate",
+        "Daily Steps",
+        "BMI Category",
+        "Sleep_Quality_Ratio",
+        "Activity_Stress_Ratio",
+        "Steps_per_Hour_Awake",
+        "Heart_Stress_Product",
+        "Sleep_Deficit",
+        "Age_Group",
+        "Systolic",
+        "Diastolic",
+        "Blood_Pressure_Mean"
+    ],
+    "classes": [
+        "Insomnia",
+        "Sleep Apnea"
+    ],
+    "trained_date": "2025-12-12 07:48:14"
+}

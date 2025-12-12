@@ -1,31 +1,19 @@
 from flask import Blueprint, render_template, request
 import numpy as np
 import pandas as pd
-import joblib
 import os
 
 heart_disease_bp = Blueprint('heart_disease', __name__, url_prefix='/heart_disease')
 
-# ✅ Use absolute path for model directory
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))  # routes/
-BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))  # app/
-MODEL_DIR = os.path.join(BASE_DIR, 'models', 'heart')  # app/models/heart
+# Load model wrapper (handles inference locally, no API calls)
+from app.utils.onnx_inference import get_model
 
-def load_latest_file(prefix):
-    if not os.path.exists(MODEL_DIR):
-        raise FileNotFoundError(f"❌ Model folder not found: {MODEL_DIR}")
-
-    files = sorted([f for f in os.listdir(MODEL_DIR) if prefix in f], reverse=True)
-    
-    if not files:
-        raise FileNotFoundError(f"❌ No file found with prefix '{prefix}' in {MODEL_DIR}")
-
-    latest_file = files[0]
-    return joblib.load(os.path.join(MODEL_DIR, latest_file))
-
-# ✅ Load model and scaler
-model = load_latest_file("heart_disease_model")
-scaler = load_latest_file("scaler")
+try:
+    model_wrapper = get_model('heart')
+    print("✅ Heart disease model loaded successfully!")
+except Exception as e:
+    print(f"⚠️  Heart disease model not found: {e}")
+    model_wrapper = None
 
 @heart_disease_bp.route('/', methods=['GET', 'POST'])
 def predict_heart_disease():
@@ -63,24 +51,23 @@ def predict_heart_disease():
             bmi_cat_over = int(25 <= bmi < 30)
             bmi_cat_underweight = int(bmi < 18.5)
 
-            # ✅ Create DataFrame with EXACT column order as training
-            input_data = pd.DataFrame([[  
-                high_bp, high_chol, chol_check, bmi, smoker, stroke, diabetes,
-                phys_activity, fruits, veggies, alcohol, gen_health, ment_health,
-                phys_health, diff_walk, sex, age, education, income,
-                health_score, lifestyle_score,
-                bmi_cat_obese, bmi_cat_over, bmi_cat_underweight
-            ]], columns=[
-                'HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke', 'Diabetes',
-                'PhysActivity', 'Fruits', 'Veggies', 'HvyAlcoholConsump', 'GenHlth', 'MentHlth',
-                'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income',
-                'Health_Score', 'Lifestyle_Score',
-                'BMI_Category_Obese', 'BMI_Category_Overweight', 'BMI_Category_Underweight'
-            ])
+            # Create input dict with feature names
+            input_dict = {
+                'HighBP': high_bp, 'HighChol': high_chol, 'CholCheck': chol_check,
+                'BMI': bmi, 'Smoker': smoker, 'Stroke': stroke, 'Diabetes': diabetes,
+                'PhysActivity': phys_activity, 'Fruits': fruits, 'Veggies': veggies,
+                'HvyAlcoholConsump': alcohol, 'GenHlth': gen_health, 'MentHlth': ment_health,
+                'PhysHlth': phys_health, 'DiffWalk': diff_walk, 'Sex': sex, 'Age': age,
+                'Education': education, 'Income': income,
+                'Health_Score': health_score, 'Lifestyle_Score': lifestyle_score,
+                'BMI_Category_Obese': bmi_cat_obese,
+                'BMI_Category_Overweight': bmi_cat_over,
+                'BMI_Category_Underweight': bmi_cat_underweight
+            }
 
-            # ✅ Predict
-            input_scaled = scaler.transform(input_data)
-            prob = model.predict_proba(input_scaled)[0][1]
+            # Predict using local model (no API calls)
+            prob_array = model_wrapper.predict_proba(input_dict)
+            prob = prob_array[0][1]
             prediction = "Yes" if prob > 0.5 else "No"
 
             return render_template('result_heart.html', 

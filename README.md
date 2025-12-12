@@ -51,9 +51,9 @@
 - Binary classification model
 - **Accuracy:** 51%
 
-### 🥗 Nutrition Tracker (Powered by Gemini AI)
-- AI-driven dietary analysis
-- Personalized nutrition recommendations
+### 🥗 Nutrition Tracker (Local recommendations)
+- Rule-based dietary analysis with optional USDA integration
+- Personalized nutrition suggestions (no external AI calls by default)
 - USDA FoodData Central integration
 - Real-time nutritional insights
 
@@ -65,7 +65,7 @@
 - **Framework:** Flask 2.3.2
 - **WSGI Server:** Gunicorn
 - **ML Libraries:** scikit-learn, pandas, numpy, joblib
-- **AI Integration:** Google Gemini API
+- **AI Integration:** Optional cloud AI (disabled by default); uses local rule-based recommendations
 
 ### Frontend
 - **UI Framework:** Bootstrap 5.3.0
@@ -80,14 +80,16 @@
 
 ---
 
-## 🤖 ML Models & Accuracy
+## 🤖 ML Models & Accuracy (Updated Dec 2025)
 
 | Feature | Algorithm | Accuracy | Model Size | Parameters |
 |---------|-----------|----------|------------|------------|
-| Heart Disease | Random Forest | **91%** | 6.2 MB | 22 features |
-| Sleep Disorder | Random Forest | **87.1%** | Multi-file | 13 features |
-| Health Score | Random Forest Regressor | **54.8% R²** | 3 models | 11 features |
-| Migraine | SVM | **51%** | < 1 MB | 8 features |
+| Heart Disease | Random Forest | **87.2%** | 6.3 MB | 27 features |
+| Sleep Disorder | Random Forest | **78.3%** | Multi-file | 19 features |
+| Health Score | Random Forest Regressor | **81.9% R²** ⬆️ | 3 models | 26 features |
+| Migraine | Random Forest + SMOTE | **82.0%** ⬆️ | 6.3 MB | 20 features |
+
+> ⬆️ **Major Improvements:** Migraine (+31%), Health Score (+27.1% R²)
 
 ### Model Details
 
@@ -148,7 +150,7 @@ pip install -r requirements.txt
 Create a `.env` file in the root directory:
 ```env
 SECRET_KEY=your-secret-key-here
-GEMINI_API_KEY=your-gemini-api-key
+# Optional: set `OPENAI_API_KEY` or other provider if you enable cloud AI features
 USDA_API_KEY=your-usda-api-key
 ```
 
@@ -239,7 +241,7 @@ LifePulse/
 │   └── utils/                   # Helper functions
 │       ├── predictor.py         # ML prediction logic
 │       ├── model_loader.py      # Model management
-│       ├── gemini.py            # AI integration
+│       ├── (optional) gemini.py  # AI integration (disabled)
 │       └── nutrition.py         # USDA API handler
 ├── ml_model/                    # Training scripts & datasets
 │   ├── Heart_Disease.py
@@ -268,7 +270,6 @@ LifePulse/
 
 3. **Set Environment Variables:**
    - `SECRET_KEY`: Flask secret key
-   - `GEMINI_API_KEY`: Google Gemini API key
    - `USDA_API_KEY`: USDA FoodData Central API key
 
 4. **Enable Git LFS** in Render dashboard
@@ -339,7 +340,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - BRFSS 2015 dataset for heart disease model
 - Sleep Health & Lifestyle dataset
 - USDA FoodData Central for nutrition data
-- Google Gemini AI for intelligent recommendations
+ - Optional cloud AI integrations (disabled by default)
 - Bootstrap team for UI components
 - AOS library for smooth animations
 

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, render_template, jsonify
 from app.utils.calculator import full_health_calculator
-from app.utils.gemini import get_health_advice  # ✅ Gemini AI integration
+# Gemini integration removed — use local rule-based advice generator
 
 calculator_bp = Blueprint('calculator', __name__, url_prefix='/health')
 
@@ -77,15 +77,34 @@ def show_health_result():
         elif result["Calorie_Needs"] > 3000:
             warnings.append("Your daily calorie needs are high. Maintain a balanced intake and stay active.")
 
-        # ✅ Gemini AI Health Advice – FIXED to use a dictionary
-        advice = get_health_advice({
-            "BMI": result["BMI"],
-            "BMI_Status": result["BMI_Status"],
-            "BMR": result["BMR"],
-            "Calorie_Needs": result["Calorie_Needs"],
-            "WHR": whr,
-            "BP_Category": bp_cat
-        })
+        # Simple local advice generator (no external APIs)
+        def simple_advice(metrics: dict, whr_val, bp_category):
+            tips = []
+            bmi = metrics.get("BMI", 0)
+            cal = metrics.get("Calorie_Needs", None)
+
+            if bmi >= 30:
+                tips.append("Focus on gradual weight loss: balanced diet and 150+ min/week of moderate exercise.")
+            elif bmi >= 25:
+                tips.append("Aim to reduce weight slightly: combine cardio with strength training.")
+            else:
+                tips.append("Maintain your healthy weight with balanced meals and regular activity.")
+
+            if bp_category and bp_category != "Normal":
+                tips.append("Reduce sodium, monitor BP regularly, and consult your physician if elevated.")
+
+            if cal:
+                tips.append(f"Estimated daily calories: {cal}. Adjust portion sizes for weight goals.")
+
+            # Build simple HTML advice block
+            advice_html = "<ul>"
+            for t in tips[:3]:
+                advice_html += f"<li>{t}</li>"
+            advice_html += "</ul>"
+            advice_html += "<small class='text-muted'>This is general guidance — consult a healthcare professional for personalized advice.</small>"
+            return advice_html
+
+        advice = simple_advice(result, whr, bp_cat)
 
         # Render final result
         return render_template("health_result.html",

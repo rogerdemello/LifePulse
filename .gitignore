@@ -51,6 +51,35 @@ Life.code-workspace
 data/
 ml_model/data/
 
+# Dataset Generation Scripts (generated datasets already in data/)
+ml_model/generate_*.py
+ml_model/*_dataset.py
+
+# Training Logs and outputs
+ml_model/*.log
+ml_model/training_*.log
+*.log
+training_*.log
+heart_training.log
+
+# Unused training scripts and test files
+ml_model/train_*_improved.py
+ml_model/train_*_fast.py
+ml_model/Migrain_*.py
+ml_model/test_*.py
+ml_model/convert_to_onnx.py
+
+# Unused/old model files in app/models
+app/models/mindmig_svm_model.pkl
+app/models/scaler.pkl
+app/models/columns.pkl
+app/models/label_encoder.pkl
+app/models/svm_confusion_matrix.png
+
+# Unused utility files
+app/utils/gemini.py
+app/utils/community_inference.py
+
 # Unused/Duplicate Model Folders (keep these out)
 saved_liver_model/        # Not used
 saved_models/             # Duplicate of app/models/heart/
@@ -74,3 +103,37 @@ app/models/sleep/label_encoders_20250704_004315.pkl
 app/models/sleep/scaler_20250704_004315.pkl
 app/models/sleep/target_encoder_20250704_004315.pkl
 .vercel
+
+# Project docs / internal notes (do not publish)
+ADVANCEMENT_ROADMAP.md
+MODEL_IMPROVEMENT_SUMMARY.md
+TRAINING_RESULTS.md
+
+# Explicit dataset ignores
+/data/
+/ml_model/data/
+**/data/*.csv
+**/*_dataset*.csv
+**/*dataset*.csv
+ml_model/*_dataset.py
+
+# Large model files - exclude training artifacts, keep only deployment essentials
+# Exclude all large .pkl models (>1MB training artifacts)
+app/models/heart/heart_disease_model_improved.pkl
+app/models/sleep/sleep_model_improved.pkl
+app/models/health_score/health_score_model_improved.pkl
+
+# Exclude all ONNX models (large, can be regenerated from .pkl)
+app/models/heart/heart_disease_model.onnx
+app/models/heart/heart_disease_model.quant.onnx
+app/models/sleep/sleep_model.onnx
+app/models/health_score/health_score_model.onnx
+
+# Keep migraine ensemble (15MB, needed for inference, acceptable size)
+# Keep all *_scaler.onnx, *_features.pkl, *_scaler_improved.pkl (small, <2KB each)
+# Note: App uses .pkl models via onnx_inference.py wrapper (no ONNX conversion needed at runtime)
+
+# Conversion/training scripts (already run, not needed in repo)
+ml_model/convert_and_quantize.py
+ml_model/train_all_models.py
+

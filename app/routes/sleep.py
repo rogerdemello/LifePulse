@@ -6,30 +6,34 @@ from flask import Blueprint, render_template, request
 
 sleep_bp = Blueprint('sleep', __name__, url_prefix='/sleep')
 
-
-# ✅ Auto-load latest model & preprocessors
+# Load encoders for categorical preprocessing
 def get_latest_file(pattern):
     files = glob.glob(pattern)
     if not files:
         raise FileNotFoundError(f"No files found for pattern: {pattern}")
     return max(files, key=os.path.getctime)
 
-# ✅ Get the absolute path to models directory
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))  # routes/
-BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))  # app/
-MODELS_DIR = os.path.join(BASE_DIR, 'models', 'sleep')  # app/models/sleep
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
+MODELS_DIR = os.path.join(BASE_DIR, 'models', 'sleep')
 
-model_path = get_latest_file(os.path.join(MODELS_DIR, 'sleep_rf_model_*.pkl'))
-scaler_path = get_latest_file(os.path.join(MODELS_DIR, 'scaler_*.pkl'))
-target_encoder_path = get_latest_file(os.path.join(MODELS_DIR, 'target_encoder_*.pkl'))
-label_encoders_path = get_latest_file(os.path.join(MODELS_DIR, 'label_encoders_*.pkl'))
-
-model = joblib.load(model_path)
-scaler = joblib.load(scaler_path)
-target_encoder = joblib.load(target_encoder_path)
-label_encoders = joblib.load(label_encoders_path)
-
-print("✅ Sleep model & encoders loaded successfully!")
+try:
+    target_encoder_path = get_latest_file(os.path.join(MODELS_DIR, 'target_encoder_*.pkl'))
+    label_encoders_path = get_latest_file(os.path.join(MODELS_DIR, 'label_encoders_*.pkl'))
+    
+    target_encoder = joblib.load(target_encoder_path)
+    label_encoders = joblib.load(label_encoders_path)
+    
+    # Load model wrapper (local inference, no API)
+    from app.utils.onnx_inference import get_model
+    model_wrapper = get_model('sleep')
+    
+    print("✅ Sleep model & encoders loaded successfully!")
+except Exception as e:
+    print(f"⚠️  Sleep model not found: {e}")
+    model_wrapper = None
+    target_encoder = None
+    label_encoders = None
 
 
 # ✅ Sleep Disorder Prediction Form
@@ -90,15 +94,11 @@ def predict_sleep():
                          'Stress Level', 'BMI Category', 'Blood Pressure',
                          'Heart Rate', 'Daily Steps']
 
-        row = [input_data[col] for col in feature_order]
-        input_df = pd.DataFrame([row], columns=feature_order)
-
-        # ✅ Scale numerical columns
-        num_indices = [feature_order.index(col) for col in num_cols]
-        input_df.iloc[:, num_indices] = scaler.transform(input_df.iloc[:, num_indices])
-
-        # ✅ Prediction
-        y_pred = model.predict(input_df)[0]
+        # Create input dict for model
+        row_dict = {col: input_data[col] for col in feature_order}
+        
+        # Predict using local model (no API calls)
+        y_pred = model_wrapper.predict(row_dict)[0]
         prediction_label = target_encoder.inverse_transform([y_pred])[0]
 
         return render_template(

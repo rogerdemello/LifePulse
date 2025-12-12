@@ -7,33 +7,16 @@ from flask import Blueprint, render_template, request
 
 health_score_bp = Blueprint('health_score', __name__, url_prefix='/health-score')
 
-# Load model and preprocessors
-def get_latest_file(pattern):
-    files = glob.glob(pattern)
-    if not files:
-        raise FileNotFoundError(f"No files found for pattern: {pattern}")
-    return max(files, key=os.path.getctime)
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
-MODELS_DIR = os.path.join(BASE_DIR, 'models', 'health_score')
+# Load model wrapper (local inference, no API)
+from app.utils.onnx_inference import get_model
 
 try:
-    model_path = get_latest_file(os.path.join(MODELS_DIR, 'rf_health_model_*.pkl'))
-    scaler_path = get_latest_file(os.path.join(MODELS_DIR, 'scaler_*.pkl'))
-    features_path = get_latest_file(os.path.join(MODELS_DIR, 'features_*.pkl'))
-
-    model = joblib.load(model_path)
-    scaler = joblib.load(scaler_path)
-    feature_names = joblib.load(features_path)
-
+    model_wrapper = get_model('health_score')
+    feature_names = model_wrapper.features
     print("✅ Health score model loaded successfully!")
 except Exception as e:
     print(f"⚠️  Health score model not found: {e}")
-    print(f"   Looking in: {MODELS_DIR}")
-    print("   Health score predictions will be unavailable until model is trained.")
-    model = None
-    scaler = None
+    model_wrapper = None
     feature_names = None
 
 
@@ -51,7 +34,7 @@ def bmi_category(bmi):
 @health_score_bp.route('/', methods=['GET', 'POST'])
 def predict_health_score():
     if request.method == 'POST':
-        if model is None:
+        if model_wrapper is None:
             return render_template('predict_health_score.html', 
                                  error="Health score model is not available yet. Please try again later.")
         
@@ -115,15 +98,8 @@ def predict_health_score():
             
             input_df = input_df[feature_names]
             
-            # Scale numeric features
-            numeric_cols = ['Age', 'BMI', 'Exercise_Frequency', 'Diet_Quality', 'Sleep_Hours',
-                           'Smoking_Status', 'Alcohol_Consumption', 'Smoke_Alcohol', 'Exercise_per_Age',
-                           'BMI_squared', 'Sleep_Alcohol', 'Exercise_Diet']
-            
-            input_df[numeric_cols] = scaler.transform(input_df[numeric_cols])
-            
-            # Predict
-            predicted_score = model.predict(input_df)[0]
+            # Predict using local model (no API calls)
+            predicted_score = model_wrapper.predict(input_df.iloc[0].to_dict())[0]
             predicted_score = max(0, min(100, predicted_score))  # Clamp between 0-100
             
             # Generate rating with adjusted thresholds for synthetic data

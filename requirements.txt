@@ -7,8 +7,11 @@ joblib
 matplotlib
 seaborn
 imbalanced-learn
-openai
-google-generativeai
 python-dotenv
 gunicorn
 xgboost
+# ONNX for efficient local inference (no API costs)
+onnx
+onnxruntime
+skl2onnx
+# google-generativeai  # Disabled: using local models to avoid API costs

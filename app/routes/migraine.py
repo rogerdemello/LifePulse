@@ -1,21 +1,20 @@
 import os
 import pickle
 import pandas as pd
+import joblib
 from flask import Blueprint, render_template, request
 
 migraine_bp = Blueprint('migraine', __name__, url_prefix='/migraine')
 
-# Load model and preprocessors
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
-MODELS_DIR = os.path.join(BASE_DIR, 'models')
+# Load model wrapper (local inference, no API)
+from app.utils.onnx_inference import get_model
 
-model = pickle.load(open(os.path.join(MODELS_DIR, 'mindmig_svm_model.pkl'), 'rb'))
-scaler = pickle.load(open(os.path.join(MODELS_DIR, 'scaler.pkl'), 'rb'))
-columns = pickle.load(open(os.path.join(MODELS_DIR, 'columns.pkl'), 'rb'))
-label_encoder = pickle.load(open(os.path.join(MODELS_DIR, 'label_encoder.pkl'), 'rb'))
-
-print("✅ Migraine model loaded successfully!")
+try:
+    model_wrapper = get_model('migraine')
+    print("✅ Migraine model loaded successfully!")
+except Exception as e:
+    print(f"⚠️  Migraine model not found: {e}")
+    model_wrapper = None
 
 
 @migraine_bp.route('/', methods=['GET', 'POST'])
@@ -80,15 +79,15 @@ def predict_migraine():
             input_df['Caffeine_Squared'] = input_df['Caffeine'] ** 2
             input_df['Age_Group'] = pd.cut(input_df['Age'], bins=[0, 25, 40, 60, 100], labels=[0, 1, 2, 3]).astype(int)
             
-            # Ensure column order matches training
-            input_df = input_df.reindex(columns=columns, fill_value=0)
+            # Get features expected by model
+            feature_list = model_wrapper.features
             
-            # Scale
-            input_scaled = scaler.transform(input_df)
+            # Ensure all features exist and order matches
+            input_df = input_df.reindex(columns=feature_list, fill_value=0)
             
-            # Predict
-            prediction = model.predict(input_scaled)[0]
-            prediction_proba = model.predict_proba(input_scaled)[0]
+            # Predict using local model (no API calls)
+            prediction = model_wrapper.predict(input_df.iloc[0].to_dict())[0]
+            prediction_proba = model_wrapper.predict_proba(input_df.iloc[0].to_dict())[0]
             
             # Decode prediction
             result = 'Migraine Risk' if prediction == 1 else 'No Migraine Risk'
