@@ -10,6 +10,7 @@ imbalanced-learn
 python-dotenv
 gunicorn
 xgboost
+requests
 # ONNX for efficient local inference (no API costs)
 onnx
 onnxruntime
