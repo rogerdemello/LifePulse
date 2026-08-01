@@ -15,6 +15,7 @@ from app.utils.nutrition_facts import (
     micronutrients,
     nutrient_facts,
     nutrition_panel,
+    portion_rows,
     summarise,
 )
 
@@ -74,5 +75,6 @@ def nutrition_lookup():
         groups=summarise(facts),
         panel=nutrition_panel(food["nutrients"]),
         micros=micronutrients(food["nutrients"]),
+        portions=portion_rows(food["nutrients"], food.get("portions")),
         alternatives=[m for m in matches if str(m["fdc_id"]) != str(selected_id)],
     )

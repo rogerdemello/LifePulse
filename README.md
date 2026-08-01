@@ -89,10 +89,32 @@ which is what the app displays — no figure in this table is hardcoded anywhere
 
 | Feature | Algorithm | Headline metric | Baseline it beats | Size |
 |---|---|---|---|---|
-| Heart Disease | HistGradientBoosting | **ROC-AUC 0.849**, PR-AUC 0.368 | PR-AUC 0.094 (prevalence) | 0.16 MB |
+| Heart Disease | HistGradientBoosting | **ROC-AUC 0.840**, PR-AUC 0.349 | PR-AUC 0.090 (prevalence) | 0.14 MB |
 | Sleep | *empirical lookup, not a model* | — | — | — |
 | Migraine | HistGradientBoosting | **84.0%** accuracy, ROC-AUC 0.924 | 60.0% (majority class) | 0.12 MB |
 | Lifestyle Score | *rubric, not a model* | — | — | — |
+
+### Why the heart model moved to BRFSS 2023
+
+It ran on a pre-cleaned Kaggle derivative of BRFSS 2015 — a decade old, and
+unrefreshable, because whoever built that file did the variable mapping and
+never wrote it down. `ml_model/fetch_brfss.py` does the mapping in the open
+against CDC's own release, and verifies it before writing.
+
+**The newer model scores slightly lower**: ROC-AUC 0.840 against 0.848, PR-AUC
+lift 3.7× against 4.0×. That is a real difference and it is not a mapping bug —
+every feature's prevalence matches the old file within a point (HighBP
+0.429→0.435, HighChol 0.424→0.424, Stroke 0.041→0.044), and the shifts that do
+exist run the right way (smoking 44%→39%).
+
+It ships anyway. Eight years of currency, a mapping anyone can audit, 312k
+respondents instead of 254k, and an annual refresh path are worth more than
+0.008 ROC-AUC — and the old file's provenance could never be checked at all,
+which is the exact class of problem the rest of this work removed.
+
+Fruit and vegetable intake were dropped in the process. They moved ROC-AUC from
+0.8485 to 0.8486, and BRFSS stopped running that module after 2015 — so two
+questions buying nothing were also the only thing pinning the model to 2015.
 
 ### Why baselines are quoted
 
@@ -203,7 +225,8 @@ python ml_model/train_all.py --model heart    # just one
 
 | File | Source |
 |---|---|
-| `heart_disease_health_indicators_BRFSS2015.csv` | BRFSS 2015 (Kaggle) |
+| `brfss_heart.csv` | `python ml_model/fetch_brfss.py` (CDC BRFSS 2023) |
+| `nhanes_sleep.csv` | `python ml_model/fetch_nhanes.py` (CDC NHANES 2017-18) |
 | `Sleep_health_and_lifestyle_dataset (1).csv` | Sleep Health and Lifestyle (Kaggle) |
 | `migraine_dataset_500 (1).csv` | Migraine triggers dataset |
 
@@ -292,6 +315,7 @@ pytest
 - **Explanations** — directions aren't inverted below 50% risk; age actually moves the heart prediction
 - **Front end** — every referenced asset exists, pages render without JavaScript, landmarks and skip links are present
 - **Rate limiting** — bursts are throttled per client, GETs never are
+- **Observability** — every request carries an id that reaches the logs and the error page, and the request logs never contain the answers
 - **Triage** — emergency phrasings are caught (including inflections like "ending my life"), and ordinary ones like "improve my fitness" never trigger a false alarm
 - **Multi-step forms** — every field stays in the served markup, so the form works with JavaScript off
 - **Nutrition** — derived facts match the published thresholds, search ranks relevance above brevity, upstream failures degrade readably (the USDA API is mocked, so CI stays hermetic)

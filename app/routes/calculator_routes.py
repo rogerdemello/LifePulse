@@ -118,34 +118,39 @@ def show_health_result():
         elif result["Calorie_Needs"] > 3000:
             warnings.append("Your daily calorie needs are high. Maintain a balanced intake and stay active.")
 
-        # Simple local advice generator (no external APIs)
-        def simple_advice(metrics: dict, whr_val, bp_category):
+        # Returns a list of strings, not a blob of HTML.
+        #
+        # This used to concatenate <li> tags into a string that the template
+        # rendered with |safe. Nothing user-supplied reached it, so it was not
+        # exploitable -- but it was the one place in the app where an edit could
+        # turn an input into markup, and building HTML in a route is how that
+        # edit eventually gets made.
+        def lifestyle_tips(metrics, bp_category):
             tips = []
             bmi = metrics.get("BMI", 0)
-            cal = metrics.get("Calorie_Needs", None)
+            calories = metrics.get("Calorie_Needs")
 
             if bmi >= 30:
-                tips.append("Focus on gradual weight loss: balanced diet and 150+ min/week of moderate exercise.")
+                tips.append("Focus on gradual weight loss: balanced diet and "
+                            "150+ minutes a week of moderate exercise.")
             elif bmi >= 25:
-                tips.append("Aim to reduce weight slightly: combine cardio with strength training.")
+                tips.append("Aim to reduce weight slightly: combine cardio with "
+                            "strength training.")
             else:
-                tips.append("Maintain your healthy weight with balanced meals and regular activity.")
+                tips.append("Maintain your healthy weight with balanced meals and "
+                            "regular activity.")
 
             if bp_category and bp_category != "Normal":
-                tips.append("Reduce sodium, monitor BP regularly, and consult your physician if elevated.")
+                tips.append("Reduce sodium, monitor your blood pressure regularly, "
+                            "and speak to your doctor if it stays elevated.")
 
-            if cal:
-                tips.append(f"Estimated daily calories: {cal}. Adjust portion sizes for weight goals.")
+            if calories:
+                tips.append(f"Estimated daily calories: {calories}. Adjust portion "
+                            f"sizes for your goals.")
 
-            # Build simple HTML advice block
-            advice_html = "<ul>"
-            for t in tips[:3]:
-                advice_html += f"<li>{t}</li>"
-            advice_html += "</ul>"
-            advice_html += "<small class='text-muted'>This is general guidance — consult a healthcare professional for personalized advice.</small>"
-            return advice_html
+            return tips[:3]
 
-        advice = simple_advice(result, whr, bp_cat)
+        advice = lifestyle_tips(result, bp_cat)
 
         # Render final result
         return render_template("health_result.html",

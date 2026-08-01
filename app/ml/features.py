@@ -158,12 +158,17 @@ def _bmi_category(bmi):
 
 HEART_RAW = [
     "HighBP", "HighChol", "CholCheck", "BMI", "Smoker", "Stroke", "Diabetes",
-    "PhysActivity", "Fruits", "Veggies", "HvyAlcoholConsump", "GenHlth",
+    "PhysActivity", "HvyAlcoholConsump", "GenHlth",
     "MentHlth", "PhysHlth", "DiffWalk", "Sex", "Age",
 ]
 
-# Education and Income are deliberately absent. The form never collected them,
-# so the old route hardcoded 4 and 5 for every user -- the model saw a constant.
+# Education and Income are absent because the form never collected them: the
+# old route hardcoded 4 and 5 for every user, so the model saw a constant.
+#
+# Fruits and Veggies are absent because they earned nothing. Dropping both moves
+# ROC-AUC from 0.8485 to 0.8486, and BRFSS stopped running that module after
+# 2015 -- so two questions nobody needed to answer were also the only thing
+# tying the model to a decade-old survey.
 HEART_FEATURES = HEART_RAW + [
     "Health_Score", "Lifestyle_Score", "Risk_Count", "Age_BMI",
     "BMI_Category_0", "BMI_Category_1", "BMI_Category_2", "BMI_Category_3",
@@ -198,8 +203,7 @@ def build_heart(raw):
 
     df["Health_Score"] = df["GenHlth"] + df["PhysHlth"] + df["MentHlth"]
     df["Lifestyle_Score"] = (
-        df["PhysActivity"] + df["Fruits"] + df["Veggies"]
-        - df["Smoker"] - df["HvyAlcoholConsump"]
+        df["PhysActivity"] - df["Smoker"] - df["HvyAlcoholConsump"]
     )
     df["Risk_Count"] = (
         df["HighBP"] + df["HighChol"] + df["Smoker"] + df["Stroke"]

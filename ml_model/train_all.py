@@ -146,8 +146,21 @@ def _scaled(X_train, X_test):
 # --------------------------------------------------------------------------
 
 def train_heart():
-    log.info("heart: loading BRFSS 2015")
-    df = pd.read_csv(DATA / "heart_disease_health_indicators_BRFSS2015.csv")
+    """BRFSS, the CDC's annual telephone survey of ~430,000 US adults.
+
+    Built by ml_model/fetch_brfss.py, which does the variable mapping in the
+    open. The previous training file was a pre-cleaned Kaggle derivative of the
+    2015 cycle whose mapping nobody had written down, so there was no way to
+    move it forward.
+    """
+    log.info("heart: loading BRFSS")
+    source = DATA / "brfss_heart.csv"
+    if not source.exists():
+        raise SystemExit(
+            "data/brfss_heart.csv is missing. Build it with:\n"
+            "    python ml_model/fetch_brfss.py"
+        )
+    df = pd.read_csv(source)
     X = F.build_heart(df)
     y = df["HeartDiseaseorAttack"].astype(int)
 
@@ -233,7 +246,7 @@ def train_heart():
         "positive_class_index": 1,
         "decision_threshold": threshold,
         "threshold_rule": "Youden's J, tuned on a held-out validation split",
-        "dataset": "BRFSS 2015 heart disease health indicators",
+        "dataset": "BRFSS 2023 (CDC Behavioral Risk Factor Surveillance System)",
         "n_rows": int(len(y)),
         "estimator": type(model).__name__,
         "raw_profile": _profile(df, F.HEART_RAW),

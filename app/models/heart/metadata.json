@@ -6,10 +6,10 @@
     "Yes"
   ],
   "positive_class_index": 1,
-  "decision_threshold": 0.09388946192761637,
+  "decision_threshold": 0.0894108152817044,
   "threshold_rule": "Youden's J, tuned on a held-out validation split",
-  "dataset": "BRFSS 2015 heart disease health indicators",
-  "n_rows": 253680,
+  "dataset": "BRFSS 2023 (CDC Behavioral Risk Factor Surveillance System)",
+  "n_rows": 312166,
   "estimator": "HistGradientBoostingClassifier",
   "raw_profile": {
     "HighBP": {
@@ -38,11 +38,11 @@
     },
     "BMI": {
       "kind": "numeric",
-      "min": 12.0,
-      "p1": 18.0,
-      "median": 27.0,
-      "p99": 50.0,
-      "max": 98.0
+      "min": 12.02,
+      "p1": 18.01,
+      "median": 27.46,
+      "p99": 49.78,
+      "max": 99.82
     },
     "Smoker": {
       "kind": "numeric",
@@ -76,22 +76,6 @@
       "p99": 1.0,
       "max": 1.0
     },
-    "Fruits": {
-      "kind": "numeric",
-      "min": 0.0,
-      "p1": 0.0,
-      "median": 1.0,
-      "p99": 1.0,
-      "max": 1.0
-    },
-    "Veggies": {
-      "kind": "numeric",
-      "min": 0.0,
-      "p1": 0.0,
-      "median": 1.0,
-      "p99": 1.0,
-      "max": 1.0
-    },
     "HvyAlcoholConsump": {
       "kind": "numeric",
       "min": 0.0,
@@ -104,7 +88,7 @@
       "kind": "numeric",
       "min": 1.0,
       "p1": 1.0,
-      "median": 2.0,
+      "median": 3.0,
       "p99": 5.0,
       "max": 5.0
     },
@@ -144,27 +128,27 @@
       "kind": "numeric",
       "min": 1.0,
       "p1": 1.0,
-      "median": 8.0,
+      "median": 9.0,
       "p99": 13.0,
       "max": 13.0
     }
   },
   "metrics": {
-    "roc_auc": 0.8486620131449879,
-    "pr_auc": 0.3680595011293669,
-    "balanced_accuracy": 0.7727320802254888,
-    "accuracy": 0.7401056449069694,
-    "recall": 0.8129315756434401,
-    "precision": 0.24015577672003463,
-    "brier_score": 0.0702248785003372,
-    "mean_predicted_risk": 0.09363957987304906,
-    "observed_prevalence": 0.09419347209082309,
-    "baseline_majority_accuracy": 0.9058144118574583,
-    "baseline_pr_auc": 0.09419347209082309,
-    "baseline_note": "Accuracy is not a meaningful headline here: predicting 'no disease' for everyone scores 0.906. Judge this model on ROC-AUC and PR-AUC. Predicted probabilities are calibrated -- mean predicted risk tracks observed prevalence -- so the percentage shown to users is literal."
+    "roc_auc": 0.8399488848690619,
+    "pr_auc": 0.34911061798745313,
+    "balanced_accuracy": 0.7649963313099778,
+    "accuracy": 0.7240445910881891,
+    "recall": 0.8149725031044882,
+    "precision": 0.22107795957651588,
+    "brier_score": 0.06888714047029344,
+    "mean_predicted_risk": 0.09075185690712974,
+    "observed_prevalence": 0.090287343434667,
+    "baseline_majority_accuracy": 0.9097082962270074,
+    "baseline_pr_auc": 0.090287343434667,
+    "baseline_note": "Accuracy is not a meaningful headline here: predicting 'no disease' for everyone scores 0.910. Judge this model on ROC-AUC and PR-AUC. Predicted probabilities are calibrated -- mean predicted risk tracks observed prevalence -- so the percentage shown to users is literal."
   },
-  "trained_utc": "2026-08-01T06:59:22+00:00",
-  "n_features": 25,
+  "trained_utc": "2026-08-01T14:28:29+00:00",
+  "n_features": 23,
   "library_versions": {
     "scikit-learn": "1.8.0",
     "numpy": "1.26.2",

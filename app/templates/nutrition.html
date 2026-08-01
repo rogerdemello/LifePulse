@@ -129,6 +129,50 @@
       </div>
       {% endif %}
 
+      <!-- Realistic helpings -->
+      {% if portions %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+          <h2 class="h5 fw-bold mb-1">In a normal helping</h2>
+          <p class="text-muted small mb-0">
+            Everything else on this page is per 100&nbsp;g, which is right for
+            comparing foods and no use for working out what you actually ate.
+          </p>
+        </div>
+        <div class="card-body px-4 pb-4">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr class="small text-muted">
+                  <th scope="col">Portion</th>
+                  <th scope="col" class="text-end">Weight</th>
+                  <th scope="col" class="text-end">Energy</th>
+                  <th scope="col" class="text-end">Sugars</th>
+                  <th scope="col" class="text-end">Saturates</th>
+                  <th scope="col" class="text-end">Salt</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in portions %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end text-muted">{{ '%g'|format(row.grams) }} g</td>
+                  <td class="text-end">{% if row.energy is not none %}{{ row.energy }} kcal{% else %}&mdash;{% endif %}</td>
+                  <td class="text-end">{% if row.sugars is not none %}{{ '%g'|format(row.sugars) }} g{% else %}&mdash;{% endif %}</td>
+                  <td class="text-end">{% if row.saturates is not none %}{{ '%g'|format(row.saturates) }} g{% else %}&mdash;{% endif %}</td>
+                  <td class="text-end">{% if row.salt is not none %}{{ '%g'|format(row.salt) }} g{% else %}&mdash;{% endif %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <p class="text-muted small mb-0 mt-2">
+            Portion weights come from USDA's own household-measure data.
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
       <div class="row g-4">
         <!-- Nutrition panel -->
         <div class="col-md-6">

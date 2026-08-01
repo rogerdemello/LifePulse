@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template
 
 from app.ml.bundle import all_metadata
+from app.observability import init_app as init_observability
 from app.routes.calculator_routes import calculator_bp
 from app.routes.health_score import health_score_bp
 from app.routes.heart import heart_disease_bp
@@ -44,6 +45,8 @@ def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
 
     app.config["SECRET_KEY"] = _secret_key()
+    app.config["SENTRY_DSN"] = os.getenv("SENTRY_DSN")
+    app.config["ENVIRONMENT"] = os.getenv("FLASK_ENV", "development")
     app.config["TEMPLATES_AUTO_RELOAD"] = True
     app.jinja_env.cache = {}
 
@@ -54,6 +57,8 @@ def create_app():
     app.register_blueprint(migraine_bp)
     app.register_blueprint(health_score_bp)
     app.register_blueprint(start_bp)
+
+    init_observability(app)
 
     @app.context_processor
     def inject_model_metadata():

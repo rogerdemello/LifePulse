@@ -6,6 +6,7 @@ Every check here is against the relevant baseline, not an absolute number.
 """
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -90,3 +91,38 @@ def test_artifacts_are_small_enough_to_commit(name):
     """
     total = sum(f.stat().st_size for f in (MODELS_DIR / name).glob("*"))
     assert total < 5_000_000, f"{name} artifacts are {total / 1e6:.1f} MB"
+
+
+# --------------------------------------------------------------------------
+# BRFSS provenance
+# --------------------------------------------------------------------------
+
+def test_heart_runs_on_a_recent_documented_survey():
+    """The old training file was a Kaggle derivative of BRFSS 2015 whose
+    variable mapping nobody had written down, so it could never be refreshed.
+    ml_model/fetch_brfss.py does the mapping in the open against CDC's release.
+    """
+    meta = load_metadata("heart")
+    assert "BRFSS" in meta["dataset"]
+    year = int(re.search(r"\b(20\d{2})\b", meta["dataset"]).group(1))
+    assert year >= 2020, f"heart is still on BRFSS {year}"
+    assert meta["n_rows"] > 250_000
+
+
+def test_the_brfss_fetcher_verifies_its_own_mapping():
+    """A miscoded variable would look like "the new cycle is just worse"
+    rather than like a bug, so the fetcher checks before writing."""
+    source = (Path(__file__).resolve().parent.parent
+              / "ml_model" / "fetch_brfss.py").read_text(encoding="utf-8")
+    assert "def verify(" in source
+    for check in ("prevalence", "median BMI", "is not binary"):
+        assert check in source
+
+
+def test_fruit_and_veg_are_gone_from_the_contract():
+    """They moved ROC-AUC by 0.0001 and were the only thing pinning the model
+    to the 2015 cycle, which is the last one that asked."""
+    from app.ml.features import HEART_RAW
+
+    assert "Fruits" not in HEART_RAW
+    assert "Veggies" not in HEART_RAW

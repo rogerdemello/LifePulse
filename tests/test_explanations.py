@@ -17,7 +17,7 @@ from app.ml.guidance import questions_for
 HIGH_RISK_HEART = {
     "high_bp": "1", "high_chol": "1", "chol_check": "1", "bmi": "34",
     "smoker": "1", "stroke": "0", "diabetes": "2", "phys_activity": "0",
-    "fruit": "0", "veggies": "0", "alcohol": "0", "gen_health": "4",
+    "alcohol": "0", "gen_health": "4",
     "ment_health": "15", "phys_health": "20", "diff_walk": "1", "sex": "1",
     "age": "68",
 }
@@ -25,7 +25,7 @@ HIGH_RISK_HEART = {
 LOW_RISK_HEART = {
     **HIGH_RISK_HEART,
     "high_bp": "0", "high_chol": "0", "bmi": "23", "smoker": "0",
-    "diabetes": "0", "phys_activity": "1", "fruit": "1", "veggies": "1",
+    "diabetes": "0", "phys_activity": "1", "veggies": "1",
     "gen_health": "1", "ment_health": "0", "phys_health": "0",
     "diff_walk": "0", "age": "34",
 }
@@ -96,8 +96,7 @@ def test_a_high_risk_profile_blames_the_right_things(client):
     model = get_model("heart")
     raw = {
         "HighBP": 1, "HighChol": 1, "CholCheck": 1, "BMI": 38, "Smoker": 1,
-        "Stroke": 0, "Diabetes": 2, "PhysActivity": 0, "Fruits": 0,
-        "Veggies": 0, "HvyAlcoholConsump": 0, "GenHlth": 5, "MentHlth": 20,
+        "Stroke": 0, "Diabetes": 2, "PhysActivity": 0, "HvyAlcoholConsump": 0, "GenHlth": 5, "MentHlth": 20,
         "PhysHlth": 25, "DiffWalk": 1, "Sex": 1, "Age": brfss_age_bucket(70),
     }
     fields = {f.field for f in model.explain(raw, top=5)}
@@ -114,8 +113,7 @@ def test_direction_is_not_inverted_below_fifty_percent(client):
     model = get_model("heart")
     raw = {
         "HighBP": 1, "HighChol": 1, "CholCheck": 1, "BMI": 34, "Smoker": 1,
-        "Stroke": 0, "Diabetes": 2, "PhysActivity": 0, "Fruits": 0,
-        "Veggies": 0, "HvyAlcoholConsump": 0, "GenHlth": 4, "MentHlth": 15,
+        "Stroke": 0, "Diabetes": 2, "PhysActivity": 0, "HvyAlcoholConsump": 0, "GenHlth": 4, "MentHlth": 15,
         "PhysHlth": 20, "DiffWalk": 1, "Sex": 1, "Age": brfss_age_bucket(68),
     }
     assert model.proba_one(raw)["Yes"] < 0.5, "profile no longer exercises the bug"
@@ -148,8 +146,7 @@ def test_explanation_costs_one_extra_prediction(client):
     model = get_model("heart")
     raw = {
         "HighBP": 1, "HighChol": 0, "CholCheck": 1, "BMI": 28, "Smoker": 0,
-        "Stroke": 0, "Diabetes": 0, "PhysActivity": 1, "Fruits": 1,
-        "Veggies": 1, "HvyAlcoholConsump": 0, "GenHlth": 3, "MentHlth": 2,
+        "Stroke": 0, "Diabetes": 0, "PhysActivity": 1, "HvyAlcoholConsump": 0, "GenHlth": 3, "MentHlth": 2,
         "PhysHlth": 2, "DiffWalk": 0, "Sex": 0, "Age": 8,
     }
     calls = []
@@ -199,8 +196,7 @@ def test_questions_are_questions_not_instructions():
     model = get_model("heart")
     raw = {
         "HighBP": 1, "HighChol": 1, "CholCheck": 1, "BMI": 34, "Smoker": 1,
-        "Stroke": 0, "Diabetes": 2, "PhysActivity": 0, "Fruits": 0,
-        "Veggies": 0, "HvyAlcoholConsump": 0, "GenHlth": 4, "MentHlth": 15,
+        "Stroke": 0, "Diabetes": 2, "PhysActivity": 0, "HvyAlcoholConsump": 0, "GenHlth": 4, "MentHlth": 15,
         "PhysHlth": 20, "DiffWalk": 1, "Sex": 1, "Age": brfss_age_bucket(68),
     }
     questions = questions_for("heart", "45.6% estimated risk", model.explain(raw))

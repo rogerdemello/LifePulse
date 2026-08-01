@@ -238,6 +238,33 @@ def nutrition_panel(nutrients):
     return rows
 
 
+def portion_rows(nutrients, portions):
+    """What a realistic helping actually contains.
+
+    Per-100 g is the right basis for comparing two foods and the wrong one for
+    answering "I ate a banana". USDA supplies household measures, so each is
+    scaled here: energy, and the three nutrients people are usually watching.
+    """
+    energy = _amount(nutrients, ENERGY)
+    sugars = _amount(nutrients, SUGARS)
+    saturates = _amount(nutrients, SATURATES)
+    sodium = _amount(nutrients, SODIUM)
+
+    rows = []
+    for portion in portions or []:
+        factor = portion["grams"] / 100.0
+        rows.append({
+            "label": portion["label"],
+            "grams": portion["grams"],
+            "energy": None if energy is None else round(energy * factor),
+            "sugars": None if sugars is None else round(sugars * factor, 1),
+            "saturates": None if saturates is None else round(saturates * factor, 1),
+            "salt": None if sodium is None
+                    else round(sodium * factor * SODIUM_MG_TO_SALT_G, 2),
+        })
+    return rows
+
+
 def micronutrients(nutrients, minimum_share=5.0):
     """Vitamins and minerals present at a meaningful level, richest first.
 

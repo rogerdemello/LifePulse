@@ -18,8 +18,12 @@ heart_disease_bp = Blueprint("heart_disease", __name__, url_prefix="/heart_disea
 # Form field -> the raw name app.ml.features.build_heart expects. All feature
 # engineering happens in that builder, which the training script also uses.
 #
-# Education and Income are absent because the form never asked for them. The
+# Education and Income are absent because the form never asked for them: the
 # previous version of this route hardcoded 4 and 5 for every visitor.
+#
+# Fruit and vegetable intake are absent because they moved the answer by
+# 0.0001 ROC-AUC, and BRFSS stopped asking after 2015 -- so two questions that
+# bought nothing were also what pinned the model to a decade-old survey.
 FORM_TO_RAW = {
     "high_bp": "HighBP",
     "high_chol": "HighChol",
@@ -29,8 +33,6 @@ FORM_TO_RAW = {
     "stroke": "Stroke",
     "diabetes": "Diabetes",
     "phys_activity": "PhysActivity",
-    "fruit": "Fruits",
-    "veggies": "Veggies",
     "alcohol": "HvyAlcoholConsump",
     "gen_health": "GenHlth",
     "ment_health": "MentHlth",

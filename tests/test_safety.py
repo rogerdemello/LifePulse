@@ -91,7 +91,7 @@ def test_heart_bmi_500_is_rejected(client):
     heart = {
         "high_bp": "0", "high_chol": "0", "chol_check": "1", "bmi": "500",
         "smoker": "0", "stroke": "0", "diabetes": "0", "phys_activity": "1",
-        "fruit": "1", "veggies": "1", "alcohol": "0", "gen_health": "1",
+        "alcohol": "0", "gen_health": "1",
         "ment_health": "0", "phys_health": "0", "diff_walk": "0", "sex": "0",
         "age": "40",
     }
@@ -213,7 +213,7 @@ def test_a_valid_form_submission_produces_no_caveats(client):
     heart = {
         "high_bp": "0", "high_chol": "0", "chol_check": "1", "bmi": "24",
         "smoker": "0", "stroke": "0", "diabetes": "0", "phys_activity": "1",
-        "fruit": "1", "veggies": "1", "alcohol": "0", "gen_health": "2",
+        "alcohol": "0", "gen_health": "2",
         "ment_health": "2", "phys_health": "2", "diff_walk": "0", "sex": "0",
         "age": "45",
     }

@@ -97,8 +97,7 @@ def test_bundle_rejects_a_stale_contract(monkeypatch):
 SAMPLE_RAW = {
     "heart": {
         "HighBP": 1, "HighChol": 1, "CholCheck": 1, "BMI": 31.0, "Smoker": 1,
-        "Stroke": 0, "Diabetes": 1, "PhysActivity": 0, "Fruits": 0, "Veggies": 1,
-        "HvyAlcoholConsump": 0, "GenHlth": 4, "MentHlth": 5, "PhysHlth": 10,
+        "Stroke": 0, "Diabetes": 1, "PhysActivity": 0, "HvyAlcoholConsump": 0, "GenHlth": 4, "MentHlth": 5, "PhysHlth": 10,
         "DiffWalk": 1, "Sex": 1, "Age": 10,
     },
     "sleep": {

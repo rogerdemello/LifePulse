@@ -147,24 +147,28 @@
       </div>
       {% endif %}
 
-      <!-- AI Health Advice -->
+      <!-- General guidance. Not AI: three rules, listed below. -->
       {% if advice %}
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="result-header is-neutral">
-          <div class="d-flex align-items-center">
-            <span class="me-2" style="font-size: 1.5rem;"><i class="bi bi-cpu me-2" aria-hidden="true"></i></span>
-            <h5 class="mb-0">AI-Powered Health Recommendations</h5>
-          </div>
+      <div class="card mb-4">
+        <div class="card-header border-0 pt-4 px-4">
+          <h2 class="h5 fw-bold mb-1">
+            <i class="bi bi-lightbulb me-2" aria-hidden="true"></i>General guidance
+          </h2>
+          <p class="text-muted small mb-0">
+            Based on the numbers above, from standard public health advice.
+          </p>
         </div>
-        <div class="card-body p-4">
-          <div style="font-size: 1rem; line-height: 1.8;">{{ advice|safe }}</div>
-          <hr class="my-3">
-          <div class="d-flex align-items-center text-muted">
-            <small>
-              <strong>ⓘ Disclaimer:</strong> This AI-generated advice is for informational purposes only. 
-              Always consult a qualified healthcare professional for medical decisions.
-            </small>
-          </div>
+        <div class="card-body px-4 pb-4">
+          <ul class="mb-3">
+            {% for tip in advice %}
+            <li class="mb-2">{{ tip }}</li>
+            {% endfor %}
+          </ul>
+          <p class="text-muted small mb-0">
+            This is generic advice keyed to your BMI and blood pressure &mdash; not a
+            plan, and not tailored to your history. Talk to a healthcare professional
+            before making decisions based on it.
+          </p>
         </div>
       </div>
       {% endif %}

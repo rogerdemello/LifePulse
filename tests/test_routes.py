@@ -6,7 +6,7 @@ FORMS = {
     "/heart_disease/": {
         "high_bp": "1", "high_chol": "1", "chol_check": "1", "bmi": "34",
         "smoker": "1", "stroke": "0", "diabetes": "1", "phys_activity": "0",
-        "fruit": "0", "veggies": "0", "alcohol": "0", "gen_health": "5",
+        "alcohol": "0", "gen_health": "5",
         "ment_health": "15", "phys_health": "20", "diff_walk": "1",
         "sex": "1", "age": "11",
     },
@@ -110,7 +110,7 @@ def test_heart_risk_ordering_is_sensible(client):
     low = dict(FORMS["/heart_disease/"])
     low.update(
         high_bp="0", high_chol="0", bmi="22", smoker="0", diabetes="0",
-        phys_activity="1", fruit="1", veggies="1", gen_health="1",
+        phys_activity="1", gen_health="1",
         ment_health="0", phys_health="0", diff_walk="0", age="3",
     )
     assert risk(FORMS["/heart_disease/"]) > risk(low)

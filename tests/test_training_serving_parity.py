@@ -17,7 +17,7 @@ from conftest import DATA, requires_dataset
 # and sleep is an empirical lookup, so neither has a training path for a
 # serving path to drift from.
 CSV = {
-    "heart": "heart_disease_health_indicators_BRFSS2015.csv",
+    "heart": "brfss_heart.csv",
     "migraine": "migraine_dataset_500 (1).csv",
 }
 

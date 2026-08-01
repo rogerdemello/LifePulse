@@ -210,8 +210,58 @@ def _parse_nutrients(payload):
     return nutrients
 
 
+def _parse_portions(payload, limit=5):
+    """Household measures for a food, as ``{label, grams}``.
+
+    Everything else on the page is per 100 g, which is the right basis for
+    comparing two foods and the wrong one for "I ate a banana". USDA knows a
+    large banana is 136 g; there is no reason to make someone guess.
+
+    ``NLEA serving`` is the serving size used on nutrition labels, so it leads
+    where present.
+    """
+    portions = []
+    for entry in payload.get("foodPortions", []) or []:
+        grams = entry.get("gramWeight")
+        if not grams:
+            continue
+        modifier = (entry.get("modifier") or "").strip()
+        unit = (entry.get("measureUnit") or {}).get("name") or ""
+        if unit in ("undetermined", ""):
+            unit = ""
+        amount = entry.get("amount")
+
+        label = " ".join(part for part in [
+            f"{amount:g}" if amount and amount != 1 else "",
+            unit,
+            modifier,
+        ] if part).strip()
+        if not label:
+            continue
+        portions.append({"label": label, "grams": float(grams)})
+
+    def rank(portion):
+        label = portion["label"].lower()
+        return (0 if "nlea" in label else 1, portion["grams"])
+
+    portions.sort(key=rank)
+
+    seen, unique = set(), []
+    for portion in portions:
+        key = round(portion["grams"], 1)
+        if key in seen:
+            continue
+        seen.add(key)
+        # "NLEA serving" is jargon; it means the labelling serving size.
+        if "nlea" in portion["label"].lower():
+            portion = {**portion, "label": "standard serving"}
+        unique.append(portion)
+
+    return unique[:limit]
+
+
 def get_food(fdc_id):
-    """Full record for one food: description, data type, and nutrients by id."""
+    """Full record for one food: description, data type, nutrients and portions."""
     payload = _get(f"food/{fdc_id}")
     return {
         "fdc_id": fdc_id,
@@ -219,6 +269,7 @@ def get_food(fdc_id):
         "data_type": payload.get("dataType", ""),
         "brand": payload.get("brandOwner"),
         "nutrients": _parse_nutrients(payload),
+        "portions": _parse_portions(payload),
     }
 
 

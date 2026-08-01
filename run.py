@@ -10,7 +10,7 @@ from app.app import create_app
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
+    format="%(asctime)s %(levelname)-8s [%(request_id)s] %(name)s: %(message)s",
 )
 
 app = create_app()

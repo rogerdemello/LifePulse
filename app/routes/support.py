@@ -18,6 +18,7 @@ from app.ml.bundle import ModelNotAvailable
 from app.ml.features import FeatureContractError, describe_value, label_for
 from app.ml.guidance import questions_for
 from app.ml.sleep_risk import SLEEPINESS_LABELS, SNORING_LABELS
+from app.observability import current_request_id
 from app.ml.safety import (
     ImpossibleValue,
     check_possible,
@@ -254,7 +255,12 @@ def build_sleep_summary(apnea, insomnia, sleep_hours, vitals, form):
 
 
 def error_page(message, status=400, title="Something went wrong"):
-    return render_template("error.html", message=message, title=title), status
+    # The reference is shown only on server errors: it is there so a user can
+    # quote it, and there is nothing to quote when they simply mistyped.
+    return render_template(
+        "error.html", message=message, title=title,
+        reference=current_request_id() if status >= 500 else None,
+    ), status
 
 
 def unavailable_page(name):
