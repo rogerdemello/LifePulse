@@ -72,20 +72,37 @@ function createProgressCircle(containerId, score, color = '#667eea', label = 'Sc
 // ========================================
 // ANIMATED GAUGE CHART
 // ========================================
-function createGaugeChart(containerId, percentage, label = '', colors = { low: '#28a745', medium: '#ffc107', high: '#dc3545' }) {
+/* The gauge takes its colour from the page, not from an arbitrary split.
+ *
+ * It used to decide for itself: >66% red, >33% amber, else green. Those
+ * thresholds mean nothing here. Heart disease is flagged for follow-up above
+ * roughly 9%, so a 39.7% risk -- four times the population rate -- drew an
+ * amber arc directly above a red badge reading "39.74% estimated risk". The
+ * chart was contradicting the assessment beside it.
+ *
+ * The template knows whether the result crossed the model's own threshold and
+ * says so with data-tone; the colours come from the design tokens.
+ */
+function createGaugeChart(containerId, percentage, label = '', tone = 'neutral') {
   const container = document.getElementById(containerId);
   if (!container) return;
+
+  const styles = getComputedStyle(document.documentElement);
+  const token = (name, fallback) =>
+    (styles.getPropertyValue(name) || '').trim() || fallback;
+  const color = {
+    danger: token('--danger', '#c02c3c'),
+    warning: token('--warning', '#9a6200'),
+    success: token('--success', '#14724a'),
+    neutral: token('--brand', '#5b62d6'),
+  }[tone] || token('--brand', '#5b62d6');
+  const track = token('--surface-sunken', '#e0e0e0');
 
   const size = 200;
   const strokeWidth = 20;
   const radius = (size - strokeWidth) / 2;
   const circumference = Math.PI * radius; // Half circle
   const progress = (percentage / 100) * circumference;
-
-  // Determine color based on percentage
-  let color = colors.low;
-  if (percentage > 66) color = colors.high;
-  else if (percentage > 33) color = colors.medium;
 
   container.innerHTML = `
     <div class="gauge-chart-wrapper">
@@ -94,7 +111,7 @@ function createGaugeChart(containerId, percentage, label = '', colors = { low: '
         <path
           d="M ${strokeWidth/2} ${size/2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth/2} ${size/2}"
           fill="none"
-          stroke="#e0e0e0"
+          stroke="${track}"
           stroke-width="${strokeWidth}"
           stroke-linecap="round"
         />
@@ -236,7 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-gauge-chart]').forEach(el => {
     const percentage = parseInt(el.getAttribute('data-percentage'));
     const label = el.getAttribute('data-label') || '';
-    createGaugeChart(el.id, percentage, label);
+    const tone = el.getAttribute('data-tone') || 'neutral';
+    createGaugeChart(el.id, percentage, label, tone);
   });
 
   document.querySelectorAll('[data-counter]').forEach(el => {

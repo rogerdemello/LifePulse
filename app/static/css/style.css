@@ -577,7 +577,9 @@ footer p { margin: 0; }
 /* Toasts. */
 .toast-container {
   position: fixed;
-  top: 1rem;
+  /* Clear of the navbar. At `top: 1rem` a toast landed on top of the
+     navigation links, covering "Migraine" and "Nutrition" while it was up. */
+  top: 5.5rem;
   right: 1rem;
   z-index: 1080;
   display: flex;

@@ -41,7 +41,7 @@
               <h4 class="text-success mb-3">Low Risk Profile</h4>
               <div class="mb-3">
                 <div class="d-inline-block px-4 py-2 rounded-pill bg-success text-white">
-                  <span class="text-white fw-bold fs-5">Confidence: {{ confidence }}%</span>
+                  <span class="text-white fw-bold fs-5">{{ confidence }}% estimated risk</span>
                 </div>
               </div>
               <p class="text-muted lead">
@@ -53,7 +53,7 @@
               <h4 class="text-warning mb-3">Elevated Risk Profile</h4>
               <div class="mb-3">
                 <div class="d-inline-block px-4 py-2 rounded-pill bg-danger text-white">
-                  <span class="text-white fw-bold fs-5">Confidence: {{ confidence }}%</span>
+                  <span class="text-white fw-bold fs-5">{{ confidence }}% estimated risk</span>
                 </div>
               </div>
               <p class="text-muted lead">
@@ -76,8 +76,9 @@
                   and dietary patterns—are aligned with migraine prevention best practices.
                 </p>
                 <p class="mb-0">
-                  <strong>Continue:</strong> Maintaining these healthy habits is key to keeping your risk low. Stay consistent 
-                  with sleep schedules, hydration, and stress management techniques.
+                  Nothing in your answers stood out as a common trigger. That is not
+                  a guarantee against migraines &mdash; many have causes this
+                  questionnaire does not ask about.
                 </p>
               </div>
             {% else %}
@@ -88,8 +89,9 @@
                   high stress, irregular meals, or excessive screen time—may be creating conditions that trigger migraines.
                 </p>
                 <p class="mb-0">
-                  <strong>Good News:</strong> Most migraine triggers are modifiable! By addressing the recommendations below, 
-                  you can significantly reduce your migraine frequency and severity.
+                  Many common migraine triggers are things you can change. The
+                  suggestions below are the usual starting points; whether they help
+                  varies a great deal between people.
                 </p>
               </div>
             {% endif %}
