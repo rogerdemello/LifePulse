@@ -18,10 +18,10 @@
       Welcome to <span >LifePulse</span>
     </h1>
     <p class="lead fs-4 mb-4" data-aos="fade-up" data-aos-delay="100">
-      AI-powered health predictions and insights at your fingertips
+      Work out whether something's worth seeing a doctor about
     </p>
     <p class="mb-4" data-aos="fade-up" data-aos-delay="200">
-      Track your wellness journey with intelligent health assessments
+      Six checks, each one showing its working. Nothing you enter is stored.
     </p>
     <div data-aos="fade-up" data-aos-delay="300">
       <a href="{{ url_for('start.start') }}" class="btn btn-light btn-lg px-4">
@@ -39,8 +39,8 @@
 <!-- Main Content -->
 <div class="container py-5" id="modules">
   <div class="text-center mb-5">
-    <h2 class="fw-bold mb-3 section-title" data-aos="fade-up">Choose Your Health Module</h2>
-    <p class="text-muted fs-5" data-aos="fade-up" data-aos-delay="100">Select a tool below to get personalized health insights</p>
+    <h2 class="fw-bold mb-3 section-title" data-aos="fade-up">All assessments</h2>
+    <p class="text-muted fs-5" data-aos="fade-up" data-aos-delay="100">Or pick one directly</p>
   </div>
 
   <div class="row g-4">
@@ -70,7 +70,7 @@
           </div>
           <h5 class="card-title fw-bold mb-3">Heart Disease Risk</h5>
           <p class="card-text text-muted mb-4">Assess your cardiovascular health and get personalized risk analysis</p>
-          <a href="/heart_disease" class="btn btn-danger btn-lg w-100">
+          <a href="/heart_disease" class="btn btn-primary btn-lg w-100">
             Check Risk <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
@@ -86,7 +86,7 @@
           </div>
           <h5 class="card-title fw-bold mb-3">Sleep Disorder</h5>
           <p class="card-text text-muted mb-4">Analyze your sleep patterns and identify potential sleep disorders</p>
-          <a href="/sleep" class="btn btn-info btn-lg w-100">
+          <a href="/sleep" class="btn btn-primary btn-lg w-100">
             Analyze Sleep <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
@@ -102,7 +102,7 @@
           </div>
           <h5 class="card-title fw-bold mb-3">Migraine Risk</h5>
           <p class="card-text text-muted mb-4">Estimate migraine likelihood based on your lifestyle and habits</p>
-          <a href="/migraine" class="btn btn-warning btn-lg w-100">
+          <a href="/migraine" class="btn btn-primary btn-lg w-100">
             Assess Risk <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
@@ -118,7 +118,7 @@
           </div>
           <h5 class="card-title fw-bold mb-3">Overall Health Score</h5>
           <p class="card-text text-muted mb-4">Get comprehensive health rating based on lifestyle factors</p>
-          <a href="/health-score" class="btn btn-success btn-lg w-100">
+          <a href="/health-score" class="btn btn-primary btn-lg w-100">
             Calculate Score <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
@@ -134,7 +134,7 @@
           </div>
           <h5 class="card-title fw-bold mb-3">Nutrition Explorer</h5>
           <p class="card-text text-muted mb-4">Discover food benefits, nutrients, and health impacts</p>
-          <a href="/nutrition" class="btn btn-success btn-lg w-100">
+          <a href="/nutrition" class="btn btn-primary btn-lg w-100">
             Explore Foods <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
@@ -214,20 +214,5 @@
     </div>
   </div>
 </div>
-
-<script>
-  // Welcome toast on first visit
-  document.addEventListener('DOMContentLoaded', () => {
-    // Check if it's first visit (you can use sessionStorage)
-    if (!sessionStorage.getItem('welcomeShown')) {
-      setTimeout(() => {
-        if (window.toast) {
-          toast.info('<i class="bi bi-hand-thumbs-up me-2" aria-hidden="true"></i>Welcome to LifePulse! Select a health module to get started.', 5000);
-        }
-        sessionStorage.setItem('welcomeShown', 'true');
-      }, 1000);
-    }
-  });
-</script>
 
 {% endblock %}

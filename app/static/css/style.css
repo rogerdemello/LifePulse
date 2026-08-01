@@ -60,6 +60,31 @@
   --shadow-lifted: 0 2px 4px rgba(16, 24, 40, 0.05), 0 12px 32px rgba(16, 24, 40, 0.10);
 
   --transition: 160ms ease;
+
+  /* Bootstrap reads its own --bs-* variables for utilities and components
+     (.text-body, .form-label, .table, .border, ...). Overriding only our
+     tokens left those on Bootstrap's built-in light palette, so in dark mode
+     every card title and form label rendered near-black on a near-black
+     surface -- invisible, and invisible to the test suite too. Mapping ours
+     onto theirs keeps the whole page on one palette. */
+  --bs-body-color: var(--ink);
+  --bs-body-bg: var(--page);
+  --bs-emphasis-color: var(--ink);
+  --bs-secondary-color: var(--ink-muted);
+  --bs-tertiary-color: var(--ink-faint);
+  --bs-border-color: var(--border);
+  --bs-heading-color: var(--ink);
+  --bs-link-color: var(--brand);
+  --bs-link-hover-color: var(--brand-strong);
+  --bs-code-color: var(--ink);
+}
+
+/* `hidden` must beat Bootstrap's display utilities.
+   .d-grid sets `display: grid !important`, which outranks the user-agent
+   `[hidden] { display: none }` -- so the submit block marked
+   data-step-actions stayed on screen during step 1 of 4. */
+[hidden] {
+  display: none !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -294,7 +319,7 @@ footer p { margin: 0; }
 }
 
 .card-header.border-0 { border-bottom: 0; }
-.card-title { font-size: 1.05rem; font-weight: 700; }
+.card-title { font-size: 1.05rem; font-weight: 700; color: var(--ink); }
 
 /* Cards that link somewhere still respond, just quietly. */
 .hover-card { transition: border-color var(--transition), box-shadow var(--transition); }
@@ -351,7 +376,9 @@ footer p { margin: 0; }
 .bg-warning { background: var(--warning) !important; color: #fff !important; }
 .bg-info    { background: var(--info) !important; }
 .bg-light   { background: var(--surface-sunken) !important; }
+.bg-white   { background: var(--surface) !important; }
 
+.text-body    { color: var(--ink) !important; }
 .text-primary { color: var(--brand) !important; }
 .text-success { color: var(--success) !important; }
 .text-danger  { color: var(--danger) !important; }
@@ -448,7 +475,12 @@ footer p { margin: 0; }
 .btn-light { color: var(--brand); background: #fff; border-color: #fff; }
 .btn-link { color: var(--brand); }
 
-.form-label { margin-bottom: 0.35rem; font-weight: 600; font-size: 0.95rem; }
+.form-label {
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
 
 .form-control,
 .form-select {
@@ -822,6 +854,17 @@ footer p { margin: 0; }
 
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 4px 16px rgba(0, 0, 0, 0.35);
     --shadow-lifted: 0 2px 4px rgba(0, 0, 0, 0.40), 0 12px 32px rgba(0, 0, 0, 0.50);
+
+    --bs-body-color: var(--ink);
+    --bs-body-bg: var(--page);
+    --bs-emphasis-color: var(--ink);
+    --bs-secondary-color: var(--ink-muted);
+    --bs-tertiary-color: var(--ink-faint);
+    --bs-border-color: var(--border);
+    --bs-heading-color: var(--ink);
+    --bs-link-color: var(--brand);
+    --bs-link-hover-color: var(--brand-strong);
+    --bs-code-color: var(--ink);
   }
 
   /* Where a token is a light hue, anything filled with it needs dark ink. */

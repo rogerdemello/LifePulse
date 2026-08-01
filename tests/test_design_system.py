@@ -18,6 +18,10 @@ STATIC = Path(__file__).resolve().parent.parent / "app" / "static"
 TEMPLATES = Path(__file__).resolve().parent.parent / "app" / "templates"
 CSS = (STATIC / "css" / "style.css").read_text(encoding="utf-8")
 
+# Comments quote the constructs they replaced, so assertions about what the
+# stylesheet *does* have to read the rules, not the prose explaining them.
+CSS_RULES = re.sub(r"/\*.*?\*/", "", CSS, flags=re.S)
+
 
 # --------------------------------------------------------------------------
 # contrast
@@ -150,3 +154,61 @@ def test_icons_used_in_templates_are_marked_decorative():
     # A handful of pre-existing decorative icons are inside labelled buttons;
     # anything above a small tail means the convention has been dropped.
     assert len(missing) <= 12, "icons without aria-hidden:\n  " + "\n  ".join(missing)
+
+
+# --------------------------------------------------------------------------
+# Bootstrap interoperability
+#
+# Every test above passed while the app was unreadable in dark mode: card
+# titles and form labels rendered near-black on a near-black surface, because
+# Bootstrap's components read its own --bs-* variables and we were only
+# overriding ours. Static assertions cannot see that. These can.
+# --------------------------------------------------------------------------
+
+BOOTSTRAP_VARS = [
+    "--bs-body-color", "--bs-body-bg", "--bs-emphasis-color",
+    "--bs-secondary-color", "--bs-border-color", "--bs-heading-color",
+    "--bs-link-color",
+]
+
+
+@pytest.mark.parametrize("variable", BOOTSTRAP_VARS)
+def test_bootstrap_variables_are_mapped_onto_our_tokens(variable):
+    """Otherwise .text-body, .form-label and .card-title keep Bootstrap's own
+    light palette and vanish against a dark surface."""
+    assert CSS.count(variable) >= 2, (
+        f"{variable} must be set in both :root and the dark-mode block"
+    )
+
+
+def test_hidden_beats_bootstrap_display_utilities():
+    """`.d-grid` sets `display: grid !important`, which outranks the user-agent
+    `[hidden] { display: none }`. The submit block marked data-step-actions
+    therefore stayed visible on step 1 of 4 -- a working form, showing the
+    wrong control."""
+    match = re.search(r"\[hidden\]\s*\{([^}]*)\}", CSS_RULES)
+    assert match, "[hidden] is not styled at all"
+    assert "display: none !important" in match.group(1)
+
+
+def test_white_backgrounds_follow_the_theme():
+    """`bg-white` left literal painted a glaring white band inside dark cards."""
+    assert re.search(r"\.bg-white\s*\{[^}]*var\(--surface\)", CSS_RULES)
+
+
+@pytest.mark.parametrize("selector,expected", [
+    (r"\.form-label", "--ink"),
+    (r"\.card-title", "--ink"),
+])
+def test_text_components_set_their_own_colour(selector, expected):
+    match = re.search(selector + r"\s*\{([^}]*)\}", CSS_RULES)
+    assert match and expected in match.group(1), f"{selector} inherits its colour"
+
+
+def test_semantic_button_colours_are_not_used_for_navigation():
+    """Colour carries meaning is the whole rule. The homepage had "Check Risk"
+    in danger red and "Analyze Sleep" in info blue -- module links wearing
+    status colours, which made the tile row read as an alert board."""
+    index = (TEMPLATES / "index.html").read_text(encoding="utf-8")
+    for cls in ("btn-danger", "btn-warning", "btn-info", "btn-success"):
+        assert cls not in index, f"{cls} used decoratively on the homepage"
