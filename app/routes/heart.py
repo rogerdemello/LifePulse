@@ -89,8 +89,8 @@ def predict_heart_disease():
         metrics=metrics,
         caveats=caveats,
         factors=factors,
-        factor_noun="your estimated risk",
-        factor_unit="percentage points",
+        factor_noun="your estimate",
+        factor_unit="in 100",
         summary=build_summary(
             title="Heart disease risk",
             headline=f"{probability * 100:.1f}% estimated risk",

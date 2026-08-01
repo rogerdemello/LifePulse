@@ -13,6 +13,8 @@
 
 ### What makes it different
 
+- **You don't need to know what you want.** Describe what you've noticed — "I snore and I'm tired all day" — and it routes you. Describe chest pain and it stops, and tells you to get help instead.
+
 - **It refuses to answer when it shouldn't.** A heart rate of 0 or a BMI of 500 is rejected, not answered. A blood pressure of 190/125 interrupts with "contact a doctor" *before* any model runs.
 - **It admits what it hasn't seen.** Where a model is used, inputs outside its training range are flagged as unreliable rather than answered confidently.
 - **Every result is explained.** Which of your answers moved the outcome, in which direction, by how much.
@@ -280,7 +282,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-207 tests covering:
+256 tests covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
@@ -290,6 +292,8 @@ pytest
 - **Explanations** — directions aren't inverted below 50% risk; age actually moves the heart prediction
 - **Front end** — every referenced asset exists, pages render without JavaScript, landmarks and skip links are present
 - **Rate limiting** — bursts are throttled per client, GETs never are
+- **Triage** — emergency phrasings are caught (including inflections like "ending my life"), and ordinary ones like "improve my fitness" never trigger a false alarm
+- **Multi-step forms** — every field stays in the served markup, so the form works with JavaScript off
 - **Nutrition** — derived facts match the published thresholds, search ranks relevance above brevity, upstream failures degrade readably (the USDA API is mocked, so CI stays hermetic)
 - **Routes** — every page renders, bad input returns 400 without leaking a traceback
 
@@ -302,6 +306,7 @@ Tests that need the gitignored CSVs skip cleanly when the data isn't present.
 | Endpoint | Method | Description |
 |---|---|---|
 | `/` | GET | Homepage |
+| `/start` | GET/POST | Symptom-led entry point |
 | `/heart_disease/` | GET/POST | Heart disease risk |
 | `/sleep/` | GET/POST | Sleep disorder screening |
 | `/migraine/` | GET/POST | Migraine risk |

@@ -68,6 +68,9 @@
 
   <!-- ✅ Visit summary (localStorage only, never uploaded) -->
   <script src="{{ url_for('static', filename='js/summary.js') }}" defer></script>
+
+  <!-- ✅ Multi-step forms (enhancement only; forms work without it) -->
+  <script src="{{ url_for('static', filename='js/steps.js') }}" defer></script>
 </head>
 
 <body>
@@ -100,6 +103,7 @@
       <ul class="navbar-nav ms-auto">
         {% set nav_items = [
           ('/', 'Home'),
+          ('/start', 'Where do I start?'),
           ('/health', 'Health Calculator'),
           ('/health-score', 'Health Score'),
           ('/heart_disease', 'Heart Disease'),

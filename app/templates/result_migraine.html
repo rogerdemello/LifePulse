@@ -234,23 +234,39 @@
         <div class="card-body p-4">
           <div class="row align-items-center">
             <div class="col-md-8">
-              <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
-              <p class="mb-0 small">
-                This tool uses a gradient-boosting model analyzing 10 lifestyle factors
-                and 10 derived interactions (sleep-stress, hydration-caffeine, etc.) to predict migraine risk.
-                Accuracy: <strong>{{ '%.1f'|format(model_meta.migraine.metrics.accuracy * 100) }}%</strong>
-                against a {{ '%.1f'|format(model_meta.migraine.metrics.baseline_majority_accuracy * 100) }}% baseline,
-                with a ROC-AUC of {{ '%.3f'|format(model_meta.migraine.metrics.roc_auc) }}.
-                <span class="text-danger fw-bold">This is a screening tool, not a diagnosis.</span>
-                Consult a neurologist for proper evaluation.
+              <h6 class="fw-bold mb-2">How reliable is this?</h6>
+              <p class="mb-2 small">
+                Tested on people it had never seen, it got the answer right
+                <strong>{{ '%.0f'|format(model_meta.migraine.metrics.accuracy * 100) }} times out of 100</strong>.
+                Always guessing "no migraine risk" would get
+                {{ '%.0f'|format(model_meta.migraine.metrics.baseline_majority_accuracy * 100) }} right,
+                so it is genuinely learning something &mdash; but it is wrong often
+                enough that it should start a conversation, not end one.
               </p>
+              <p class="mb-0 small">
+                <span class="text-danger fw-bold">This is a screening tool, not a diagnosis.</span>
+                See a doctor about recurring headaches.
+              </p>
+              <details class="mt-2">
+                <summary class="small text-muted">The technical version</summary>
+                <p class="small text-muted mt-2 mb-0">
+                  Gradient-boosting classifier over 10 lifestyle inputs and 10 derived
+                  interaction features. Accuracy
+                  {{ '%.3f'|format(model_meta.migraine.metrics.accuracy) }} against a
+                  {{ '%.3f'|format(model_meta.migraine.metrics.baseline_majority_accuracy) }}
+                  majority-class baseline, ROC-AUC
+                  {{ '%.3f'|format(model_meta.migraine.metrics.roc_auc) }}, balanced
+                  accuracy {{ '%.3f'|format(model_meta.migraine.metrics.balanced_accuracy) }},
+                  F1 {{ '%.3f'|format(model_meta.migraine.metrics.f1) }}. Held-out 20% test split.
+                </p>
+              </details>
             </div>
             <div class="col-md-4 text-center">
               <div class="badge bg-primary px-3 py-2 fs-6">
-                {{ '%.1f'|format(model_meta.migraine.metrics.accuracy * 100) }}% Accuracy
+                Right {{ '%.0f'|format(model_meta.migraine.metrics.accuracy * 100) }} times in 100
               </div>
               <div class="mt-2">
-                <small class="text-muted">vs {{ '%.1f'|format(model_meta.migraine.metrics.baseline_majority_accuracy * 100) }}% baseline</small>
+                <small class="text-muted">guessing would get {{ '%.0f'|format(model_meta.migraine.metrics.baseline_majority_accuracy * 100) }}</small>
               </div>
             </div>
           </div>

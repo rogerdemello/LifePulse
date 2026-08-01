@@ -1644,3 +1644,31 @@ footer p {
 
   a { color: #a5b4fc; }
 }
+
+
+/* ==========================================================================
+   MULTI-STEP FORMS
+   Styling for the progress indicator injected by static/js/steps.js. The
+   sections themselves need no styling -- without JavaScript they are simply
+   all visible, which is a working form.
+   ========================================================================== */
+
+.form-steps-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, .08);
+  overflow: hidden;
+}
+
+.form-steps-bar > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: var(--primary-gradient);
+  transition: width .35s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .form-steps-bar { background: rgba(255, 255, 255, .12); }
+}

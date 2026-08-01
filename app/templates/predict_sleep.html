@@ -15,10 +15,10 @@
 
   <div class="row justify-content-center">
     <div class="col-lg-8">
-      <form method="POST" action="{{ url_for('sleep.predict_sleep') }}">
+      <form method="POST" action="{{ url_for('sleep.predict_sleep') }}" data-steps>
 
         <!-- Breathing during sleep -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4" data-step="Breathing during sleep">
           <div class="card-header bg-white border-0 pt-4 px-4">
             <h2 class="h5 fw-bold mb-1">Breathing during sleep</h2>
             <p class="text-muted small mb-0">
@@ -70,7 +70,7 @@
         </div>
 
         <!-- Trouble sleeping -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4" data-step="Trouble sleeping">
           <div class="card-header bg-white border-0 pt-4 px-4">
             <h2 class="h5 fw-bold mb-1">Trouble sleeping</h2>
             <p class="text-muted small mb-0">
@@ -114,7 +114,7 @@
         </div>
 
         <!-- Context -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4" data-step="A bit of context">
           <div class="card-header bg-white border-0 pt-4 px-4">
             <h2 class="h5 fw-bold mb-1">A bit of context</h2>
           </div>
@@ -144,7 +144,7 @@
           </div>
         </div>
 
-        <div class="text-center">
+        <div class="text-center" data-step-actions>
           <button type="submit" class="btn btn-primary btn-lg px-5">
             <i class="bi bi-moon-stars me-1" aria-hidden="true"></i>See my results
           </button>

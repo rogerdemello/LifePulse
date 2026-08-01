@@ -10,6 +10,7 @@ from app.routes.health_score import health_score_bp
 from app.routes.heart import heart_disease_bp
 from app.routes.migraine import migraine_bp
 from app.routes.nutrition import nutrition_bp
+from app.routes.start import start_bp
 from app.routes.sleep import sleep_bp
 
 load_dotenv()
@@ -52,6 +53,7 @@ def create_app():
     app.register_blueprint(heart_disease_bp)
     app.register_blueprint(migraine_bp)
     app.register_blueprint(health_score_bp)
+    app.register_blueprint(start_bp)
 
     @app.context_processor
     def inject_model_metadata():

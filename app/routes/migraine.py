@@ -62,8 +62,8 @@ def predict_migraine():
         confidence=round(probabilities[label] * 100, 1),
         caveats=caveats,
         factors=factors,
-        factor_noun="your estimated migraine risk",
-        factor_unit="percentage points",
+        factor_noun="your estimate",
+        factor_unit="in 100",
         summary=build_summary(
             title="Migraine risk",
             headline=f"{label} ({risk:.0f}% estimated risk)",

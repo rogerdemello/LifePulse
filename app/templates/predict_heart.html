@@ -11,9 +11,12 @@
     <div class="col-lg-10">
       <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-          <form action="{{ url_for('heart_disease.predict_heart_disease') }}" method="POST">
+          <form action="{{ url_for('heart_disease.predict_heart_disease') }}" method="POST" data-steps>
 
-            <!-- Basic Info Section -->
+            <!-- Sections carry data-step so static/js/steps.js can present them
+                 one at a time. Without JavaScript they all render as one form,
+                 which still submits correctly. -->
+            <section data-step="About you">
             <h5 class="fw-bold mb-3 text-primary">
               <i class="bi bi-person-fill"></i> Basic Information
             </h5>
@@ -43,7 +46,9 @@
               </div>
             </div>
 
-            <!-- Health Conditions Section -->
+            </section>
+
+            <section data-step="Health conditions">
             <h5 class="fw-bold mb-3 text-danger">
               <i class="bi bi-heart-pulse-fill"></i> Health Conditions
             </h5>
@@ -106,7 +111,9 @@
               </div>
             </div>
 
-            <!-- Lifestyle Section -->
+            </section>
+
+            <section data-step="Lifestyle">
             <h5 class="fw-bold mb-3 text-success">
               <i class="bi bi-activity"></i> Lifestyle Habits
             </h5>
@@ -172,7 +179,9 @@
               </div>
             </div>
 
-            <!-- Health Status Section -->
+            </section>
+
+            <section data-step="How you've felt lately">
             <h5 class="fw-bold mb-3 text-info">
               <i class="bi bi-clipboard2-pulse"></i> Recent Health Status
             </h5>
@@ -190,8 +199,10 @@
               </div>
             </div>
 
+            </section>
+
             <!-- Submit Buttons -->
-            <div class="d-grid gap-2 mt-4">
+            <div class="d-grid gap-2 mt-4" data-step-actions>
               <button type="submit" class="btn btn-danger btn-lg">
                 <i class="bi bi-search"></i> Predict Heart Disease Risk
               </button>

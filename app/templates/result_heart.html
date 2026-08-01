@@ -54,13 +54,33 @@
               {% endif %}
             </div>
 
-            <p class="text-muted small mt-3 mb-0 mx-auto" style="max-width: 42rem;">
-              This is a calibrated probability, not a score out of 100 &mdash; it is the
-              estimated chance of heart disease for someone with your answers. For context,
-              {{ '%.1f'|format(metrics.observed_prevalence * 100) }}% of the
-              survey population has heart disease, and this assessment flags anyone above
-              {{ threshold }}% for follow-up.
+            <p class="mt-3 mb-2 mx-auto" style="max-width: 42rem;">
+              Out of 100 people who answered the way you did, we'd expect
+              <strong>about {{ probability|float|round|int }}</strong> to have heart
+              disease. Across everyone in the survey, it's about
+              {{ '%.0f'|format(metrics.observed_prevalence * 100) }} in 100.
             </p>
+            <p class="text-muted small mb-0 mx-auto" style="max-width: 42rem;">
+              This is not a score out of 100, and it is not a diagnosis &mdash; it's how
+              common heart disease is among people who gave your answers.
+            </p>
+
+            <details class="mt-3 mx-auto text-start" style="max-width: 42rem;">
+              <summary class="small text-muted">The technical version</summary>
+              <p class="small text-muted mt-2 mb-0">
+                A calibrated probability from a gradient-boosting classifier: mean
+                predicted risk across the test set matches observed prevalence
+                ({{ '%.3f'|format(metrics.mean_predicted_risk) }} vs
+                {{ '%.3f'|format(metrics.observed_prevalence) }}), Brier score
+                {{ '%.3f'|format(metrics.brier_score) }}. ROC-AUC
+                {{ '%.3f'|format(metrics.roc_auc) }}, PR-AUC
+                {{ '%.3f'|format(metrics.pr_auc) }} against a
+                {{ '%.3f'|format(metrics.baseline_pr_auc) }} prevalence baseline.
+                Anything at or above {{ threshold }}% is flagged for follow-up &mdash;
+                a threshold tuned by Youden's J on a held-out validation split, not a
+                hardcoded 0.5.
+              </p>
+            </details>
           </div>
 
           <!-- Result Message -->

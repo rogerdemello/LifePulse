@@ -160,10 +160,12 @@
             <div class="card-body text-white p-4">
               <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
               <p class="mb-0 small">
-                Our model analyzes 10 lifestyle factors plus 10 derived interactions to predict migraine risk
-                with <strong>{{ '%.1f'|format(model_meta.migraine.metrics.accuracy * 100) }}% accuracy</strong>
-                against a {{ '%.1f'|format(model_meta.migraine.metrics.baseline_majority_accuracy * 100) }}% baseline.
-                This is a screening tool based on common migraine triggers.
+                Ten questions about your habits. Tested on people it had never seen, it
+                gets the answer right about
+                {{ '%.0f'|format(model_meta.migraine.metrics.accuracy * 100) }} times in 100 &mdash;
+                where always guessing "no risk" would get
+                {{ '%.0f'|format(model_meta.migraine.metrics.baseline_majority_accuracy * 100) }}.
+                It looks at common migraine triggers, not at you specifically.
                 <strong>Note:</strong> This is not a medical diagnosis. Consult a neurologist for proper evaluation.
               </p>
             </div>

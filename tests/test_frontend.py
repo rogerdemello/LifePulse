@@ -175,3 +175,49 @@ def test_print_stylesheet_exists_for_the_visit_summary():
     # The app furniture must not end up on a page handed to a doctor.
     for selector in ("nav", "footer", ".summary-toolbar"):
         assert selector in print_block
+
+
+# --------------------------------------------------------------------------
+# multi-step forms
+# --------------------------------------------------------------------------
+
+STEPPED = ["/heart_disease/", "/sleep/"]
+
+
+@pytest.mark.parametrize("path", STEPPED)
+def test_stepped_forms_declare_their_steps(client, path):
+    body = client.get(path).get_data(as_text=True)
+    assert "data-steps" in body
+    assert body.count('data-step="') >= 2
+    assert "data-step-actions" in body, "no submit block for the last step"
+
+
+@pytest.mark.parametrize("path", STEPPED)
+def test_every_field_is_in_the_markup_not_built_by_script(client, path):
+    """The steps are an enhancement. With JavaScript off the whole form must
+    still be present and submittable, which is why this hides sections from
+    script rather than from CSS."""
+    body = client.get(path).get_data(as_text=True)
+    form = body[body.index("<form"):body.index("</form>")]
+    inputs = re.findall(r'<(?:input|select)\b[^>]*name="([^"]+)"', form)
+    assert len(inputs) >= 7, f"{path} only exposed {inputs}"
+
+
+def test_steps_are_not_hidden_by_css():
+    """A CSS rule hiding steps would break the form for anyone without JS.
+
+    This is the same failure as the old `body { opacity: 0 }`: styling that
+    assumes a script will arrive to undo it.
+    """
+    css = _code_only(STATIC / "css" / "style.css")
+    assert "[data-step]" not in css or "display: none" not in css
+
+
+def test_the_step_script_only_hides_what_it_grouped():
+    js = _code_only(STATIC / "js" / "steps.js")
+    # Bails out rather than hiding anything when there is nothing to group.
+    assert "if (steps.length < 2) return;" in js
+    # Native validation is used rather than replaced.
+    assert "reportValidity" in js
+    # And the change of step is announced.
+    assert "aria-live" in js
