@@ -55,9 +55,13 @@ guidance, sleep-medicine consensus and UK alcohol limits. **Not a model** — th
 result page shows exactly where every point came from. Age is deliberately
 excluded: it measures what you can change.
 
-### 🧮 Health Calculator & 🥗 Nutrition Lookup
-Rule-based BMI/BMR/calorie/waist-hip calculations, and food lookup via the USDA
-FoodData Central API. Neither uses a model.
+### 🥗 Nutrition Lookup
+Any food in USDA FoodData Central, with what its numbers mean: UK front-of-pack
+thresholds for fat, saturates, sugars and salt, and US Daily Values for
+"good/excellent source" claims. Every label shows the figure it came from.
+
+### 🧮 Health Calculator
+Rule-based BMI, BMR, calorie and waist-hip calculations. No model.
 
 ---
 
@@ -243,7 +247,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-169 tests covering:
+195 tests covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
@@ -253,6 +257,7 @@ pytest
 - **Explanations** — directions aren't inverted below 50% risk; age actually moves the heart prediction
 - **Front end** — every referenced asset exists, pages render without JavaScript, landmarks and skip links are present
 - **Rate limiting** — bursts are throttled per client, GETs never are
+- **Nutrition** — derived facts match the published thresholds, search ranks relevance above brevity, upstream failures degrade readably (the USDA API is mocked, so CI stays hermetic)
 - **Routes** — every page renders, bad input returns 400 without leaking a traceback
 
 Tests that need the gitignored CSVs skip cleanly when the data isn't present.

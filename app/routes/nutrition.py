@@ -1,62 +1,78 @@
+"""Food lookup against USDA FoodData Central."""
+
+import logging
+
 from flask import Blueprint, render_template, request
+
+from app.ratelimit import rate_limit
 from app.utils.nutrition import (
-    search_food_item,
-    get_nutrition_details,
-    food_benefits_disadvantages
+    NutritionUnavailable,
+    get_first_retrievable,
+    is_configured,
+    search_foods,
+)
+from app.utils.nutrition_facts import (
+    micronutrients,
+    nutrient_facts,
+    nutrition_panel,
+    summarise,
 )
 
-nutrition_bp = Blueprint('nutrition', __name__, url_prefix='/nutrition')
+log = logging.getLogger(__name__)
 
-@nutrition_bp.route('/', methods=['GET', 'POST'])
+nutrition_bp = Blueprint("nutrition", __name__, url_prefix="/nutrition")
+
+
+@nutrition_bp.route("/", methods=["GET", "POST"])
+# Every lookup makes two calls to a third-party API on a shared key. Throttling
+# here protects the key's quota as much as this server.
+@rate_limit(limit=20, window=60)
 def nutrition_lookup():
-    if request.method == 'POST':
-        food = request.form.get('food')  # ✅ Safe access
+    if request.method != "POST":
+        return render_template("nutrition.html", configured=is_configured())
 
-        if not food:
-            return render_template(
-                'nutrition.html',
-                nutrition_info={"error": "⚠️ Please enter a food item."}
-            )
-
-        ids = search_food_item(food)
-
-        if not ids:
-            return render_template(
-                'nutrition.html',
-                nutrition_info={"error": "❌ No food data found."},
-                food_name=food
-            )
-
-        fdc_id = ids[0]
-        nutrition = get_nutrition_details(fdc_id)
-
-        nutrients = nutrition.get("nutrients", {})  # ✅ Safe fallback
-
-        if not nutrients:
-            return render_template(
-                'nutrition.html',
-                nutrition_info={"error": "❌ No nutrition info found."},
-                food_name=food
-            )
-
-        info = food_benefits_disadvantages(food)  # ✅ Always returns dict
-
-        nutrition_info = {
-            "nutrients": nutrients,
-            "benefits": info.get("benefits", []),
-            "risks": info.get("disadvantages", []),
-            "vitamins": [key for key in nutrients if "Vitamin" in key],
-            "minerals": [key for key in nutrients if key in ["Calcium", "Iron", "Magnesium", "Potassium", "Zinc"]],
-        }
-
+    query = (request.form.get("food") or "").strip()
+    if not query:
         return render_template(
-            'nutrition.html',
-            nutrition_info=nutrition_info,
-            food_name=food
-        )
+            "nutrition.html", configured=is_configured(),
+            error="Please enter a food to look up.",
+        ), 400
 
-    return render_template('nutrition.html')
+    # A specific result was chosen from the alternatives on a previous search.
+    chosen = request.form.get("fdc_id")
 
+    try:
+        matches = search_foods(query)
+        if not matches:
+            return render_template(
+                "nutrition.html", configured=True, food_name=query,
+                error=f"No food matching “{query}” was found in the USDA database.",
+            ), 404
 
+        food, selected_id = get_first_retrievable(matches, preferred_id=chosen)
+        if food is None:
+            return render_template(
+                "nutrition.html", configured=True, food_name=query,
+                error=f"USDA lists matches for “{query}” but has no full "
+                      f"nutrient record for any of them. Try a simpler name.",
+            ), 404
+    except NutritionUnavailable as exc:
+        log.warning("nutrition lookup failed for %r: %s", query, exc)
+        return render_template(
+            "nutrition.html", configured=is_configured(), food_name=query,
+            error=str(exc),
+        ), 503
 
+    facts = nutrient_facts(food["nutrients"])
 
+    return render_template(
+        "nutrition.html",
+        configured=True,
+        food_name=query,
+        food=food,
+        facts=facts,
+        groups=summarise(facts),
+        panel=nutrition_panel(food["nutrients"]),
+        micros=micronutrients(food["nutrients"]),
+        alternatives=[m for m in matches if str(m["fdc_id"]) != str(selected_id)],
+    )
