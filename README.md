@@ -49,9 +49,11 @@ is entered as real numbers and parsed, so any reading works.
 Binary risk from 10 lifestyle inputs plus 10 derived interactions (sleep×stress,
 water/caffeine, screen/sleep).
 
-### 🧮 Health Score
-A 0–100 composite from seven lifestyle inputs. **The training data for this one is
-synthetic**, so treat the score as illustrative.
+### 🧮 Lifestyle Score
+A 0–100 checklist over six modifiable factors, scored against WHO activity and BMI
+guidance, sleep-medicine consensus and UK alcohol limits. **Not a model** — the
+result page shows exactly where every point came from. Age is deliberately
+excluded: it measures what you can change.
 
 ### 🧮 Health Calculator & 🥗 Nutrition Lookup
 Rule-based BMI/BMR/calorie/waist-hip calculations, and food lookup via the USDA
@@ -73,7 +75,7 @@ rerun `python ml_model/train_all.py` together, never separately.
 
 ## 🤖 ML Models
 
-All four are retrained from scratch by `python ml_model/train_all.py`. Metrics come
+The three models are retrained from scratch by `python ml_model/train_all.py`. Metrics come
 from a held-out 20% test split and are written to `app/models/<name>/metadata.json`,
 which is what the app displays — no figure in this table is hardcoded anywhere in the UI.
 
@@ -82,7 +84,7 @@ which is what the app displays — no figure in this table is hardcoded anywhere
 | Heart Disease | HistGradientBoosting | **ROC-AUC 0.849**, PR-AUC 0.368 | PR-AUC 0.094 (prevalence) | 0.16 MB |
 | Sleep Disorder | HistGradientBoosting | **85.8%** accuracy, 79.6% balanced | 70.0% (majority class) | 0.24 MB |
 | Migraine | HistGradientBoosting | **84.0%** accuracy, ROC-AUC 0.924 | 60.0% (majority class) | 0.12 MB |
-| Health Score | RidgeCV | **R² 0.812** | R² 0.809 (linear on raw features) | 0.8 KB |
+| Lifestyle Score | *rubric, not a model* | — | — | — |
 
 ### Why baselines are quoted
 
@@ -90,6 +92,35 @@ Only 9.4% of the heart-disease dataset is positive, so predicting "no disease" f
 everyone scores **90.6% accuracy**. A bare accuracy figure would look impressive and mean
 nothing. Heart is therefore judged on ROC-AUC and PR-AUC, and the other models are
 reported against the majority-class rate they have to beat.
+
+### Why the lifestyle score isn't a model
+
+It was one — a RandomForest reporting R² 0.81. Three things were wrong with it:
+
+- **The data was generated, not observed.** Every column in `synthetic_health_data.csv`
+  is Gaussian noise around a formula, with no clamping: 70 rows had *negative* alcohol
+  consumption, 18 had a diet quality above the stated maximum of 100, and one
+  respondent was 1.1 years old. The R² measured how well it recovered a random
+  number generator.
+- **The form's encodings didn't match it.** The diet dropdown offers 1–9 while
+  training saw 19.9–110.3, so selecting "9 — Excellent" put the user *below* the
+  worst diet the model had ever seen. A maximally healthy profile scored 68.9/100.
+- **There was nothing to predict.** "Health score" is a construct, not a measurable
+  outcome, so there is no ground truth a model could learn.
+
+A rubric wins on every axis that matters here: explainable by construction, every
+weight a stated judgement traceable to public guidance, and it cannot silently
+drift from the form. The weights are editorial and the page says so.
+
+### Datasets I checked and rejected
+
+Three unused CSVs sit in `data/`. All three failed:
+
+| Dataset | Why not |
+|---|---|
+| **Stroke** (5,110 rows, real) | Age alone scores ROC-AUC 0.786; all six features score 0.786. The other five questions add nothing — it would be an age lookup table wearing a form. |
+| **Liver** (1,700 rows) | Good model (ROC-AUC 0.835 without a blood test) on synthetic data — every continuous column is uniformly distributed, KS p > 0.05. |
+| **Mental health wearable** (10,000 rows) | 0.658 accuracy against a 0.516 baseline. Inferring a mental-health condition from heart rate and step count is not something this app should claim to do. |
 
 ### Calibration and the decision threshold
 
@@ -118,7 +149,7 @@ cp .env.example .env               # then fill in SECRET_KEY
 python run.py                      # http://localhost:5000
 ```
 
-No Git LFS step. The four models total ~0.5 MB and are committed directly, so a plain
+No Git LFS step. The three models total ~0.5 MB and are committed directly, so a plain
 clone gives you a working app. (`GET /healthz` confirms which models loaded.)
 
 ### Retraining
@@ -127,7 +158,7 @@ The training CSVs are gitignored — they are inputs, not outputs, and BRFSS alo
 22 MB. Place them in `data/` and run:
 
 ```bash
-python ml_model/train_all.py                  # all four
+python ml_model/train_all.py                  # all three
 python ml_model/train_all.py --model heart    # just one
 ```
 
@@ -136,7 +167,7 @@ python ml_model/train_all.py --model heart    # just one
 | `heart_disease_health_indicators_BRFSS2015.csv` | BRFSS 2015 (Kaggle) |
 | `Sleep_health_and_lifestyle_dataset (1).csv` | Sleep Health and Lifestyle (Kaggle) |
 | `migraine_dataset_500 (1).csv` | Migraine triggers dataset |
-| `synthetic_health_data.csv` | Generated locally |
+
 
 ---
 
@@ -163,7 +194,7 @@ fails first.
 
 This structure exists for a reason. Each route used to reimplement its model's feature
 engineering inline, and the loader filled in `0.0` for any name it could not find. The
-names drifted, nothing raised, and all four models were served vectors far outside their
+names drifted, nothing raised, and every model was served vectors far outside their
 training distributions — the sleep model was receiving `Blood_Pressure_Mean` at
 **z = −16.7**. Adding a feature now means editing one file, and the tests will tell you
 if the artifacts need retraining.
@@ -212,7 +243,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-161 tests covering:
+169 tests covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero

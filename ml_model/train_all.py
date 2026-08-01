@@ -2,7 +2,7 @@
 
 Run from the repository root::
 
-    python ml_model/train_all.py                 # all four
+    python ml_model/train_all.py                 # all three
     python ml_model/train_all.py --model heart   # just one
 
 Feature engineering lives in ``app/ml/features.py`` and is imported, never
@@ -376,65 +376,13 @@ def train_migraine():
     })
 
 
-# --------------------------------------------------------------------------
-# health score
-# --------------------------------------------------------------------------
-
-def train_health_score():
-    log.info("health_score: loading synthetic health data")
-    df = pd.read_csv(DATA / "synthetic_health_data.csv")
-    X = F.build_health(df)
-    y = df["Health_Score"].astype(float)
-
-    X_train, X_test, y_train, y_test = _split(X, y, stratify=False)
-    scaler, Xtr, Xte = _scaled(X_train, X_test)
-
-    # A ridge fit beats the 200-tree forest this replaces (R^2 0.828 vs 0.819 in
-    # 5-fold CV) at roughly one ten-thousandth of the file size. The target is
-    # generated, so this measures recovery of a synthetic formula.
-    model = RidgeCV(alphas=np.logspace(-3, 3, 25)).fit(Xtr, y_train)
-    pred = model.predict(Xte)
-
-    # Baseline scored on the same held-out split, not by cross-validation --
-    # comparing a single test split against a CV mean is not a comparison.
-    raw_train, raw_test = df.loc[X_train.index, F.HEALTH_RAW], df.loc[X_test.index, F.HEALTH_RAW]
-    baseline = LinearRegression().fit(raw_train, y_train)
-    raw_linear = r2_score(y_test, baseline.predict(raw_test))
-
-    metrics = {
-        "r2": float(r2_score(y_test, pred)),
-        "mae": float(mean_absolute_error(y_test, pred)),
-        "cv_r2_mean": float(
-            cross_val_score(model, Xtr, y_train, cv=5, scoring="r2").mean()
-        ),
-        "baseline_linear_on_raw_features_r2": float(raw_linear),
-        "alpha": float(model.alpha_),
-        "data_note": (
-            "synthetic_health_data.csv is generated, not observed. R^2 here "
-            "measures recovery of a synthetic formula and says nothing about "
-            "real-world health prediction."
-        ),
-    }
-    log.info("  R2 %.4f (raw-feature linear baseline %.4f) | MAE %.2f | alpha %.3g",
-             metrics["r2"], raw_linear, metrics["mae"], model.alpha_)
-
-    return _save("health_score", model, scaler, F.HEALTH_FEATURES, {
-        "task": "regression",
-        "target": "Health_Score",
-        "output_range": [0, 100],
-        "dataset": "synthetic_health_data (generated)",
-        "n_rows": int(len(y)),
-        "estimator": type(model).__name__,
-        "raw_profile": _profile(df, F.HEALTH_RAW),
-        "metrics": metrics,
-    })
-
-
+# The lifestyle score is scored by a rubric in app/ml/lifestyle.py rather than
+# a model. Its old training data was Gaussian noise -- 70 rows had negative
+# alcohol consumption -- so there was nothing real to learn.
 TRAINERS = {
     "heart": train_heart,
     "sleep": train_sleep,
     "migraine": train_migraine,
-    "health_score": train_health_score,
 }
 
 

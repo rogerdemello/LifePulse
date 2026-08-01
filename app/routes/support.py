@@ -136,6 +136,63 @@ def build_summary(title, headline, detail, model_name, raw, factors, caveats, fo
     }
 
 
+def build_rubric_summary(result, raw, form):
+    """Visit summary for the lifestyle score.
+
+    Shaped like ``build_summary`` so the same localStorage summary page renders
+    both, but sourced from the rubric's components rather than a model
+    explanation -- there is no model here to explain.
+    """
+    flags = check_red_flags(raw)
+    opportunity = result.biggest_opportunity
+
+    questions = []
+    for flag in flags:
+        questions.append(f"Should we talk about {flag.title.lower()}?")
+    questions.append(
+        f"I scored {result.total:.0f} out of 100 on a lifestyle checklist. "
+        f"Which of these would make the most difference for someone with my history?"
+    )
+    if opportunity:
+        questions.append(
+            f"{opportunity.label} came out as my biggest opportunity "
+            f"({opportunity.lost:.0f} of {opportunity.weight} points). "
+            f"What support is available for that?"
+        )
+
+    return {
+        "title": "Lifestyle score",
+        "date": datetime.now().strftime("%d %b %Y"),
+        "headline": f"{result.total:.0f} out of 100 — {result.band}",
+        "detail": (
+            f"{result.interpretation} Scored against published guidance rather "
+            f"than a model, so every point is traceable to a stated rule."
+        ),
+        "inputs": [
+            {"label": component.label, "value": component.answer}
+            for component in result.components
+        ],
+        "factors": [
+            {
+                "label": component.label,
+                "value": component.answer,
+                "direction": "lowered" if component.lost >= 1 else "raised",
+                "delta": round(max(component.lost, component.earned), 1),
+            }
+            for component in sorted(
+                result.components, key=lambda c: c.lost, reverse=True
+            )
+            if component.lost >= 1
+        ],
+        "caveats": [],
+        "flags": [
+            {"title": f.title, "detail": f.detail, "urgency": f.urgency}
+            for f in flags
+        ],
+        "questions": questions[:6],
+    }
+
+
 def error_page(message, status=400, title="Something went wrong"):
     return render_template("error.html", message=message, title=title), status
 

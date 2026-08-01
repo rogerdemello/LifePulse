@@ -82,15 +82,19 @@ def test_explanations_appear_on_every_result_page(client):
             "Stress": "9", "ScreenTime": "12", "PhysicalActivity": "0",
             "Menstruating": "1",
         }),
-        ("/health-score/", {
-            "Age": "62", "BMI": "34", "ExerciseFrequency": "0",
-            "DietQuality": "30", "SleepHours": "4", "SmokingStatus": "1",
-            "AlcoholConsumption": "8",
-        }),
     ]
     for path, form in cases:
         body = client.post(path, data=form).get_data(as_text=True)
         assert "What drove this result" in body, path
+
+    # The lifestyle score is a rubric, not a model, so it shows its arithmetic
+    # rather than a counterfactual explanation. See tests/test_lifestyle.py.
+    body = client.post("/health-score/", data={
+        "Age": "62", "BMI": "34", "ExerciseFrequency": "0",
+        "DietQuality": "3", "SleepHours": "4", "SmokingStatus": "4",
+        "AlcoholConsumption": "5",
+    }).get_data(as_text=True)
+    assert "How this was calculated" in body
 
 
 def test_a_high_risk_profile_blames_the_right_things(client):

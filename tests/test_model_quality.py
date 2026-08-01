@@ -64,14 +64,17 @@ def test_migraine_beats_majority_class():
     assert m["roc_auc"] > 0.85
 
 
-def test_health_score_beats_a_plain_linear_fit():
-    """The engineered features have to earn their keep.
+def test_the_lifestyle_score_is_no_longer_a_model():
+    """It used to be one, fit to Gaussian noise. See tests/test_lifestyle.py.
 
-    The model this replaced was a 4.8 MB RandomForest that scored *below* a
-    plain linear regression on the seven raw columns.
+    Guards against a model being reintroduced here without real outcome data to
+    fit it to. "Health score" is a construct, not a measurable outcome.
     """
-    m = load_metadata("health_score")["metrics"]
-    assert m["r2"] >= m["baseline_linear_on_raw_features_r2"]
+    from app.ml.features import BUILDERS
+
+    assert "health_score" not in MODEL_NAMES
+    assert "health_score" not in BUILDERS
+    assert not (MODELS_DIR / "health_score").exists()
 
 
 @pytest.mark.parametrize("name", MODEL_NAMES)

@@ -13,11 +13,12 @@ import pytest
 from app.ml import features as F
 from conftest import DATA, requires_dataset
 
+# health_score is absent: it is scored by a rubric now, not a model, so there
+# is no training path for a serving path to drift from.
 CSV = {
     "heart": "heart_disease_health_indicators_BRFSS2015.csv",
     "sleep": "Sleep_health_and_lifestyle_dataset (1).csv",
     "migraine": "migraine_dataset_500 (1).csv",
-    "health_score": "synthetic_health_data.csv",
 }
 
 
