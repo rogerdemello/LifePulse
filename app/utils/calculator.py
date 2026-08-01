@@ -22,15 +22,31 @@ def calculate_bmr(gender, age, height_cm, weight_kg):
 def recommended_water_intake(weight_kg):
     return round(weight_kg * 35 / 1000, 2)  # in liters
 
+ACTIVITY_MULTIPLIERS = {
+    "sedentary": 1.2,
+    "light": 1.375,
+    "moderate": 1.55,
+    "active": 1.725,
+    "very active": 1.9,
+}
+
+
 def daily_calorie_needs(bmr, activity_level):
-    activity_multipliers = {
-        "sedentary": 1.2,
-        "light": 1.375,
-        "moderate": 1.55,
-        "active": 1.725,
-        "very active": 1.9
-    }
-    return round(bmr * activity_multipliers.get(activity_level, 1.2), 2)
+    """Harris-Benedict style activity multiplier.
+
+    Keys are normalised because the form posts "very_active" while this table is
+    written "very active". The old lookup was `.get(level, 1.2)`, so choosing
+    "Very Active" silently returned the *sedentary* figure -- 2400 kcal instead
+    of 3800 for a 2000 kcal BMR. Unknown levels now raise rather than quietly
+    returning someone else's answer.
+    """
+    key = str(activity_level).strip().lower().replace("_", " ").replace("-", " ")
+    if key not in ACTIVITY_MULTIPLIERS:
+        raise ValueError(
+            f"unknown activity level {activity_level!r}; "
+            f"expected one of {sorted(ACTIVITY_MULTIPLIERS)}"
+        )
+    return round(bmr * ACTIVITY_MULTIPLIERS[key], 2)
 
 def hydration_score(water_intake_l, recommended_l):
     if water_intake_l >= recommended_l:

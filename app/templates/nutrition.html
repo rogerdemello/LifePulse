@@ -1,363 +1,261 @@
 {% extends "base.html" %}
 
-{% block title %}Nutrition Information Explorer - LifePulse{% endblock %}
-{% block description %}Discover comprehensive nutritional information, health benefits, and dietary insights for any food with our nutrition explorer.{% endblock %}
+{% block title %}Nutrition Lookup - LifePulse{% endblock %}
+{% block description %}Look up any food's nutrition from the USDA FoodData Central database, with what the numbers mean against published labelling thresholds.{% endblock %}
 
 {% block content %}
+<style>
+  .fact-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .35rem .8rem;
+    margin: 0 .35rem .5rem 0;
+    font-size: .875rem;
+    font-weight: 600;
+    border-radius: 999px;
+  }
+  .fact-high { background: var(--danger-soft); color: var(--danger); }
+  .fact-good { background: var(--success-soft); color: var(--success); }
+  .fact-low  { background: var(--info-soft); color: var(--info); }
+  .fact-medium { background: var(--warning-soft); color: var(--warning); }
+
+  .panel-row { display: flex; justify-content: space-between; padding: .5rem 0; border-bottom: 1px solid var(--border); }
+  .panel-row:last-child { border-bottom: none; }
+  .panel-row.indent { padding-left: 1.25rem; color: var(--ink-muted); font-size: .925rem; }
+
+  .micro-bar { height: 6px; border-radius: 3px; background: var(--surface-sunken); overflow: hidden; }
+  .micro-bar > span { display: block; height: 100%; background: var(--brand); }
+</style>
+
 <div class="container py-5">
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2">🥗 Nutrition Information Explorer</h2>
-    <p class="text-muted">Discover nutritional facts, health benefits, and dietary insights</p>
+    <h1 class="fw-bold h2 mb-2">Nutrition lookup</h1>
+    <p class="text-muted mb-0">
+      Nutrient data from the USDA FoodData Central database, per 100 g
+    </p>
   </div>
 
   <div class="row justify-content-center">
-    <div class="col-md-10">
-      
-      <!-- Search Form -->
+    <div class="col-lg-8">
+
+      {% if not configured %}
+      <div class="alert alert-warning border-0 shadow-sm">
+        <h2 class="h6 fw-bold mb-1">Food lookup isn't configured on this server</h2>
+        <p class="small mb-0">
+          It needs a free USDA FoodData Central API key in <code>USDA_API_KEY</code>.
+          Everything else on LifePulse works without it.
+        </p>
+      </div>
+      {% endif %}
+
+      <!-- Search -->
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
           <form method="POST" action="{{ url_for('nutrition.nutrition_lookup') }}">
+            <label for="food" class="form-label fw-semibold">Search for a food</label>
             <div class="input-group input-group-lg">
-              <span class="input-group-text bg-white border-end-0">
-                <span style="font-size: 1.5rem;">🔍</span>
-              </span>
-              <input type="text" name="food" class="form-control border-start-0 ps-0" 
-                     placeholder="Search any food... (e.g., banana, chicken breast, spinach)" 
-                     value="{{ food_name if food_name else '' }}"
-                     style="font-size: 1.1rem;"
-                     required>
-              <button type="submit" class="btn btn-success px-5" style="font-size: 1.1rem;">
-                Search
+              <input type="text" id="food" name="food" class="form-control"
+                     placeholder="e.g. banana, cheddar cheese, lentils"
+                     value="{{ food_name or '' }}"
+                     {% if not configured %}disabled{% endif %} required>
+              <button class="btn btn-primary" type="submit"
+                      {% if not configured %}disabled{% endif %}>
+                <i class="bi bi-search me-1" aria-hidden="true"></i>Look up
               </button>
             </div>
-            <div class="mt-3 text-center">
-              <small class="text-muted fw-semibold">💡 Popular Searches:</small><br>
-              <div class="mt-2">
-                <span class="badge bg-light text-dark border me-1 mb-1">🍌 Banana</span>
-                <span class="badge bg-light text-dark border me-1 mb-1">🥬 Spinach</span>
-                <span class="badge bg-light text-dark border me-1 mb-1">🍗 Chicken</span>
-                <span class="badge bg-light text-dark border me-1 mb-1">🥦 Broccoli</span>
-                <span class="badge bg-light text-dark border me-1 mb-1">🐟 Salmon</span>
-                <span class="badge bg-light text-dark border me-1 mb-1">🥑 Avocado</span>
-                <span class="badge bg-light text-dark border me-1 mb-1">🥚 Egg</span>
-                <span class="badge bg-light text-dark border me-1 mb-1">🍚 Rice</span>
-              </div>
-            </div>
+            <small class="text-muted">Plain names work best &mdash; "cheddar" rather than a brand.</small>
           </form>
         </div>
       </div>
 
-      {% if nutrition_info %}
-        {% if nutrition_info.error %}
-          <!-- Error Message -->
-          <div class="card border-0 shadow-sm border-start border-warning border-4">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-start">
-                <div class="me-3" style="font-size: 3rem;">⚠️</div>
-                <div>
-                  <h5 class="text-warning mb-2">{{ nutrition_info.error }}</h5>
-                  <p class="text-muted mb-3">
-                    We couldn't find nutritional information for "<strong>{{ food_name }}</strong>". 
-                    This could be due to spelling, or the food might not be in our database yet.
-                  </p>
-                  <div class="alert alert-light mb-0">
-                    <strong>💡 Tips:</strong>
-                    <ul class="mb-0 mt-2">
-                      <li>Check your spelling</li>
-                      <li>Try a simpler term (e.g., "chicken" instead of "grilled chicken breast")</li>
-                      <li>Use common food names</li>
-                      <li>Try our popular searches above</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        {% else %}
-          <!-- Results Header -->
-          <div class="card border-0 shadow mb-4" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-            <div class="card-body text-white text-center py-4">
-              <div style="font-size: 4rem; margin-bottom: 0.5rem;">
-                {% if 'banana' in food_name.lower() %}🍌
-                {% elif 'spinach' in food_name.lower() %}🥬
-                {% elif 'chicken' in food_name.lower() %}🍗
-                {% elif 'broccoli' in food_name.lower() %}🥦
-                {% elif 'salmon' in food_name.lower() %}🐟
-                {% elif 'avocado' in food_name.lower() %}🥑
-                {% elif 'egg' in food_name.lower() %}🥚
-                {% elif 'rice' in food_name.lower() %}🍚
-                {% elif 'milk' in food_name.lower() %}🥛
-                {% elif 'apple' in food_name.lower() %}🍎
-                {% elif 'yogurt' in food_name.lower() %}🥛
-                {% elif 'oats' in food_name.lower() %}🌾
-                {% elif 'tomato' in food_name.lower() %}🍅
-                {% else %}🥗{% endif %}
-              </div>
-              <h2 class="mb-2 fw-bold">{{ food_name|title }}</h2>
-              <p class="mb-0 opacity-90">Nutritional information per 100g serving</p>
-            </div>
-          </div>
+      {% if error %}
+      <div class="alert alert-warning border-0 shadow-sm" role="status">{{ error }}</div>
+      {% endif %}
 
-          <!-- Main Nutrients -->
-          {% if nutrition_info.nutrients %}
-          <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-              <h5 class="mb-0">� Nutritional Values</h5>
-            </div>
-            <div class="card-body p-4">
-              <div class="row g-3">
-                {% for key, value in nutrition_info.nutrients.items() %}
-                  {% if loop.index <= 8 %}
-                  <div class="col-md-3 col-6">
-                    <div class="card border-0 h-100" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
-                      <div class="card-body text-center p-3">
-                        <h6 class="text-muted small mb-2">{{ key }}</h6>
-                        <h5 class="fw-bold mb-0 text-primary">{{ value }}</h5>
-                      </div>
-                    </div>
-                  </div>
-                  {% endif %}
+      {% if food %}
+      <!-- What was found -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h2 class="h4 fw-bold mb-1">{{ food.description }}</h2>
+          <p class="text-muted small mb-3">
+            USDA {{ food.data_type }}{% if food.brand %} &middot; {{ food.brand }}{% endif %}
+            &middot; values per 100 g
+          </p>
+
+          {% if facts %}
+          <div>
+            {% for fact in groups.cautions %}
+              <span class="fact-pill fact-high" title="{{ fact.detail }}">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>{{ fact.text }}
+              </span>
+            {% endfor %}
+            {% for fact in groups.strengths %}
+              <span class="fact-pill fact-good" title="{{ fact.detail }}">
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>{{ fact.text }}
+              </span>
+            {% endfor %}
+            {% for fact in groups.moderate %}
+              <span class="fact-pill fact-medium" title="{{ fact.detail }}">{{ fact.text }}</span>
+            {% endfor %}
+            {% for fact in groups.low_in %}
+              <span class="fact-pill fact-low" title="{{ fact.detail }}">{{ fact.text }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Why each label was applied -->
+      {% if facts %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+          <h2 class="h5 fw-bold mb-1">Where those come from</h2>
+          <p class="text-muted small mb-0">
+            Each label is a threshold from a published labelling standard applied
+            to the numbers below. Nothing here is tailored to you.
+          </p>
+        </div>
+        <div class="card-body px-4">
+          <ul class="list-unstyled mb-0">
+            {% for fact in groups.cautions + groups.strengths + groups.moderate + groups.low_in %}
+            <li class="py-2 border-bottom">
+              <strong>{{ fact.text }}</strong>
+              <span class="d-block text-muted small">{{ fact.detail }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Realistic helpings -->
+      {% if portions %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+          <h2 class="h5 fw-bold mb-1">In a normal helping</h2>
+          <p class="text-muted small mb-0">
+            Everything else on this page is per 100&nbsp;g, which is right for
+            comparing foods and no use for working out what you actually ate.
+          </p>
+        </div>
+        <div class="card-body px-4 pb-4">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr class="small text-muted">
+                  <th scope="col">Portion</th>
+                  <th scope="col" class="text-end">Weight</th>
+                  <th scope="col" class="text-end">Energy</th>
+                  <th scope="col" class="text-end">Sugars</th>
+                  <th scope="col" class="text-end">Saturates</th>
+                  <th scope="col" class="text-end">Salt</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in portions %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end text-muted">{{ '%g'|format(row.grams) }} g</td>
+                  <td class="text-end">{% if row.energy is not none %}{{ row.energy }} kcal{% else %}&mdash;{% endif %}</td>
+                  <td class="text-end">{% if row.sugars is not none %}{{ '%g'|format(row.sugars) }} g{% else %}&mdash;{% endif %}</td>
+                  <td class="text-end">{% if row.saturates is not none %}{{ '%g'|format(row.saturates) }} g{% else %}&mdash;{% endif %}</td>
+                  <td class="text-end">{% if row.salt is not none %}{{ '%g'|format(row.salt) }} g{% else %}&mdash;{% endif %}</td>
+                </tr>
                 {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <p class="text-muted small mb-0 mt-2">
+            Portion weights come from USDA's own household-measure data.
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="row g-4">
+        <!-- Nutrition panel -->
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+              <h2 class="h6 fw-bold mb-3">Per 100 g</h2>
+              {% for row in panel %}
+              <div class="panel-row {% if row.indent %}indent{% endif %}">
+                <span>{{ row.label }}</span>
+                <strong>{{ '%g'|format(row.amount) }} {{ row.unit }}</strong>
               </div>
-              
-              {% if nutrition_info.nutrients|length > 8 %}
-              <div class="mt-4 text-center">
-                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#allNutrients">
-                  <span class="me-2">📋</span> Show All {{ nutrition_info.nutrients|length }} Nutrients
-                </button>
-                <div class="collapse mt-3" id="allNutrients">
-                  <div class="row g-3">
-                    {% for key, value in nutrition_info.nutrients.items() %}
-                      {% if loop.index > 8 %}
-                      <div class="col-md-3 col-6">
-                        <div class="card border-0 h-100" style="background: #f8f9fa;">
-                          <div class="card-body text-center p-2">
-                            <small class="text-muted d-block mb-1">{{ key }}</small>
-                            <strong class="text-primary">{{ value }}</strong>
-                          </div>
-                        </div>
-                      </div>
-                      {% endif %}
-                    {% endfor %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Vitamins and minerals -->
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+              <h2 class="h6 fw-bold mb-1">Vitamins &amp; minerals</h2>
+              <p class="text-muted small mb-3">
+                As a share of the US Daily Value, per 100 g
+              </p>
+              {% if micros %}
+                {% for row in micros %}
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between small mb-1">
+                    <span>{{ row.label }}</span>
+                    <span class="text-muted">{{ '%g'|format(row.amount) }} {{ row.unit }} &middot; {{ row.share }}%</span>
+                  </div>
+                  <div class="micro-bar">
+                    <span style="width: {{ [row.share, 100]|min }}%;"></span>
                   </div>
                 </div>
-              </div>
+                {% endfor %}
+              {% else %}
+                <p class="text-muted small mb-0">
+                  Nothing present above 5% of the Daily Value per 100 g.
+                </p>
               {% endif %}
             </div>
           </div>
-          {% endif %}
+        </div>
+      </div>
 
-          <!-- Vitamins & Minerals -->
-          {% if nutrition_info.vitamins or nutrition_info.minerals %}
-          <div class="row g-3 mb-4">
-            {% if nutrition_info.vitamins %}
-            <div class="col-md-6">
-              <div class="card border-0 shadow-sm h-100">
-                <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                  <h6 class="mb-0">💊 Vitamins</h6>
-                </div>
-                <div class="card-body p-4">
-                  <div class="d-flex flex-wrap gap-2">
-                    {% for vitamin in nutrition_info.vitamins %}
-                      <span class="badge fs-6 px-3 py-2" style="background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%); color: #333;">
-                        {{ vitamin }}
-                      </span>
-                    {% endfor %}
-                  </div>
-                </div>
-              </div>
-            </div>
-            {% endif %}
-            
-            {% if nutrition_info.minerals %}
-            <div class="col-md-6">
-              <div class="card border-0 shadow-sm h-100">
-                <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-                  <h6 class="mb-0">⚡ Minerals</h6>
-                </div>
-                <div class="card-body p-4">
-                  <div class="d-flex flex-wrap gap-2">
-                    {% for mineral in nutrition_info.minerals %}
-                      <span class="badge fs-6 px-3 py-2" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #333;">
-                        {{ mineral }}
-                      </span>
-                    {% endfor %}
-                  </div>
-                </div>
-              </div>
-            </div>
-            {% endif %}
-          </div>
-          {% endif %}
-
-          <!-- Benefits & Risks -->
-          <div class="row g-3 mb-4">
-            <!-- Benefits -->
-            {% if nutrition_info.benefits %}
-            <div class="col-md-6">
-              <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-success text-white py-3">
-                  <h5 class="mb-0">✅ Health Benefits</h5>
-                </div>
-                <div class="card-body p-4">
-                  <ul class="mb-0">
-                    {% for benefit in nutrition_info.benefits %}
-                      <li class="mb-3">
-                        <span class="fw-semibold">{{ benefit }}</span>
-                      </li>
-                    {% endfor %}
-                  </ul>
-                </div>
-              </div>
-            </div>
-            {% endif %}
-
-            <!-- Considerations -->
-            {% if nutrition_info.risks %}
-            <div class="col-md-6">
-              <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-warning text-dark py-3">
-                  <h5 class="mb-0">⚠️ Considerations</h5>
-                </div>
-                <div class="card-body p-4">
-                  <ul class="mb-0">
-                    {% for risk in nutrition_info.risks %}
-                      <li class="mb-3">
-                        <span class="fw-semibold">{{ risk }}</span>
-                      </li>
-                    {% endfor %}
-                  </ul>
-                </div>
-              </div>
-            </div>
-            {% endif %}
-          </div>
-
-          <!-- Quick Facts Card -->
-          <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
-            <div class="card-body p-4">
-              <h6 class="fw-bold mb-3">📌 Quick Facts About {{ food_name|title }}</h6>
-              <div class="row">
-                <div class="col-md-4 mb-2">
-                  <div class="d-flex align-items-center">
-                    <span class="me-2">📦</span>
-                    <small><strong>Serving Size:</strong> 100g</small>
-                  </div>
-                </div>
-                <div class="col-md-4 mb-2">
-                  <div class="d-flex align-items-center">
-                    <span class="me-2">🍽️</span>
-                    <small><strong>Category:</strong> Whole Food</small>
-                  </div>
-                </div>
-                <div class="col-md-4 mb-2">
-                  <div class="d-flex align-items-center">
-                    <span class="me-2">💪</span>
-                    <small><strong>Nutrient Dense:</strong> Yes</small>
-                  </div>
-                </div>
-              </div>
-              <hr class="my-3">
-              <small class="text-muted">
-                <strong>ⓘ Note:</strong> Nutritional values are approximate and may vary based on variety, 
-                ripeness, cooking method, and source. Always consult nutrition labels on packaged foods.
-              </small>
-            </div>
-          </div>
-
-          <!-- Navigation -->
-          <div class="text-center">
-            <a href="{{ url_for('nutrition.nutrition_lookup') }}" class="btn btn-success btn-lg px-4 me-2">
-              🔍 Search Another Food
-            </a>
-            <a href="/" class="btn btn-outline-secondary btn-lg px-4">
-              🏠 Back to Home
-            </a>
-          </div>
-        {% endif %}
-      {% else %}
-        <!-- Initial State - No Search Yet -->
-        <div class="row g-4 mt-2">
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 hover-lift" style="cursor: pointer;">
-              <div class="card-body text-center p-4">
-                <div style="font-size: 3rem;" class="mb-3">🥗</div>
-                <h5 class="fw-bold mb-2">Fruits & Vegetables</h5>
-                <p class="text-muted small mb-0">
-                  Rich in vitamins, minerals, fiber, and antioxidants for optimal health
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 hover-lift" style="cursor: pointer;">
-              <div class="card-body text-center p-4">
-                <div style="font-size: 3rem;" class="mb-3">🍗</div>
-                <h5 class="fw-bold mb-2">Proteins</h5>
-                <p class="text-muted small mb-0">
-                  Essential for muscle growth, repair, and overall body function
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 hover-lift" style="cursor: pointer;">
-              <div class="card-body text-center p-4">
-                <div style="font-size: 3rem;" class="mb-3">🌾</div>
-                <h5 class="fw-bold mb-2">Whole Grains</h5>
-                <p class="text-muted small mb-0">
-                  Provide sustained energy, fiber, and important B vitamins
-                </p>
-              </div>
-            </div>
+      <!-- Disambiguation -->
+      {% if alternatives %}
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+          <h2 class="h6 fw-bold mb-1">Not the right one?</h2>
+          <p class="text-muted small mb-3">
+            Other matches for &ldquo;{{ food_name }}&rdquo;. Foods change enormously
+            once they're prepared, so pick the closest form.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            {% for alt in alternatives %}
+            <form method="POST" action="{{ url_for('nutrition.nutrition_lookup') }}">
+              <input type="hidden" name="food" value="{{ food_name }}">
+              <input type="hidden" name="fdc_id" value="{{ alt.fdc_id }}">
+              <button type="submit" class="btn btn-outline-secondary btn-sm text-start">
+                {{ alt.description }}
+                <span class="d-block text-muted" style="font-size:.75rem;">{{ alt.data_type }}</span>
+              </button>
+            </form>
+            {% endfor %}
           </div>
         </div>
+      </div>
+      {% endif %}
 
-        <!-- Info Section -->
-        <div class="card border-0 shadow-sm mt-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-          <div class="card-body text-white p-4">
-            <h5 class="fw-bold mb-3">🌟 Why Track Nutrition?</h5>
-            <div class="row">
-              <div class="col-md-6">
-                <ul class="mb-0">
-                  <li class="mb-2">Make informed dietary choices</li>
-                  <li class="mb-2">Understand macronutrient balance</li>
-                  <li class="mb-2">Identify nutrient-rich foods</li>
-                </ul>
-              </div>
-              <div class="col-md-6">
-                <ul class="mb-0">
-                  <li class="mb-2">Support health and fitness goals</li>
-                  <li class="mb-2">Manage dietary restrictions</li>
-                  <li class="mb-2">Optimize overall wellbeing</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="alert alert-secondary border-0 mt-4">
+        <p class="small mb-0">
+          Thresholds come from UK front-of-pack labelling guidance (fat, saturates,
+          sugars, salt) and US Daily Values (everything else). Both are general
+          consumer labelling standards for a typical adult &mdash; they are not
+          adjusted for your age, size, activity or any medical condition. If you
+          have been given dietary advice, follow that instead of this page.
+        </p>
+      </div>
       {% endif %}
 
     </div>
   </div>
-
-  <!-- Back to Home Button -->
-  <div class="text-center mt-4">
-    <a href="/" class="btn btn-outline-secondary btn-lg">
-      <i class="bi bi-house-fill"></i> Back to Home
-    </a>
-  </div>
 </div>
-
-<style>
-.hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.hover-lift:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(0,0,0,0.15) !important;
-}
-</style>
-
 {% endblock %}

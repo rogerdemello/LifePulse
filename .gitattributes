@@ -1,1 +1,5 @@
-*.pkl filter=lfs diff=lfs merge=lfs -text
+# Git LFS is no longer required. The four models total ~0.5 MB (they were
+# ~410 MB before retraining), so they are tracked as ordinary binary files and
+# a plain `git clone` gives you a working app with no extra setup step.
+*.joblib binary
+*.pkl binary

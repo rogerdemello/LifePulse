@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}What's bothering you? - LifePulse{% endblock %}
+{% block description %}Describe what you've noticed and LifePulse will point you at the right health assessment.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <div class="text-center mb-4">
+        <h1 class="fw-bold h2 mb-2">What's bothering you?</h1>
+        <p class="text-muted mb-0">
+          Describe it in your own words, or pick from the list. You don't need to
+          know which assessment you want.
+        </p>
+      </div>
+
+      <!-- Emergency stop. Rendered before anything else and never alongside a
+           routing suggestion: a questionnaire is the wrong response here. -->
+      {% if emergencies %}
+      <div class="card mb-4 card-accent-danger">
+        <div class="card-body p-4 p-md-5">
+          <div class="d-flex align-items-start mb-3">
+            <i class="bi bi-exclamation-octagon-fill text-danger me-3"
+               style="font-size: 2.5rem; line-height: 1;" aria-hidden="true"></i>
+            <div>
+              <h2 class="h4 fw-bold mb-1">Please get medical help now</h2>
+              <p class="text-muted mb-0">
+                What you've described isn't something to work through on this site.
+              </p>
+            </div>
+          </div>
+
+          {% for signal in emergencies %}
+          <div class="alert alert-danger border-0 shadow-sm">
+            <h3 class="h6 fw-bold mb-2">{{ signal.title }}</h3>
+            <p class="mb-0">{{ signal.detail }}</p>
+          </div>
+          {% endfor %}
+
+          <p class="small text-muted mb-0">
+            If this was a typo or you were describing something in the past, you can
+            still browse the assessments below &mdash; but if any of it is happening
+            now, please act on the advice above first.
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Search -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <form method="POST" action="{{ url_for('start.start') }}">
+            <label for="concern" class="form-label fw-semibold">
+              In a few words, what have you noticed?
+            </label>
+            <div class="input-group input-group-lg">
+              <input type="text" id="concern" name="concern" class="form-control"
+                     placeholder="e.g. I snore and I'm tired all day"
+                     value="{{ described or '' }}"
+                     aria-describedby="concernHelp">
+              <button class="btn btn-primary" type="submit">
+                <i class="bi bi-arrow-right me-1" aria-hidden="true"></i>Find
+              </button>
+            </div>
+            <small class="text-muted" id="concernHelp">
+              This matches keywords &mdash; it doesn't read sentences, and it will
+              show you what it matched on.
+            </small>
+          </form>
+        </div>
+      </div>
+
+      {% if error %}
+      <div class="alert alert-warning border-0 shadow-sm" role="status">{{ error }}</div>
+      {% endif %}
+
+      <!-- Matches -->
+      {% if matches is defined and not emergencies %}
+        {% if matches %}
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-0 pt-4 px-4">
+            <h2 class="h5 fw-bold mb-1">
+              {% if matches|length == 1 %}This looks like the one{% else %}These look closest{% endif %}
+            </h2>
+            <p class="text-muted small mb-0">Based on what you wrote.</p>
+          </div>
+          <div class="card-body px-4 pb-4">
+            {% for concern, terms in matches %}
+            <div class="d-flex align-items-start py-3 {% if not loop.last %}border-bottom{% endif %}">
+              <i class="bi {{ concern.icon }} text-primary me-3 mt-1"
+                 style="font-size: 1.6rem;" aria-hidden="true"></i>
+              <div class="flex-grow-1">
+                <h3 class="h6 fw-bold mb-1">{{ concern.title }}</h3>
+                <p class="text-muted small mb-2">{{ concern.blurb }}</p>
+                <p class="small mb-2">
+                  <span class="text-muted">Matched on:</span>
+                  {% for term in terms[:4] %}<code>{{ term }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+                </p>
+                <a href="{{ url_for(concern.endpoint) }}" class="btn btn-primary btn-sm">
+                  Start this assessment
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <div class="alert alert-secondary border-0 mb-4">
+          <h2 class="h6 fw-bold mb-1">Nothing matched &ldquo;{{ described }}&rdquo;</h2>
+          <p class="small mb-0">
+            This only recognises keywords, so it misses plenty. Have a look through
+            everything below &mdash; and if none of it fits, that's a good reason to
+            speak to a doctor rather than a website.
+          </p>
+        </div>
+        {% endif %}
+      {% endif %}
+
+      <!-- Everything, always visible -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+          <h2 class="h5 fw-bold mb-1">Or choose directly</h2>
+          <p class="text-muted small mb-0">Everything LifePulse can look at.</p>
+        </div>
+        <div class="card-body px-4 pb-4">
+          <div class="row g-3">
+            {% for concern in concerns %}
+            <div class="col-md-6">
+              <a href="{{ url_for(concern.endpoint) }}"
+                 class="d-flex align-items-start p-3 h-100 text-decoration-none border rounded hover-card">
+                <i class="bi {{ concern.icon }} text-primary me-3 mt-1"
+                   style="font-size: 1.4rem;" aria-hidden="true"></i>
+                <span>
+                  <span class="d-block fw-semibold text-body">{{ concern.title }}</span>
+                  <span class="d-block text-muted small">{{ concern.blurb }}</span>
+                </span>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-secondary border-0 mt-4">
+        <p class="small mb-0">
+          None of these can diagnose anything. They're a way of working out whether
+          something is worth an appointment, and what to ask when you get there.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
