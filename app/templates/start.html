@@ -65,8 +65,14 @@
               </button>
             </div>
             <small class="text-muted" id="concernHelp">
-              This matches keywords &mdash; it doesn't read sentences, and it will
-              show you what it matched on.
+              {% if llm_enabled %}
+                Your sentence is sent to a language model to work out which check
+                fits. Nothing from any assessment is &mdash;
+                <a href="{{ url_for('privacy') }}">see what leaves this server</a>.
+              {% else %}
+                This matches keywords &mdash; it doesn't read sentences, and it will
+                show you what it matched on.
+              {% endif %}
             </small>
           </form>
         </div>
@@ -84,7 +90,14 @@
             <h2 class="h5 fw-bold mb-1">
               {% if matches|length == 1 %}This looks like the one{% else %}These look closest{% endif %}
             </h2>
-            <p class="text-muted small mb-0">Based on what you wrote.</p>
+            <p class="text-muted small mb-0">
+              {% if method == 'model' %}
+                Worked out from what you wrote. If none of these is right, everything
+                is listed below.
+              {% else %}
+                Based on keywords in what you wrote.
+              {% endif %}
+            </p>
           </div>
           <div class="card-body px-4 pb-4">
             {% for concern, terms in matches %}
@@ -94,10 +107,12 @@
               <div class="flex-grow-1">
                 <h3 class="h6 fw-bold mb-1">{{ concern.title }}</h3>
                 <p class="text-muted small mb-2">{{ concern.blurb }}</p>
+                {% if terms %}
                 <p class="small mb-2">
                   <span class="text-muted">Matched on:</span>
                   {% for term in terms[:4] %}<code>{{ term }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
                 </p>
+                {% endif %}
                 <a href="{{ url_for(concern.endpoint) }}" class="btn btn-primary btn-sm">
                   Start this assessment
                 </a>

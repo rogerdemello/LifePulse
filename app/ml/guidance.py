@@ -66,12 +66,22 @@ OPENERS = {
 }
 
 
-def questions_for(model_name, headline, factors, caveats=(), flags=()):
+TOPICS = {"heart": "heart disease risk", "migraine": "migraine risk"}
+
+
+def questions_for(model_name, headline, factors, caveats=(), flags=(), band=None):
     """Build the "questions to ask" list for one assessment.
 
     Red flags come first and are phrased as things to raise immediately;
     factor-driven questions follow, in the order the factors mattered.
+
+    When ``band`` is given and app/ml/phrasings.json holds pre-written
+    questions for it, those are used ahead of the templates below. That file is
+    generated offline (ml_model/generate_phrasings.py), so better wording costs
+    no per-request call and sends nothing about the user anywhere.
     """
+    from app.ml.phrasings import questions_for_band
+
     questions = []
 
     for flag in flags:
@@ -96,6 +106,9 @@ def questions_for(model_name, headline, factors, caveats=(), flags=()):
             "built on, so its estimate may not apply to me. Is there a proper "
             "assessment we should do instead?"
         )
+
+    if band:
+        questions.extend(questions_for_band(TOPICS.get(model_name, model_name), band))
 
     for factor in factors:
         template = FACTOR_QUESTIONS.get(factor.field)
