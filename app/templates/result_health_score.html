@@ -5,24 +5,19 @@
 
 {% block content %}
 <style>
-  .header-gradient-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-  .header-gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-  .header-gradient-warning { background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); }
-  .header-gradient-danger  { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-
-  .factor-row { border-bottom: 1px solid rgba(0,0,0,.07); }
+  .factor-row { border-bottom: 1px solid var(--border); }
   .factor-row:last-child { border-bottom: none; }
   .factor-bar {
     height: 8px;
     border-radius: 4px;
-    background: rgba(0,0,0,.08);
+    background: var(--surface-sunken);
     overflow: hidden;
   }
   .factor-bar > span {
     display: block;
     height: 100%;
     border-radius: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: var(--brand);
   }
 </style>
 
@@ -39,7 +34,7 @@
 
       <!-- Score -->
       <div class="card shadow border-0 mb-4">
-        <div class="card-header text-white py-4 header-gradient-{{ color }}">
+        <div class="result-header is-{{ color if color != 'primary' else 'neutral' }}">
           <div class="text-center">
             <h2 class="h4 mb-1">Lifestyle score</h2>
             <p class="mb-0 opacity-90">What you can change, and where the points went</p>
@@ -47,17 +42,17 @@
         </div>
 
         <div class="card-body text-center p-4 p-md-5">
-          <svg width="220" height="220" role="img"
+          <svg width="220" height="220" role="img" class="text-{{ color }}"
                aria-label="Score {{ score }} out of 100, rated {{ rating }}">
             <circle cx="110" cy="110" r="90" fill="none" stroke="#e0e0e0" stroke-width="18"/>
             <circle cx="110" cy="110" r="90" fill="none"
-                    stroke="{% if color == 'success' %}#28a745{% elif color == 'primary' %}#667eea{% elif color == 'warning' %}#ffc107{% else %}#dc3545{% endif %}"
+                    stroke="currentColor"
                     stroke-width="18"
                     stroke-dasharray="{{ (score / 100) * 565.2 }} 565.2"
                     stroke-linecap="round"
                     transform="rotate(-90 110 110)"/>
             <text x="110" y="105" text-anchor="middle" dy="10" font-size="56" font-weight="bold"
-                  fill="{% if color == 'success' %}#28a745{% elif color == 'primary' %}#667eea{% elif color == 'warning' %}#ffc107{% else %}#dc3545{% endif %}">{{ score }}</text>
+                  fill="currentColor">{{ score }}</text>
             <text x="110" y="140" text-anchor="middle" font-size="18" fill="#999">out of 100</text>
           </svg>
 

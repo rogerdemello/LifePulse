@@ -5,11 +5,11 @@
 
 {% block content %}
 <style>
-  .rate-figure { font-size: 3.5rem; font-weight: 800; line-height: 1; }
-  .band-high    { color: #b02a37; }
-  .band-raised  { color: #b06800; }
-  .band-low     { color: #146c43; }
-  .rate-bar { height: 12px; border-radius: 6px; background: rgba(0,0,0,.08); overflow: hidden; }
+  .rate-figure { font-size: clamp(2.75rem, 2rem + 3vw, 3.5rem); font-weight: 800; line-height: 1; letter-spacing: -.03em; }
+  .band-high    { color: var(--danger); }
+  .band-raised  { color: var(--warning); }
+  .band-low     { color: var(--success); }
+  .rate-bar { height: 12px; border-radius: 6px; background: var(--surface-sunken); overflow: hidden; }
   .rate-bar > span { display: block; height: 100%; border-radius: 6px; }
 </style>
 
@@ -40,7 +40,7 @@
               </p>
               <div class="rate-bar mx-auto" style="max-width: 26rem;">
                 <span style="width: {{ apnea.percent }}%;
-                             background: {% if apnea.band == 'high' %}#dc3545{% elif apnea.band == 'raised' %}#fd7e14{% else %}#198754{% endif %};"></span>
+                             background: {% if apnea.band == 'high' %}var(--danger){% elif apnea.band == 'raised' %}var(--warning){% else %}var(--success){% endif %};"></span>
               </div>
             </div>
 

@@ -33,43 +33,43 @@
   <!-- Favicon. An inline SVG rather than PNG files: it stays crisp at every
        size, needs no build step, and the three PNGs previously referenced here
        did not exist, so every page load fetched three 404s. -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23667eea'/%3E%3Cpath d='M4 17h5l2.5-6 4 12 3-8 2 2h7' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235b62d6'/%3E%3Cpath d='M4 17h5l2.5-6 4 12 3-8 2 2h7' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/logo.png') }}" />
   
   <!-- Theme Color -->
-  <meta name="theme-color" content="#667eea" />
-  <meta name="msapplication-TileColor" content="#667eea" />
+  <meta name="theme-color" content="#5b62d6" />
+  <meta name="msapplication-TileColor" content="#5b62d6" />
 
-  <!-- ✅ Google Fonts - Inter -->
+  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Google Fonts - Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- ✅ Bootstrap CSS -->
+  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-  <!-- ✅ Bootstrap Icons -->
+  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-  <!-- ✅ AOS Animation Library -->
+  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>AOS Animation Library -->
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-  <!-- ✅ Custom CSS -->
+  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Custom CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-  <!-- ✅ Toast Notifications JS -->
+  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Toast Notifications JS -->
   <script src="{{ url_for('static', filename='js/toast.js') }}" defer></script>
 
-  <!-- ✅ Charts & Visualizations JS -->
+  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Charts & Visualizations JS -->
   <script src="{{ url_for('static', filename='js/charts.js') }}" defer></script>
 
-  <!-- ✅ Optional Custom Scripts -->
+  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Optional Custom Scripts -->
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 
-  <!-- ✅ Visit summary (localStorage only, never uploaded) -->
+  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Visit summary (localStorage only, never uploaded) -->
   <script src="{{ url_for('static', filename='js/summary.js') }}" defer></script>
 
-  <!-- ✅ Multi-step forms (enhancement only; forms work without it) -->
+  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Multi-step forms (enhancement only; forms work without it) -->
   <script src="{{ url_for('static', filename='js/steps.js') }}" defer></script>
 </head>
 
@@ -77,7 +77,7 @@
 
 <a href="#mainContent" class="skip-link">Skip to main content</a>
 
-<!-- ✅ Loading Overlay -->
+<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Loading Overlay -->
 <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
   <div class="loading-content">
     <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
@@ -88,7 +88,7 @@
   </div>
 </div>
 
-<!-- ✅ Navbar -->
+<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark" aria-label="Main navigation">
   <div class="container">
     <a class="navbar-brand" href="/">LifePulse</a>
@@ -131,13 +131,13 @@
   </div>
 </nav>
 
-<!-- ✅ Main Content -->
+<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Main Content -->
 <main id="mainContent" class="container my-4">
   {% block content %}
   {% endblock %}
 </main>
 
-<!-- ✅ Footer -->
+<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Footer -->
 <footer>
   <div class="container">
 
@@ -161,7 +161,7 @@
   </div>
 </footer>
 
-<!-- ✅ Scroll to Top Button -->
+<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Scroll to Top Button -->
 <button id="scrollToTop" class="scroll-to-top" type="button"
         title="Go to top" aria-label="Scroll back to top">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
@@ -169,10 +169,10 @@
   </svg>
 </button>
 
-<!-- ✅ Bootstrap JS Bundle -->
+<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- ✅ Scroll to Top Script -->
+<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Scroll to Top Script -->
 <script>
 // Get the button
 const scrollToTopBtn = document.getElementById('scrollToTop');
@@ -195,7 +195,7 @@ scrollToTopBtn.addEventListener('click', function() {
 });
 </script>
 
-<!-- ✅ AOS Animation JS -->
+<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>AOS Animation JS -->
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
   AOS.init({
