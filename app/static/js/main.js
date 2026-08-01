@@ -91,23 +91,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     
-    // Add validation feedback with toast
-    input.addEventListener('invalid', function(e) {
-      e.preventDefault();
+    // Mark the field, but let the browser show its own message.
+    //
+    // This used to call preventDefault(), which suppressed native validation
+    // entirely -- no message, no focus jump to the offending field -- and
+    // replaced it with a toast built from previousElementSibling.textContent.
+    // For the blood-pressure input group that sibling is the "/" separator, so
+    // the toast read "/ is required". Native validation is announced by screen
+    // readers and moves focus correctly; there is nothing to improve on here.
+    input.addEventListener('invalid', function() {
       this.classList.add('is-invalid');
-      this.style.borderColor = '#f5576c';
-      
-      // Show toast notification
-      if (window.toast) {
-        const label = this.previousElementSibling ? this.previousElementSibling.textContent : 'This field';
-        toast.error(`${label} is required`, 3000);
-      }
     });
-    
+
+
     input.addEventListener('input', function() {
       if (this.classList.contains('is-invalid')) {
         this.classList.remove('is-invalid');
-        this.style.borderColor = '';
       }
     });
   });
@@ -187,12 +186,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ========================================
   // NUMBER INPUT SCROLL PREVENTION
+  // Stops a scroll over a focused number field from silently changing a health
+  // value. Only while focused, so scrolling the page still works normally.
   // ========================================
-  const numberInputs = document.querySelectorAll('input[type="number"]');
-  numberInputs.forEach(input => {
+  document.querySelectorAll('input[type="number"]').forEach(input => {
     input.addEventListener('wheel', function(e) {
-      e.preventDefault();
-    });
+      if (document.activeElement === this) {
+        e.preventDefault();
+      }
+    }, { passive: false });
   });
 
   // ========================================
@@ -217,15 +219,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ========================================
-  // PAGE LOAD ANIMATION
+  // PAGE LOAD
+  //
+  // There used to be a fade-in here that set document.body.style.opacity = '0'
+  // and restored it 100ms later. If a script failed, was blocked, or simply
+  // hadn't run yet, the page stayed permanently blank -- a health tool that
+  // renders nothing at all rather than degrading. The CSS rule that hid the
+  // body by default is gone too; content is visible without JavaScript.
   // ========================================
-  document.body.style.opacity = '0';
-  setTimeout(() => {
-    document.body.style.transition = 'opacity 0.5s ease';
-    document.body.style.opacity = '1';
-  }, 100);
+});
 
-  console.log("✨ All enhancements loaded successfully!");
+// ========================================
+// LOADING OVERLAY -- BACK BUTTON
+//
+// Returning via the back button restores the page from the bfcache with the
+// overlay still showing, leaving the user staring at "Analyzing Your Data..."
+// over a page that finished loading long ago.
+// ========================================
+window.addEventListener('pageshow', () => {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) overlay.classList.remove('active');
 });
 
 // ========================================

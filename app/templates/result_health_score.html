@@ -20,6 +20,7 @@
 </style>
 
 <div class="container py-5">
+  {% include "_caveats.html" %}
   <div class="text-center mb-4">
     <h2 class="fw-bold mb-2">🎯 Your Overall Health Score</h2>
     <p class="text-muted">Comprehensive health evaluation based on your lifestyle</p>
@@ -187,6 +188,10 @@
         </div>
       </div>
 
+      {% include "_save_summary.html" %}
+
+      {% include "_explanation.html" %}
+
       <!-- Personalized Recommendations -->
       <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-success text-white py-3">
@@ -274,16 +279,20 @@
             <div class="col-md-8">
               <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
               <p class="mb-0 small">
-                This tool uses a Random Forest regression model trained on comprehensive health data, achieving 
-                <strong>83.4% accuracy (R² score)</strong>. The score (0-100) reflects modifiable lifestyle factors' 
-                impact on overall health. <span class="text-danger fw-bold">This is an assessment tool, not medical advice.</span> 
-                Consult healthcare professionals for personalized recommendations and medical decisions.
+                This tool uses a ridge regression model over 17 engineered lifestyle features, scoring
+                <strong>R² {{ '%.3f'|format(model_meta.health_score.metrics.r2) }}</strong>
+                (mean absolute error {{ '%.1f'|format(model_meta.health_score.metrics.mae) }} points).
+                <span class="text-danger fw-bold">This is an assessment tool, not medical advice.</span>
+                Its training data is synthetic, so the R² reflects recovery of a generated formula rather
+                than real-world health. Consult healthcare professionals for medical decisions.
               </p>
             </div>
             <div class="col-md-4 text-center">
-              <div class="badge bg-primary px-3 py-2 fs-6">83.4% R² Score</div>
+              <div class="badge bg-primary px-3 py-2 fs-6">
+                R² {{ '%.3f'|format(model_meta.health_score.metrics.r2) }}
+              </div>
               <div class="mt-2">
-                <small class="text-muted">Random Forest Model</small>
+                <small class="text-muted">Ridge regression &middot; synthetic data</small>
               </div>
             </div>
           </div>

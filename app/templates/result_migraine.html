@@ -5,6 +5,7 @@
 
 {% block content %}
 <div class="container py-5">
+  {% include "_caveats.html" %}
   <div class="text-center mb-4">
     <h2 class="fw-bold mb-2">🤕 Migraine Risk Assessment Results</h2>
     <p class="text-muted">Your personalized migraine risk evaluation</p>
@@ -95,6 +96,10 @@
           </div>
         </div>
       </div>
+
+      {% include "_save_summary.html" %}
+
+      {% include "_explanation.html" %}
 
       <!-- Recommendations Card -->
       <div class="card border-0 shadow-sm mb-4">
@@ -231,17 +236,21 @@
             <div class="col-md-8">
               <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
               <p class="mb-0 small">
-                This tool uses an XGBoost machine learning model with feature engineering, analyzing 10+ lifestyle factors 
-                and 7 derived interactions (sleep-stress, hydration-caffeine, etc.) to predict migraine risk. 
-                Model accuracy: <strong>51%</strong> (migraine prediction is complex due to individual variability).
-                <span class="text-danger fw-bold">This is a screening tool, not a diagnosis.</span> 
+                This tool uses a gradient-boosting model analyzing 10 lifestyle factors
+                and 10 derived interactions (sleep-stress, hydration-caffeine, etc.) to predict migraine risk.
+                Accuracy: <strong>{{ '%.1f'|format(model_meta.migraine.metrics.accuracy * 100) }}%</strong>
+                against a {{ '%.1f'|format(model_meta.migraine.metrics.baseline_majority_accuracy * 100) }}% baseline,
+                with a ROC-AUC of {{ '%.3f'|format(model_meta.migraine.metrics.roc_auc) }}.
+                <span class="text-danger fw-bold">This is a screening tool, not a diagnosis.</span>
                 Consult a neurologist for proper evaluation.
               </p>
             </div>
             <div class="col-md-4 text-center">
-              <div class="badge bg-primary px-3 py-2 fs-6">51% Accuracy</div>
+              <div class="badge bg-primary px-3 py-2 fs-6">
+                {{ '%.1f'|format(model_meta.migraine.metrics.accuracy * 100) }}% Accuracy
+              </div>
               <div class="mt-2">
-                <small class="text-muted">XGBoost Model</small>
+                <small class="text-muted">vs {{ '%.1f'|format(model_meta.migraine.metrics.baseline_majority_accuracy * 100) }}% baseline</small>
               </div>
             </div>
           </div>

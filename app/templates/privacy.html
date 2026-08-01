@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy - LifePulse{% endblock %}
+{% block description %}What LifePulse does with your health data: nothing. No account, no database, nothing written to disk.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <h1 class="fw-bold mb-3">Privacy</h1>
+      <p class="lead text-muted mb-5">
+        The short version: LifePulse has no account system, no database, and writes
+        nothing to disk. Your answers exist for the fraction of a second it takes to
+        calculate a result, and then they're gone.
+      </p>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-bold mb-3">What happens when you submit a form</h2>
+          <ol class="mb-0">
+            <li class="mb-2">Your answers are sent to the server over HTTPS.</li>
+            <li class="mb-2">They're held in memory, turned into numbers, and passed to a model that runs <strong>on this server</strong> &mdash; not a third-party AI service.</li>
+            <li class="mb-2">The result page is rendered and sent back to you.</li>
+            <li class="mb-0">The request ends and your answers are discarded. Nothing is written to a file, a database, or a cookie.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-bold mb-3">What we don't do</h2>
+          <ul class="mb-0">
+            <li class="mb-2">No accounts, sign-ups, or email addresses.</li>
+            <li class="mb-2">No database. There is nowhere for your answers to be stored, so there is nothing to breach, sell, or hand over.</li>
+            <li class="mb-2">No analytics or advertising trackers.</li>
+            <li class="mb-2">No sending your health answers to any external service. Every model runs locally.</li>
+            <li class="mb-0">No health data in cookies.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-bold mb-3">Being precise about the exceptions</h2>
+          <p class="mb-3">
+            Two things do leave this server, and you should know about both:
+          </p>
+          <ul class="mb-3">
+            <li class="mb-2">
+              <strong>The nutrition lookup.</strong> When you search for a food, that
+              food's name is sent to the USDA FoodData Central API. Nothing else goes
+              with it &mdash; no health answers, no identifier.
+            </li>
+            <li class="mb-0">
+              <strong>Fonts, styles and icons</strong> load from public CDNs
+              (jsDelivr, Google Fonts, unpkg). Those providers see your IP address and
+              which page you loaded, as they would for any site using them. They
+              never see your answers.
+            </li>
+          </ul>
+          <p class="mb-0 text-muted small">
+            Standard web-server request logs may record IP addresses and the URLs
+            visited. Form contents are sent in the request body and are not written
+            to those logs.
+          </p>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-bold mb-3">Your results are yours to keep</h2>
+          <p class="mb-0">
+            Because nothing is saved, you can't come back later and find a result &mdash;
+            that's the trade for storing nothing. Print or save the page while you have
+            it if you want to bring it to an appointment.
+          </p>
+        </div>
+      </div>
+
+      <div class="alert alert-secondary border-0">
+        <h2 class="h6 fw-bold mb-2">This is a personal project</h2>
+        <p class="mb-0 small">
+          LifePulse is open source and not a registered medical device or a
+          healthcare provider. It is not covered by HIPAA, GDPR data-controller
+          obligations, or similar frameworks &mdash; largely because it holds no
+          personal data to be covered. Treat it as a well-intentioned
+          calculator, not a clinical service.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

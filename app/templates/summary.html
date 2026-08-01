@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}My visit summary - LifePulse{% endblock %}
+{% block description %}A printable summary of your LifePulse results and questions to ask your doctor.{% endblock %}
+
+{% block content %}
+<div class="container py-5 summary-page">
+
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4 summary-toolbar">
+        <div>
+          <h1 class="fw-bold mb-1">My visit summary</h1>
+          <p class="text-muted mb-0">
+            Everything you've saved, on one page. Print it or save it as a PDF and
+            bring it with you.
+          </p>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="button" id="summaryPrint" class="btn btn-primary">
+            <i class="bi bi-printer me-1" aria-hidden="true"></i>Print / Save as PDF
+          </button>
+          <button type="button" id="summaryClear" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-1" aria-hidden="true"></i>Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="summaryEmpty" class="card border-0 shadow-sm d-none">
+        <div class="card-body p-5 text-center">
+          <i class="bi bi-clipboard2 text-muted mb-3" style="font-size: 3rem;" aria-hidden="true"></i>
+          <h2 class="h5 fw-bold mb-2">Nothing saved yet</h2>
+          <p class="text-muted mb-4">
+            Complete an assessment and choose <strong>Add to visit summary</strong> on
+            the result page. Saved results stay in this browser only.
+          </p>
+          <a href="{{ url_for('index') }}" class="btn btn-primary">Start an assessment</a>
+        </div>
+      </div>
+
+      <!-- Populated by static/js/summary.js from localStorage -->
+      <div id="summaryContent" class="d-none">
+
+        <div class="summary-print-header d-none">
+          <h1>LifePulse visit summary</h1>
+          <p>Generated from a screening tool &mdash; not a diagnosis.</p>
+        </div>
+
+        <div id="summaryRoot"></div>
+
+        <div id="summaryQuestions" class="card border-0 shadow-sm mt-4 d-none">
+          <div class="card-body p-4">
+            <h2 class="h5 fw-bold mb-1">
+              <i class="bi bi-chat-square-quote me-2" aria-hidden="true"></i>Questions to ask
+            </h2>
+            <p class="text-muted small mb-3">
+              Drawn from what your results actually showed. Tick them off as you go.
+            </p>
+            <ul class="list-unstyled mb-0" id="summaryQuestionList"></ul>
+          </div>
+        </div>
+
+        <div class="alert alert-secondary border-0 mt-4 summary-footnote">
+          <p class="small mb-0">
+            <strong>For the person reading this:</strong> these results come from
+            statistical models trained on public survey data, not from an
+            examination. They cannot account for medical history, medication, or
+            anything not asked about on the form. They are intended to prompt a
+            conversation, not to inform a clinical decision.
+          </p>
+        </div>
+
+      </div>
+
+      <p class="text-muted small mt-4 summary-toolbar">
+        <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
+        Saved results live in this browser's local storage. They are never uploaded,
+        and clearing your browser data removes them.
+        <a href="{{ url_for('privacy') }}">More about privacy</a>.
+      </p>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

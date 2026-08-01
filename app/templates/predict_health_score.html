@@ -148,10 +148,11 @@
             <div class="card-body text-white p-4">
               <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
               <p class="mb-0 small">
-                Our AI model uses Random Forest regression trained on comprehensive health data with 
-                <strong>83.4% accuracy (R²)</strong>. The score (0-100) reflects your overall health status 
-                based on modifiable lifestyle factors. <strong>Note:</strong> This is an assessment tool, 
-                not a medical diagnosis. Consult healthcare professionals for personalized advice.
+                Our model uses ridge regression over 17 engineered lifestyle features, scoring
+                <strong>R² {{ '%.3f'|format(model_meta.health_score.metrics.r2) }}</strong>.
+                <strong>Note:</strong> the training data for this score is synthetic, so that figure
+                measures recovery of a generated formula, not real-world health. This is an assessment
+                tool, not a medical diagnosis. Consult healthcare professionals for personalized advice.
               </p>
             </div>
           </div>

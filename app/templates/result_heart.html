@@ -6,6 +6,7 @@
 {% block content %}
 
 <div class="container py-5">
+  {% include "_caveats.html" %}
   <div class="text-center mb-4">
     <h2 class="fw-bold mb-2">❤️ Heart Disease Risk Assessment</h2>
     <p class="text-muted">Your personalized cardiovascular health evaluation</p>
@@ -43,15 +44,23 @@
               {% if prediction == "Yes" %}
                 <span class="probability-badge" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
                   <i class="bi bi-exclamation-triangle-fill"></i>
-                  {{ probability }}% Risk Probability
+                  {{ probability }}% estimated risk
                 </span>
               {% else %}
                 <span class="probability-badge" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
                   <i class="bi bi-check-circle-fill"></i>
-                  {{ probability }}% Health Score
+                  {{ probability }}% estimated risk
                 </span>
               {% endif %}
             </div>
+
+            <p class="text-muted small mt-3 mb-0 mx-auto" style="max-width: 42rem;">
+              This is a calibrated probability, not a score out of 100 &mdash; it is the
+              estimated chance of heart disease for someone with your answers. For context,
+              {{ '%.1f'|format(metrics.observed_prevalence * 100) }}% of the
+              survey population has heart disease, and this assessment flags anyone above
+              {{ threshold }}% for follow-up.
+            </p>
           </div>
 
           <!-- Result Message -->
@@ -161,6 +170,10 @@
           </div>
         </div>
       </div>
+
+      {% include "_save_summary.html" %}
+
+      {% include "_explanation.html" %}
 
       <!-- Action Buttons -->
       <div class="text-center mt-4">

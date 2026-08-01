@@ -1,103 +1,77 @@
-import os
-import pickle
-import pandas as pd
-import joblib
+"""Migraine-risk assessment."""
+
 from flask import Blueprint, render_template, request
 
-migraine_bp = Blueprint('migraine', __name__, url_prefix='/migraine')
+from app.ml.bundle import try_get_model
+from app.ratelimit import rate_limit
+from app.routes.support import (
+    build_summary,
+    collect_and_check,
+    prediction_errors,
+    unavailable_page,
+    urgent_interstitial,
+)
 
-# Load model wrapper (local inference, no API)
-from app.utils.onnx_inference import get_model
+migraine_bp = Blueprint("migraine", __name__, url_prefix="/migraine")
 
-try:
-    model_wrapper = get_model('migraine')
-    print("✅ Migraine model loaded successfully!")
-except Exception as e:
-    print(f"⚠️  Migraine model not found: {e}")
-    model_wrapper = None
+# Form field -> raw name for app.ml.features.build_migraine.
+#
+# This route used to reimplement the model's feature engineering inline, with
+# different names AND different formulas than the training script -- e.g. it
+# computed Dehydration_Risk as (Caffeine > 2) & (Water < 2) where training used
+# (Caffeine > 3) & (Water < 4). All of it now lives in the shared builder.
+FORM_TO_RAW = {
+    "Age": "Age",
+    "Gender": "Gender",
+    "SleepHours": "Sleep Hours",
+    "WaterIntake": "Water Intake",
+    "SkippedMeals": "Skipped Meals",
+    "Caffeine": "Caffeine",
+    "Stress": "Stress",
+    "ScreenTime": "Screen Time",
+    "PhysicalActivity": "Physical Activity",
+    "Menstruating": "Menstruating",
+}
 
 
-@migraine_bp.route('/', methods=['GET', 'POST'])
+@migraine_bp.route("/", methods=["GET", "POST"])
+@rate_limit()
+@prediction_errors
 def predict_migraine():
-    if request.method == 'POST':
-        try:
-            # Get form data
-            form_data = request.form.to_dict()
-            
-            # Map form inputs to model features
-            input_dict = {
-                'Age': int(form_data['Age']),
-                'Gender': 1 if form_data['Gender'] == 'Male' else 0,
-                'Sleep Hours': float(form_data['SleepHours']),
-                'Water Intake': float(form_data['WaterIntake']),
-                'Skipped Meals': 1 if form_data['SkippedMeals'] == 'Yes' else 0,
-                'Caffeine': int(form_data['Caffeine']),
-                'Stress': int(form_data['Stress']),
-                'Screen Time': float(form_data['ScreenTime']),
-                'Physical Activity': int(form_data['PhysicalActivity']),
-                'Menstruating': int(form_data['Menstruating'])
-            }
-            
-            # Create DataFrame
-            input_df = pd.DataFrame([input_dict])
-            
-            # 🎯 Add ALL engineered features (MUST match training exactly!)
-            # Sleep-related features
-            input_df['Sleep_Stress'] = input_df['Sleep Hours'] * input_df['Stress']
-            input_df['Poor_Sleep'] = ((input_df['Sleep Hours'] < 6) | (input_df['Sleep Hours'] > 9)).astype(int)
-            input_df['Sleep_Quality_Score'] = (input_df['Sleep Hours'] - 7).abs()
-            
-            # Hydration & Caffeine
-            input_df['Water_Caffeine_Ratio'] = input_df['Water Intake'] / (input_df['Caffeine'] + 1)
-            input_df['Dehydration_Risk'] = ((input_df['Caffeine'] > 2) & (input_df['Water Intake'] < 2)).astype(int)
-            input_df['High_Caffeine'] = (input_df['Caffeine'] > 3).astype(int)
-            
-            # Lifestyle risk factors
-            input_df['Screen_Sleep'] = input_df['Screen Time'] * (10 - input_df['Sleep Hours'])
-            input_df['Activity_Stress'] = input_df['Physical Activity'] * (10 - input_df['Stress'])
-            input_df['Lifestyle_Risk'] = input_df['Skipped Meals'] + (input_df['Physical Activity'] == 0).astype(int)
-            
-            # Combined risk scores
-            input_df['High_Risk_Combo'] = (
-                (input_df['Stress'] > 6) & 
-                (input_df['Sleep Hours'] < 6) & 
-                (input_df['Caffeine'] > 2)
-            ).astype(int)
-            
-            input_df['Triple_Threat'] = (
-                (input_df['Stress'] > 7) & 
-                (input_df['Screen Time'] > 6) & 
-                (input_df['Sleep Hours'] < 5)
-            ).astype(int)
-            
-            # Menstrual + hormonal factors
-            input_df['Female_Menstruating'] = ((input_df['Gender'] == 0) & (input_df['Menstruating'] == 1)).astype(int)
-            input_df['Hormonal_Risk'] = input_df['Female_Menstruating'] * (input_df['Stress'] + input_df['Poor_Sleep'])
-            
-            # Polynomial features
-            input_df['Stress_Squared'] = input_df['Stress'] ** 2
-            input_df['Caffeine_Squared'] = input_df['Caffeine'] ** 2
-            input_df['Age_Group'] = pd.cut(input_df['Age'], bins=[0, 25, 40, 60, 100], labels=[0, 1, 2, 3]).astype(int)
-            
-            # Get features expected by model
-            feature_list = model_wrapper.features
-            
-            # Ensure all features exist and order matches
-            input_df = input_df.reindex(columns=feature_list, fill_value=0)
-            
-            # Predict using local model (no API calls)
-            prediction = model_wrapper.predict(input_df.iloc[0].to_dict())[0]
-            prediction_proba = model_wrapper.predict_proba(input_df.iloc[0].to_dict())[0]
-            
-            # Decode prediction
-            result = 'Migraine Risk' if prediction == 1 else 'No Migraine Risk'
-            confidence = max(prediction_proba) * 100
-            
-            return render_template('result_migraine.html', 
-                                 prediction=result,
-                                 confidence=round(confidence, 1))
-        
-        except Exception as e:
-            return f"Error processing form: {str(e)}"
-    
-    return render_template('predict_migraine.html')
+    if request.method != "POST":
+        return render_template("predict_migraine.html")
+
+    model = try_get_model("migraine")
+    if model is None:
+        return unavailable_page("migraine")
+
+    raw, caveats = collect_and_check(request.form, FORM_TO_RAW, model)
+
+    interstitial = urgent_interstitial(raw, request.form)
+    if interstitial is not None:
+        return interstitial
+
+    probabilities = model.proba_one(raw)
+    label = max(probabilities, key=probabilities.get)
+    factors = model.explain(raw)
+    risk = probabilities["Migraine Risk"] * 100
+
+    return render_template(
+        "result_migraine.html",
+        prediction=label,
+        confidence=round(probabilities[label] * 100, 1),
+        caveats=caveats,
+        factors=factors,
+        factor_noun="your estimated migraine risk",
+        factor_unit="percentage points",
+        summary=build_summary(
+            title="Migraine risk",
+            headline=f"{label} ({risk:.0f}% estimated risk)",
+            detail="Based on 10 lifestyle answers and 10 derived interactions.",
+            model_name="migraine",
+            raw=raw,
+            factors=factors,
+            caveats=caveats,
+            form=request.form,
+        ),
+    )

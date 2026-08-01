@@ -172,10 +172,52 @@
     </div>
     <div class="col-md-4 text-center mb-4" data-aos="zoom-in" data-aos-delay="300">
       <div class="mb-3">
-        <i class="bi bi-shield-check feature-icon" style="font-size: 3.5rem;"></i>
+        <i class="bi bi-shield-check feature-icon" style="font-size: 3.5rem;" aria-hidden="true"></i>
       </div>
-      <h5 class="fw-bold mb-2">Private & Secure</h5>
-      <p class="text-muted">Your health data stays with you, no storage required</p>
+      <h5 class="fw-bold mb-2">Nothing Is Stored</h5>
+      <p class="text-muted mb-2">
+        No account, no database, no trackers. Your answers are discarded the moment
+        your result is rendered.
+      </p>
+      <a href="{{ url_for('privacy') }}" class="small">How that works &rarr;</a>
+    </div>
+  </div>
+
+  <!-- What this is for -->
+  <div class="row justify-content-center mt-5 pt-4">
+    <div class="col-lg-9">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 p-md-5">
+          <h3 class="fw-bold h4 mb-3">What LifePulse is for</h3>
+          <p class="mb-3">
+            It's for the moment before you decide whether something is worth seeing a
+            doctor about. Answer some questions, see how your numbers compare to the
+            population, and take the result with you to your appointment.
+          </p>
+          <div class="row g-4 mt-1">
+            <div class="col-md-6">
+              <h4 class="h6 fw-bold text-success">
+                <i class="bi bi-check-circle me-1" aria-hidden="true"></i>Good for
+              </h4>
+              <ul class="text-muted small mb-0 ps-3">
+                <li>Deciding whether to book an appointment</li>
+                <li>Working out what to ask when you get there</li>
+                <li>Seeing which lifestyle factors move your risk most</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h4 class="h6 fw-bold text-danger">
+                <i class="bi bi-x-circle me-1" aria-hidden="true"></i>Not for
+              </h4>
+              <ul class="text-muted small mb-0 ps-3">
+                <li>Diagnosing anything</li>
+                <li>Deciding <em>not</em> to seek care when you feel unwell</li>
+                <li>Replacing tests, examination, or your medical history</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

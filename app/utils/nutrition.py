@@ -1,36 +1,60 @@
-import requests
+import logging
 import os
+
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
+
+log = logging.getLogger(__name__)
+
 API_KEY = os.getenv("USDA_API_KEY")
+BASE_URL = "https://api.nal.usda.gov/fdc/v1"
+TIMEOUT = 10
 
 if not API_KEY:
-    print("❗ ERROR: USDA_API_KEY not found. Please add it to your .env file.")
+    log.warning("USDA_API_KEY is not set; /nutrition/ lookups will return no data.")
+
 
 def search_food_item(food_name):
     """
     Search food using USDA API and return a list of matching FDC IDs.
     """
-    url = f"https://api.nal.usda.gov/fdc/v1/foods/search?api_key={API_KEY}&query={food_name}&pageSize=1"
+    if not API_KEY:
+        return []
+    # Query values go through `params` rather than an f-string: a food name
+    # containing '&' or '#' used to be spliced straight into the URL, which both
+    # broke the lookup and let the caller append arbitrary query parameters.
     try:
-        response = requests.get(url)
+        response = requests.get(
+            f"{BASE_URL}/foods/search",
+            params={"api_key": API_KEY, "query": food_name, "pageSize": 1},
+            timeout=TIMEOUT,
+        )
         response.raise_for_status()
         data = response.json()
-        if "foods" in data and len(data["foods"]) > 0:
+        if data.get("foods"):
             return [item["fdcId"] for item in data["foods"]]
-    except Exception as e:
-        print(f"❌ search_food_item() error for '{food_name}':", e)
+    except requests.RequestException as exc:
+        log.warning("USDA search failed for %r: %s", food_name, exc)
+    except (ValueError, KeyError) as exc:
+        log.warning("USDA search returned unexpected data for %r: %s", food_name, exc)
     return []
+
 
 def get_nutrition_details(fdc_id):
     """
     Fetch nutrition details by FDC ID and return nutrients dict.
     Handles both flat and nested nutrient formats.
     """
-    url = f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}?api_key={API_KEY}"
+    if not API_KEY:
+        return {"nutrients": {}}
     try:
-        response = requests.get(url)
+        response = requests.get(
+            f"{BASE_URL}/food/{fdc_id}",
+            params={"api_key": API_KEY},
+            timeout=TIMEOUT,
+        )
         response.raise_for_status()
         data = response.json()
 
@@ -52,12 +76,14 @@ def get_nutrition_details(fdc_id):
                 nutrients[name] = f"{value} {unit}"
 
         if not nutrients:
-            print("⚠️ No nutrients found for FDC ID:", fdc_id)
+            log.info("USDA returned no nutrients for FDC ID %s", fdc_id)
 
         return {"nutrients": nutrients}
-    except Exception as e:
-        print(f"❌ get_nutrition_details() error for ID {fdc_id}:", e)
-        return {"nutrients": {}}
+    except requests.RequestException as exc:
+        log.warning("USDA lookup failed for FDC ID %s: %s", fdc_id, exc)
+    except (ValueError, KeyError) as exc:
+        log.warning("USDA returned unexpected data for FDC ID %s: %s", fdc_id, exc)
+    return {"nutrients": {}}
 
 def food_benefits_disadvantages(food_name):
     """

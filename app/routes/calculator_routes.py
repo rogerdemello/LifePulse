@@ -1,8 +1,21 @@
 from flask import Blueprint, request, render_template, jsonify
+
+from app.ml.safety import check_possible
+from app.ratelimit import rate_limit
+from app.routes.support import FormError, prediction_errors, urgent_interstitial
 from app.utils.calculator import full_health_calculator
-# Gemini integration removed — use local rule-based advice generator
 
 calculator_bp = Blueprint('calculator', __name__, url_prefix='/health')
+
+# Form field -> the name app.ml.safety uses for its physiological limits and
+# red-flag rules. This page collects blood pressure, so it gets the same
+# hypertensive-crisis interrupt as the model-backed assessments.
+SAFETY_FIELDS = {
+    'age': 'Age',
+    'systolic': 'Systolic',
+    'diastolic': 'Diastolic',
+    'water_intake': 'Water Intake',
+}
 
 
 # GET route to show the health calculator form
@@ -20,7 +33,7 @@ def calculate_metrics():
         gender=data['gender'],
         height_cm=float(data['height_cm']),
         weight_kg=float(data['weight_kg']),
-        activity_level=data['activity_level'].lower(),
+        activity_level=data['activity_level'],
         water_intake_l=float(data['water_intake_l']),
         smokes_per_day=int(data['smokes_per_day'])
     )
@@ -29,21 +42,49 @@ def calculate_metrics():
 
 # POST or GET route from form → result page
 @calculator_bp.route('/result', methods=['POST', 'GET'])
+@rate_limit()
+@prediction_errors
 def show_health_result():
     if request.method == 'POST':
         form = request.form
+
+        required = ['gender', 'age', 'activity', 'height', 'weight', 'waist',
+                    'hip', 'systolic', 'diastolic', 'water_intake', 'smokes_per_day']
+        missing = [f for f in required if not str(form.get(f, '')).strip()]
+        if missing:
+            raise FormError(
+                "Please fill in every field. Missing: " + ", ".join(sorted(missing))
+            )
+
+        # BMI is derived here rather than entered, so add it to what safety sees.
+        safety_values = {
+            raw: form[field] for field, raw in SAFETY_FIELDS.items()
+        }
+        height_m = float(form['height']) / 100
+        if height_m > 0:
+            safety_values['BMI'] = float(form['weight']) / (height_m ** 2)
+        check_possible('calculator', safety_values)
+
+        interstitial = urgent_interstitial(safety_values, form)
+        if interstitial is not None:
+            return interstitial
+
         gender = form['gender']
         age = int(form['age'])
 
-        # Calculate metrics
+        # Water intake and cigarettes come from the form now. They used to be
+        # hardcoded to 2 litres and 0 cigarettes while the form never asked, so
+        # every user in the 57-71 kg band was told "Moderately Hydrated -
+        # increase your water intake" based on a number they never entered, and
+        # no smoker was ever warned about smoking.
         result = full_health_calculator(
             age=age,
             gender=gender,
             height_cm=float(form['height']),
             weight_kg=float(form['weight']),
-            activity_level=form['activity'].lower(),
-            water_intake_l=2,  # Optional: form.get("water_intake", 2)
-            smokes_per_day=0   # Optional: form.get("smokes", 0)
+            activity_level=form['activity'],
+            water_intake_l=float(form['water_intake']),
+            smokes_per_day=int(form['smokes_per_day'])
         )
 
         # Derived metrics

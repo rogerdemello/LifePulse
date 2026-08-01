@@ -18,9 +18,9 @@
   <meta property="og:url" content="{% block og_url %}{{ request.url }}{% endblock %}" />
   <meta property="og:title" content="{% block og_title %}LifePulse - Smart Health Insights{% endblock %}" />
   <meta property="og:description" content="{% block og_description %}AI-powered health assessment platform with personalized insights for heart health, sleep quality, migraine risk, and nutrition analysis.{% endblock %}" />
-  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/og-image.png', _external=True) }}{% endblock %}" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
+  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/health-banner.png', _external=True) }}{% endblock %}" />
+  <meta property="og:image:width" content="3780" />
+  <meta property="og:image:height" content="1890" />
   <meta property="og:site_name" content="LifePulse" />
   
   <!-- Twitter Card -->
@@ -28,12 +28,13 @@
   <meta name="twitter:url" content="{% block twitter_url %}{{ request.url }}{% endblock %}" />
   <meta name="twitter:title" content="{% block twitter_title %}LifePulse - Smart Health Insights{% endblock %}" />
   <meta name="twitter:description" content="{% block twitter_description %}AI-powered health assessment platform with personalized insights for heart health, sleep quality, migraine risk, and nutrition.{% endblock %}" />
-  <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/og-image.png', _external=True) }}{% endblock %}" />
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/icons/favicon-32x32.png') }}" />
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/icons/favicon-16x16.png') }}" />
-  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/icons/apple-touch-icon.png') }}" />
+  <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/health-banner.png', _external=True) }}{% endblock %}" />
+
+  <!-- Favicon. An inline SVG rather than PNG files: it stays crisp at every
+       size, needs no build step, and the three PNGs previously referenced here
+       did not exist, so every page load fetched three 404s. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23667eea'/%3E%3Cpath d='M4 17h5l2.5-6 4 12 3-8 2 2h7' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/logo.png') }}" />
   
   <!-- Theme Color -->
   <meta name="theme-color" content="#667eea" />
@@ -64,12 +65,17 @@
 
   <!-- ✅ Optional Custom Scripts -->
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+
+  <!-- ✅ Visit summary (localStorage only, never uploaded) -->
+  <script src="{{ url_for('static', filename='js/summary.js') }}" defer></script>
 </head>
 
 <body>
 
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+
 <!-- ✅ Loading Overlay -->
-<div id="loadingOverlay" class="loading-overlay">
+<div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
   <div class="loading-content">
     <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
       <span class="visually-hidden">Loading...</span>
@@ -80,7 +86,7 @@
 </div>
 
 <!-- ✅ Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark">
+<nav class="navbar navbar-expand-lg navbar-dark" aria-label="Main navigation">
   <div class="container">
     <a class="navbar-brand" href="/">LifePulse</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -89,32 +95,71 @@
     </button>
     
     <div class="collapse navbar-collapse" id="navbarNav">
+      {# aria-current marks the page you are on for screen readers, which
+         otherwise hear seven identical links with no sense of position. #}
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="/health">Health Calculator</a></li>
-        <li class="nav-item"><a class="nav-link" href="/health-score">Health Score</a></li>
-        <li class="nav-item"><a class="nav-link" href="/heart_disease">Heart Disease</a></li>
-        <li class="nav-item"><a class="nav-link" href="/sleep">Sleep Disorder</a></li>
-        <li class="nav-item"><a class="nav-link" href="/migraine">Migraine</a></li>
-        <li class="nav-item"><a class="nav-link" href="/nutrition">Nutrition</a></li>
+        {% set nav_items = [
+          ('/', 'Home'),
+          ('/health', 'Health Calculator'),
+          ('/health-score', 'Health Score'),
+          ('/heart_disease', 'Heart Disease'),
+          ('/sleep', 'Sleep Disorder'),
+          ('/migraine', 'Migraine'),
+          ('/nutrition', 'Nutrition'),
+        ] %}
+        {% for href, label in nav_items %}
+        {% set is_current = request.path == href or (href != '/' and request.path.startswith(href)) %}
+        <li class="nav-item">
+          <a class="nav-link{% if is_current %} active{% endif %}"
+             href="{{ href }}"
+             {% if is_current %}aria-current="page"{% endif %}>{{ label }}</a>
+        </li>
+        {% endfor %}
+        <li class="nav-item">
+          <a class="nav-link fw-semibold{% if request.path == url_for('summary') %} active{% endif %}"
+             href="{{ url_for('summary') }}"
+             {% if request.path == url_for('summary') %}aria-current="page"{% endif %}>
+            <i class="bi bi-clipboard2-pulse me-1" aria-hidden="true"></i>My Summary
+          </a>
+        </li>
       </ul>
     </div>
   </div>
 </nav>
 
 <!-- ✅ Main Content -->
-<div class="container my-4">
+<main id="mainContent" class="container my-4">
   {% block content %}
   {% endblock %}
-</div>
+</main>
 
 <!-- ✅ Footer -->
 <footer>
-  <p>&copy; 2025 LifePulse. All rights reserved.</p>
+  <div class="container">
+
+    <!-- One disclaimer, on every page. Result pages used to each word their own
+         differently, and the homepage and forms carried none at all. -->
+    <div class="footer-disclaimer" role="note">
+      <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
+      <strong>LifePulse is a screening tool, not a diagnosis.</strong>
+      It estimates risk from patterns in public health data and cannot examine you,
+      know your history, or be right about any individual. Use it to decide whether
+      a conversation with a doctor is worth having &mdash; never to decide it isn't.
+      If you feel unwell, seek medical care regardless of what any result here says.
+    </div>
+
+    <p class="mb-1">
+      <a href="{{ url_for('privacy') }}">Privacy</a>
+      <span aria-hidden="true">&middot;</span>
+      <a href="{{ url_for('index') }}">Home</a>
+    </p>
+    <p class="mb-0">&copy; 2025 LifePulse. Nothing you enter is stored.</p>
+  </div>
 </footer>
 
 <!-- ✅ Scroll to Top Button -->
-<button id="scrollToTop" class="scroll-to-top" title="Go to top">
+<button id="scrollToTop" class="scroll-to-top" type="button"
+        title="Go to top" aria-label="Scroll back to top">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
     <path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
   </svg>

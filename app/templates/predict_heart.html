@@ -25,11 +25,16 @@
 
               <div class="col-md-4">
                 <label for="sex" class="form-label">Gender</label>
-                <select class="form-select" name="sex" required>
+                <select class="form-select" name="sex" required aria-describedby="sexNote">
                   <option value="" selected disabled>Select...</option>
                   <option value="0">Female</option>
                   <option value="1">Male</option>
                 </select>
+                <small class="text-muted" id="sexNote">
+                  Sex recorded at birth is what affects the estimate here. The
+                  BRFSS survey behind this model only recorded two values, so
+                  those are the only options it can use.
+                </small>
               </div>
 
               <div class="col-md-4">

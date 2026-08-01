@@ -5,6 +5,7 @@
 
 {% block content %}
 <div class="container py-5">
+  {% include "_caveats.html" %}
   <div class="text-center mb-4">
     <h2 class="fw-bold mb-2">😴 Sleep Health Analysis Results</h2>
     <p class="text-muted">Your personalized sleep disorder screening results</p>
@@ -32,7 +33,10 @@
                 ✅ No Sleep Disorder
               {% endif %}
             </h3>
-            <p class="mb-0 opacity-90">Prediction: <strong>{{ prediction }}</strong></p>
+            <p class="mb-0 opacity-90">
+              Prediction: <strong>{{ prediction }}</strong>
+              <span class="opacity-75">&middot; {{ confidence }}% confidence</span>
+            </p>
           </div>
         </div>
 
@@ -102,6 +106,10 @@
           </div>
         </div>
       </div>
+
+      {% include "_save_summary.html" %}
+
+      {% include "_explanation.html" %}
 
       <!-- Recommendations Card -->
       <div class="card border-0 shadow-sm mb-4">
@@ -187,13 +195,19 @@
             <div class="col-md-8">
               <h6 class="fw-bold mb-2">🤖 About This Analysis</h6>
               <p class="mb-0 small">
-                This screening tool uses a machine learning model trained on sleep health data with <strong>87.1% accuracy</strong>. 
-                It analyzes sleep patterns, lifestyle factors, and health vitals to identify potential sleep disorders.
+                This screening tool uses a machine learning model trained on sleep health data.
+                It scores <strong>{{ '%.1f'|format(metrics.accuracy * 100) }}% accuracy</strong>
+                against a {{ '%.1f'|format(metrics.baseline_majority_accuracy * 100) }}% baseline
+                (what you would get by guessing the most common answer every time), and
+                {{ '%.1f'|format(metrics.balanced_accuracy * 100) }}% balanced accuracy across all three classes.
                 <span class="text-danger fw-bold">This is not a medical diagnosis.</span> Always consult a sleep specialist for proper evaluation and treatment.
               </p>
             </div>
             <div class="col-md-4 text-center">
-              <div class="badge bg-primary px-3 py-2 fs-6">87.1% Accuracy</div>
+              <div class="badge bg-primary px-3 py-2 fs-6">
+                {{ '%.1f'|format(metrics.accuracy * 100) }}% Accuracy
+              </div>
+              <div class="small text-muted mt-2">vs {{ '%.1f'|format(metrics.baseline_majority_accuracy * 100) }}% baseline</div>
             </div>
           </div>
         </div>

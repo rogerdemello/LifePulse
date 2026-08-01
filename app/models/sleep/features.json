@@ -1,0 +1,20 @@
+[
+  "Gender",
+  "Age",
+  "Sleep Duration",
+  "Quality of Sleep",
+  "Physical Activity Level",
+  "Stress Level",
+  "Heart Rate",
+  "Daily Steps",
+  "BMI_Category",
+  "Systolic",
+  "Diastolic",
+  "Blood_Pressure_Mean",
+  "Pulse_Pressure",
+  "Sleep_Quality_Ratio",
+  "Activity_Stress_Ratio",
+  "Steps_per_Hour_Awake",
+  "Heart_Stress_Product",
+  "Sleep_Deficit"
+]

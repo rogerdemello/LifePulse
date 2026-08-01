@@ -22,8 +22,73 @@ body {
   color: #2d3748;
   line-height: 1.7;
   overflow-x: hidden;
-  opacity: 0;
-  transition: opacity 0.5s ease;
+  /* No `opacity: 0` here. It used to hide the entire page until JavaScript
+     faded it back in, so any script failure left a permanently blank health
+     tool. Content must be readable without JavaScript. */
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+/* Lets a keyboard user jump past seven navigation links to the content. */
+.skip-link {
+  position: absolute;
+  top: -3rem;
+  left: 1rem;
+  z-index: 2000;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  color: #fff;
+  background: #667eea;
+  border-radius: 0 0 8px 8px;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+  color: #fff;
+}
+
+/* The design removes outlines in places; put a visible one back for keyboard
+   users. :focus-visible means mouse users never see it. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
+.navbar-nav .nav-link.active {
+  color: #667eea !important;
+  background: rgba(102, 126, 234, 0.12);
+}
+
+.navbar-nav .nav-link.active::after {
+  width: 80%;
+}
+
+/* Honour a stated preference for less motion. The site animates a great deal
+   by default, which can trigger nausea or migraine -- and this app has a page
+   dedicated to migraine triggers. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .hover-card:hover,
+  .card:hover {
+    transform: none;
+  }
 }
 
 * {
@@ -364,6 +429,26 @@ footer {
   margin-top: 80px;
   border-top: 1px solid rgba(102, 126, 234, 0.1);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Site-wide medical disclaimer. Deliberately readable rather than fine print:
+   it is the difference between a screening tool and something a person might
+   mistake for a diagnosis. */
+.footer-disclaimer {
+  max-width: 46rem;
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #4a5568;
+  background: rgba(255, 193, 7, 0.08);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  border-radius: 10px;
+}
+
+.footer-disclaimer strong {
+  color: #2d3748;
 }
 
 footer p {
@@ -1265,4 +1350,297 @@ footer p {
   .stat-card-icon {
     font-size: 2rem;
   }
+}
+
+/* ==========================================================================
+   VISIT SUMMARY
+   The page a person actually takes to their appointment. Screen styling stays
+   deliberately plain; the print rules below are the point.
+   ========================================================================== */
+
+.summary-entry {
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  background: #fff;
+  border: 1px solid rgba(102, 126, 234, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.summary-entry-head {
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.summary-headline {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 0.25rem;
+}
+
+.summary-flag {
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+  border-left: 4px solid #fd7e14;
+  background: rgba(253, 126, 20, 0.07);
+  border-radius: 6px;
+}
+
+.summary-flag-emergency {
+  border-left-color: #dc3545;
+  background: rgba(220, 53, 69, 0.08);
+}
+
+.summary-caveat {
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.6rem;
+  color: #7c5800;
+  background: rgba(255, 193, 7, 0.1);
+  border-radius: 6px;
+}
+
+.summary-factors {
+  padding-left: 0;
+  list-style: none;
+}
+
+.summary-factors li {
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.06);
+}
+
+.summary-arrow {
+  display: inline-block;
+  min-width: 1.4rem;
+  font-weight: 700;
+}
+
+.summary-arrow.raised { color: #dc3545; }
+.summary-arrow.lowered { color: #198754; }
+
+.summary-inputs summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #667eea;
+}
+
+.summary-checkbox {
+  display: inline-block;
+  min-width: 1.5rem;
+  font-size: 1.1rem;
+}
+
+/* --------------------------------------------------------------------------
+   PRINT
+   Strip the app furniture so what comes out of the printer is a clean clinical
+   handout: black on white, no navigation, nothing that costs ink and says
+   nothing. Backgrounds are removed rather than forced, so this stays legible
+   on a monochrome printer.
+   -------------------------------------------------------------------------- */
+
+@media print {
+  nav,
+  footer,
+  .scroll-to-top,
+  .loading-overlay,
+  .summary-toolbar,
+  .toast-container,
+  #summaryEmpty {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+  }
+
+  .container,
+  .summary-page {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .summary-print-header {
+    display: block !important;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #000;
+  }
+
+  .summary-print-header h1 {
+    font-size: 16pt;
+    margin: 0;
+  }
+
+  .summary-print-header p {
+    font-size: 9pt;
+    margin: 0;
+    color: #444;
+  }
+
+  /* Keep an assessment and its questions from splitting across pages. */
+  .summary-entry,
+  #summaryQuestions,
+  .summary-flag {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #999 !important;
+    background: #fff !important;
+  }
+
+  .summary-flag,
+  .summary-flag-emergency {
+    border-left: 4px solid #000 !important;
+  }
+
+  .summary-caveat {
+    color: #000 !important;
+    background: #fff !important;
+    border: 1px dashed #666;
+  }
+
+  .card {
+    border: 1px solid #999 !important;
+    box-shadow: none !important;
+  }
+
+  /* Details elements print collapsed by default, hiding the entered answers --
+     which are exactly what a clinician would want to see. */
+  .summary-inputs[open] > summary,
+  .summary-inputs > summary {
+    font-weight: 600;
+    color: #000;
+  }
+
+  .summary-inputs > dl {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  a[href]::after {
+    content: "";
+  }
+}
+
+
+/* ==========================================================================
+   DARK MODE
+   Follows the reader's system preference. Scoped to structural surfaces --
+   page background, cards, text, form controls -- rather than restyling every
+   decorative gradient, which stays legible on a dark background anyway.
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+    --card-shadow-hover: 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+
+  body {
+    background: linear-gradient(135deg, #12161f 0%, #1b2130 100%);
+    color: #e2e8f0;
+  }
+
+  .navbar {
+    background: rgba(23, 28, 40, 0.95);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .navbar-nav .nav-link { color: #cbd5e0 !important; }
+  .navbar-nav .nav-link:hover,
+  .navbar-nav .nav-link.active {
+    color: #a5b4fc !important;
+    background: rgba(165, 180, 252, 0.14);
+  }
+
+  .card,
+  .summary-entry {
+    background: rgba(30, 36, 51, 0.96);
+    border-color: rgba(255, 255, 255, 0.09);
+    color: #e2e8f0;
+  }
+
+  .card-header.bg-white { background: rgba(30, 36, 51, 0.96) !important; }
+
+  .card-title,
+  .summary-headline,
+  h1, h2, h3, h4, h5, h6 {
+    color: #f1f5f9;
+  }
+
+  /* Bootstrap utility colours assume a light page. */
+  .text-muted { color: #94a3b8 !important; }
+  .bg-light { background: rgba(255, 255, 255, 0.06) !important; }
+  .bg-white { background: rgba(30, 36, 51, 0.96) !important; }
+  .border-bottom { border-color: rgba(255, 255, 255, 0.1) !important; }
+
+  .form-control,
+  .form-select {
+    background: rgba(15, 19, 28, 0.9);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #e2e8f0;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    background: rgba(15, 19, 28, 1);
+    border-color: #667eea;
+    color: #e2e8f0;
+  }
+
+  .form-control::placeholder { color: #64748b; }
+  .form-label { color: #cbd5e0; }
+  .input-group-text {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #cbd5e0;
+  }
+
+  footer {
+    background: linear-gradient(135deg, rgba(23, 28, 40, 0.95) 0%, rgba(18, 22, 31, 0.98) 100%);
+    color: #94a3b8;
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .footer-disclaimer {
+    color: #cbd5e0;
+    background: rgba(255, 193, 7, 0.10);
+    border-color: rgba(255, 193, 7, 0.28);
+  }
+
+  .footer-disclaimer strong { color: #f1f5f9; }
+
+  /* Alerts: keep the semantic hue, lose the near-white fill. */
+  .alert-warning {
+    background: rgba(255, 193, 7, 0.13);
+    color: #fcd34d;
+  }
+
+  .alert-danger {
+    background: rgba(220, 53, 69, 0.16);
+    color: #fca5a5;
+  }
+
+  .alert-success {
+    background: rgba(25, 135, 84, 0.16);
+    color: #86efac;
+  }
+
+  .alert-secondary {
+    background: rgba(255, 255, 255, 0.06);
+    color: #cbd5e0;
+  }
+
+  .summary-caveat { color: #fcd34d; }
+  .summary-inputs summary { color: #a5b4fc; }
+  .summary-factors li { border-bottom-color: rgba(255, 255, 255, 0.08); }
+  .summary-arrow.raised { color: #fca5a5; }
+  .summary-arrow.lowered { color: #86efac; }
+
+  a { color: #a5b4fc; }
 }

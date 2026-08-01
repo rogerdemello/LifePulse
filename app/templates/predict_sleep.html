@@ -20,11 +20,17 @@
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label fw-semibold">Gender</label>
-                  <select name="Gender" class="form-select" required>
-                    <option value="">Select gender...</option>
-                    <option value="Male">Male</option>
+                  <select name="Gender" class="form-select" required
+                          aria-describedby="genderNote">
+                    <option value="">Select...</option>
                     <option value="Female">Female</option>
+                    <option value="Male">Male</option>
                   </select>
+                  <small class="text-muted" id="genderNote">
+                    Sex recorded at birth is what affects the estimate here. The
+                    dataset behind this model only recorded two values, so those
+                    are the only options it can use.
+                  </small>
                 </div>
 
                 <div class="col-md-6">
@@ -94,31 +100,16 @@
 
                 <div class="col-md-4">
                   <label class="form-label fw-semibold">Blood Pressure</label>
-                  <select name="BloodPressure" class="form-select" required>
-                    <option value="">Select BP reading...</option>
-                    <optgroup label="Optimal">
-                      <option value="115/75">115/75</option>
-                    </optgroup>
-                    <optgroup label="Normal">
-                      <option value="120/80">120/80</option>
-                      <option value="125/80">125/80</option>
-                    </optgroup>
-                    <optgroup label="Elevated">
-                      <option value="129/84">129/84</option>
-                      <option value="130/85">130/85</option>
-                      <option value="130/86">130/86</option>
-                      <option value="131/86">131/86</option>
-                      <option value="132/87">132/87</option>
-                    </optgroup>
-                    <optgroup label="High">
-                      <option value="135/88">135/88</option>
-                      <option value="135/90">135/90</option>
-                      <option value="139/91">139/91</option>
-                      <option value="140/90">140/90</option>
-                      <option value="140/95">140/95</option>
-                      <option value="142/92">142/92</option>
-                    </optgroup>
-                  </select>
+                  <div class="input-group">
+                    <input type="number" name="Systolic" class="form-control"
+                           min="70" max="250" step="1" placeholder="120" required
+                           aria-label="Systolic blood pressure">
+                    <span class="input-group-text">/</span>
+                    <input type="number" name="Diastolic" class="form-control"
+                           min="40" max="150" step="1" placeholder="80" required
+                           aria-label="Diastolic blood pressure">
+                  </div>
+                  <small class="text-muted">Systolic / diastolic, e.g. 120 / 80</small>
                 </div>
 
                 <div class="col-md-4">
@@ -147,8 +138,10 @@
         <div class="card-body text-white p-4">
           <h6 class="fw-bold mb-2">💡 About Sleep Disorders</h6>
           <p class="mb-0 small">
-            Our AI model analyzes your sleep patterns, lifestyle factors, and health vitals to identify potential sleep disorders 
-            like insomnia or sleep apnea. This tool uses machine learning trained on sleep health data with 87.1% accuracy. 
+            Our model analyzes your sleep patterns, lifestyle factors, and health vitals to identify potential sleep disorders
+            like insomnia or sleep apnea &mdash; or to confirm neither is indicated. It scores
+            {{ '%.1f'|format(model_meta.sleep.metrics.accuracy * 100) }}% accuracy against a
+            {{ '%.1f'|format(model_meta.sleep.metrics.baseline_majority_accuracy * 100) }}% baseline.
             <strong>Note:</strong> This is a screening tool, not a diagnosis. Consult a sleep specialist for proper evaluation.
           </p>
         </div>

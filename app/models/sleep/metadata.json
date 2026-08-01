@@ -1,0 +1,152 @@
+{
+  "task": "multiclass classification",
+  "target": "Sleep Disorder",
+  "classes": [
+    "None",
+    "Insomnia",
+    "Sleep Apnea"
+  ],
+  "dataset": "Sleep Health and Lifestyle",
+  "n_rows": 5000,
+  "estimator": "HistGradientBoostingClassifier",
+  "raw_profile": {
+    "Gender": {
+      "kind": "categorical",
+      "values": [
+        "Female",
+        "Male"
+      ],
+      "mode": "Male"
+    },
+    "Age": {
+      "kind": "numeric",
+      "min": 18.0,
+      "p1": 18.0,
+      "median": 49.0,
+      "p99": 79.0,
+      "max": 79.0
+    },
+    "Sleep Duration": {
+      "kind": "numeric",
+      "min": 4.0,
+      "p1": 4.1,
+      "median": 7.0,
+      "p99": 9.8,
+      "max": 10.0
+    },
+    "Quality of Sleep": {
+      "kind": "numeric",
+      "min": 4.0,
+      "p1": 4.0,
+      "median": 6.0,
+      "p99": 9.0,
+      "max": 9.0
+    },
+    "Physical Activity Level": {
+      "kind": "numeric",
+      "min": 20.0,
+      "p1": 20.0,
+      "median": 58.0,
+      "p99": 99.0,
+      "max": 99.0
+    },
+    "Stress Level": {
+      "kind": "numeric",
+      "min": 3.0,
+      "p1": 3.0,
+      "median": 6.0,
+      "p99": 8.0,
+      "max": 8.0
+    },
+    "Heart Rate": {
+      "kind": "numeric",
+      "min": 60.0,
+      "p1": 60.0,
+      "median": 75.0,
+      "p99": 89.0,
+      "max": 89.0
+    },
+    "Daily Steps": {
+      "kind": "numeric",
+      "min": 3001.0,
+      "p1": 3116.91,
+      "median": 9163.5,
+      "p99": 14890.02,
+      "max": 14998.0
+    },
+    "BMI Category": {
+      "kind": "categorical",
+      "values": [
+        "Normal",
+        "Normal Weight",
+        "Obese",
+        "Overweight"
+      ],
+      "mode": "Normal Weight"
+    },
+    "Systolic": {
+      "kind": "numeric",
+      "min": 110.0,
+      "p1": 110.0,
+      "median": 127.0,
+      "p99": 144.0,
+      "max": 144.0
+    },
+    "Diastolic": {
+      "kind": "numeric",
+      "min": 70.0,
+      "p1": 70.0,
+      "median": 82.0,
+      "p99": 94.0,
+      "max": 94.0
+    }
+  },
+  "metrics": {
+    "accuracy": 0.858,
+    "balanced_accuracy": 0.7961904761904762,
+    "macro_f1": 0.7791590599654351,
+    "baseline_majority_accuracy": 0.7,
+    "cv_accuracy_mean": 0.8425,
+    "per_class": {
+      "None": {
+        "precision": 0.9607250755287009,
+        "recall": 0.9085714285714286,
+        "f1-score": 0.933920704845815,
+        "support": 700.0
+      },
+      "Insomnia": {
+        "precision": 0.5297297297297298,
+        "recall": 0.6533333333333333,
+        "f1-score": 0.5850746268656717,
+        "support": 150.0
+      },
+      "Sleep Apnea": {
+        "precision": 0.8104575163398693,
+        "recall": 0.8266666666666667,
+        "f1-score": 0.8184818481848185,
+        "support": 150.0
+      },
+      "accuracy": 0.858,
+      "macro avg": {
+        "precision": 0.7669707738661001,
+        "recall": 0.7961904761904762,
+        "f1-score": 0.7791590599654351,
+        "support": 1000.0
+      },
+      "weighted avg": {
+        "precision": 0.8735356397805306,
+        "recall": 0.858,
+        "f1-score": 0.864277964649644,
+        "support": 1000.0
+      }
+    }
+  },
+  "trained_utc": "2026-08-01T06:59:30+00:00",
+  "n_features": 18,
+  "library_versions": {
+    "scikit-learn": "1.8.0",
+    "numpy": "1.26.2",
+    "pandas": "2.1.3",
+    "joblib": "1.5.2"
+  }
+}

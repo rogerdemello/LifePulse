@@ -20,11 +20,17 @@
               <div class="row g-3">
                 <div class="col-md-4">
                   <label class="form-label fw-semibold">Gender</label>
-                  <select name="Gender" class="form-select" required>
-                    <option value="">Select gender...</option>
-                    <option value="Male">Male</option>
+                  <select name="Gender" class="form-select" required
+                          aria-describedby="genderNote">
+                    <option value="">Select...</option>
                     <option value="Female">Female</option>
+                    <option value="Male">Male</option>
                   </select>
+                  <small class="text-muted" id="genderNote">
+                    Sex recorded at birth is what affects the estimate here. The
+                    dataset behind this model only recorded two values, so those
+                    are the only options it can use.
+                  </small>
                   <small class="text-muted">Women are 3x more likely to have migraines</small>
                 </div>
 
@@ -154,8 +160,10 @@
             <div class="card-body text-white p-4">
               <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
               <p class="mb-0 small">
-                Our AI model analyzes 10+ lifestyle factors to predict migraine risk using machine learning 
-                with <strong>51% accuracy</strong>. This is a screening tool based on common migraine triggers. 
+                Our model analyzes 10 lifestyle factors plus 10 derived interactions to predict migraine risk
+                with <strong>{{ '%.1f'|format(model_meta.migraine.metrics.accuracy * 100) }}% accuracy</strong>
+                against a {{ '%.1f'|format(model_meta.migraine.metrics.baseline_majority_accuracy * 100) }}% baseline.
+                This is a screening tool based on common migraine triggers.
                 <strong>Note:</strong> This is not a medical diagnosis. Consult a neurologist for proper evaluation.
               </p>
             </div>

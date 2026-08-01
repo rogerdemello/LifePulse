@@ -1,220 +1,247 @@
 # 🏥 LifePulse - AI-Powered Health Analytics Platform
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-success?style=for-the-badge)](https://lifepulse-9vz4.onrender.com/)
-[![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-2.3.2-black?style=for-the-badge&logo=flask)](https://flask.palletsprojects.com/)
+[![Python](https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.1-black?style=for-the-badge&logo=flask)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-> **AI-driven health prediction and monitoring platform** with machine learning models for heart disease, sleep disorders, migraine assessment, and personalized health scoring.
+> **Health screening you can take to your doctor.** Machine learning models for heart disease, sleep disorders, migraine risk, and lifestyle scoring — each result explained, caveated where the model is out of its depth, and printable for an appointment. All inference runs locally; nothing is stored.
 
 🔗 **Live Application:** [https://lifepulse-9vz4.onrender.com/](https://lifepulse-9vz4.onrender.com/)
+
+> ⚕️ **Not a medical device.** These are screening tools trained on public survey data. Nothing here is a diagnosis. Consult a healthcare professional.
+
+### What makes it different
+
+- **It refuses to answer when it shouldn't.** A heart rate of 0 or a BMI of 500 is rejected, not answered. A blood pressure of 190/125 interrupts with "contact a doctor" *before* any model runs.
+- **It admits what it hasn't seen.** The sleep model was trained on people with systolic 110–144 and resting heart rates of 60–89. Outside that it says so, rather than returning a confident guess.
+- **Every result is explained.** Which of your answers moved the outcome, in which direction, by how much.
+- **Every result is printable.** A visit summary with your results, what drove them, and questions to ask — assembled in your browser and never uploaded.
 
 ---
 
 ## 📋 Table of Contents
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
-- [ML Models & Accuracy](#-ml-models--accuracy)
+- [ML Models](#-ml-models)
 - [Installation](#-installation)
-- [Usage](#-usage)
+- [How the ML layer is organised](#-how-the-ml-layer-is-organised)
+- [Testing](#-testing)
 - [API Endpoints](#-api-endpoints)
 - [Project Structure](#-project-structure)
 - [Deployment](#-deployment)
-- [Contributing](#-contributing)
 - [License](#-license)
 
 ---
 
 ## ✨ Features
 
-### 🧮 Health Score Calculator
-- Comprehensive health assessment based on vital metrics
-- BMI, blood pressure, cholesterol analysis
-- Lifestyle factors evaluation (exercise, sleep, smoking)
-- **Accuracy:** 54.8% R² score
+### ❤️ Heart Disease Risk
+Cardiovascular risk from 17 survey answers, expanded to 25 engineered features.
+Returns a **calibrated probability** — mean predicted risk (9.4%) matches observed
+prevalence (9.4%) — rather than a score out of 100.
 
-### ❤️ Heart Disease Prediction
-- Advanced cardiovascular risk assessment
-- 22-parameter analysis including BMI, cholesterol, diabetes, lifestyle
-- Binary classification (Disease/No Disease)
-- **Accuracy:** 91%
-
-### 😴 Sleep Disorder Detection
-- Identifies sleep apnea, insomnia, and normal sleep patterns
-- Analyzes sleep duration, quality, physical activity, stress levels
-- Multi-class classification
-- **Accuracy:** 87.1%
+### 😴 Sleep Disorder Screening
+Three-way classification: **no disorder**, insomnia, or sleep apnea. Blood pressure
+is entered as real numbers and parsed, so any reading works.
 
 ### 🤕 Migraine Risk Assessment
-- Predicts migraine susceptibility
-- Evaluates triggers, frequency, lifestyle factors
-- Binary classification model
-- **Accuracy:** 51%
+Binary risk from 10 lifestyle inputs plus 10 derived interactions (sleep×stress,
+water/caffeine, screen/sleep).
 
-### 🥗 Nutrition Tracker (Local recommendations)
-- Rule-based dietary analysis with optional USDA integration
-- Personalized nutrition suggestions (no external AI calls by default)
-- USDA FoodData Central integration
-- Real-time nutritional insights
+### 🧮 Health Score
+A 0–100 composite from seven lifestyle inputs. **The training data for this one is
+synthetic**, so treat the score as illustrative.
+
+### 🧮 Health Calculator & 🥗 Nutrition Lookup
+Rule-based BMI/BMR/calorie/waist-hip calculations, and food lookup via the USDA
+FoodData Central API. Neither uses a model.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Backend
-- **Framework:** Flask 2.3.2
-- **WSGI Server:** Gunicorn
-- **ML Libraries:** scikit-learn, pandas, numpy, joblib
-- **AI Integration:** Optional cloud AI (disabled by default); uses local rule-based recommendations
+**Backend:** Flask 3.1 · Gunicorn · scikit-learn 1.8 · pandas · numpy · joblib
+**Frontend:** Bootstrap 5.3 · Bootstrap Icons 1.11 · AOS 2.3 · custom CSS
+**Deployment:** Render · Python 3.12
 
-### Frontend
-- **UI Framework:** Bootstrap 5.3.0
-- **Icons:** Bootstrap Icons 1.11.1
-- **Animations:** AOS (Animate On Scroll) 2.3.1
-- **Custom CSS:** Responsive mobile-first design
-
-### Deployment
-- **Platform:** Render
-- **Version Control:** Git with Git LFS (for model files)
-- **Python Version:** 3.13
+Every dependency is pinned in `requirements.txt`. The scientific stack in particular
+must match the versions the models in `app/models/` were built with — bump the pins and
+rerun `python ml_model/train_all.py` together, never separately.
 
 ---
 
-## 🤖 ML Models & Accuracy (Updated Dec 2025)
+## 🤖 ML Models
 
-| Feature | Algorithm | Accuracy | Model Size | Parameters |
-|---------|-----------|----------|------------|------------|
-| Heart Disease | Random Forest | **87.2%** | 6.3 MB | 27 features |
-| Sleep Disorder | Random Forest | **78.3%** | Multi-file | 19 features |
-| Health Score | Random Forest Regressor | **81.9% R²** ⬆️ | 3 models | 26 features |
-| Migraine | Random Forest + SMOTE | **82.0%** ⬆️ | 6.3 MB | 20 features |
+All four are retrained from scratch by `python ml_model/train_all.py`. Metrics come
+from a held-out 20% test split and are written to `app/models/<name>/metadata.json`,
+which is what the app displays — no figure in this table is hardcoded anywhere in the UI.
 
-> ⬆️ **Major Improvements:** Migraine (+31%), Health Score (+27.1% R²)
+| Feature | Algorithm | Headline metric | Baseline it beats | Size |
+|---|---|---|---|---|
+| Heart Disease | HistGradientBoosting | **ROC-AUC 0.849**, PR-AUC 0.368 | PR-AUC 0.094 (prevalence) | 0.16 MB |
+| Sleep Disorder | HistGradientBoosting | **85.8%** accuracy, 79.6% balanced | 70.0% (majority class) | 0.24 MB |
+| Migraine | HistGradientBoosting | **84.0%** accuracy, ROC-AUC 0.924 | 60.0% (majority class) | 0.12 MB |
+| Health Score | RidgeCV | **R² 0.812** | R² 0.809 (linear on raw features) | 0.8 KB |
 
-### Model Details
+### Why baselines are quoted
 
-**Heart Disease Model:**
-- Features: BMI, Age, Sex, High BP, High Cholesterol, Diabetes, Physical Activity, etc.
-- Training: BRFSS 2015 dataset
-- Output: Binary (0 = No Disease, 1 = Disease)
+Only 9.4% of the heart-disease dataset is positive, so predicting "no disease" for
+everyone scores **90.6% accuracy**. A bare accuracy figure would look impressive and mean
+nothing. Heart is therefore judged on ROC-AUC and PR-AUC, and the other models are
+reported against the majority-class rate they have to beat.
 
-**Sleep Disorder Model:**
-- Features: Sleep Duration, Quality, Physical Activity, Stress, BMI, Heart Rate, Daily Steps
-- Output: Multi-class (Normal, Sleep Apnea, Insomnia)
-- Preprocessing: Label encoding, standard scaling
+### Calibration and the decision threshold
 
-**Health Score Model:**
-- Features: Age, BMI, Blood Pressure, Cholesterol, Exercise, Sleep Hours, Smoking
-- Output: Continuous health score (0-100)
-- Ensemble: Random Forest with feature importance
-
-**Migraine Model:**
-- Features: Age, Frequency, Duration, Triggers, Lifestyle factors
-- Output: Binary (0 = Low Risk, 1 = High Risk)
+The heart model is deliberately trained **without** class weighting. Rebalancing leaves
+ranking untouched (ROC-AUC 0.8486 vs 0.8489) but inflates mean predicted risk from 0.094
+to 0.35 and more than doubles the Brier score. Since the page shows the user a
+percentage, that percentage has to be literal. Class imbalance is handled at the decision
+threshold instead — tuned by Youden's J on a validation split, stored as
+`decision_threshold` in the model's metadata, and read at request time (**never** a
+hardcoded 0.5, which on a 9.4% base rate would flag almost nobody).
 
 ---
 
 ## 🚀 Installation
 
-### Prerequisites
-- Python 3.11+
-- pip package manager
-- Git with Git LFS
-
-### Local Setup
-
-1. **Clone the repository:**
 ```bash
 git clone https://github.com/rogerdemello/LifePulse.git
 cd LifePulse
-```
 
-2. **Install Git LFS** (for model files):
-```bash
-git lfs install
-git lfs pull
-```
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 
-3. **Create virtual environment:**
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-4. **Install dependencies:**
-```bash
 pip install -r requirements.txt
+cp .env.example .env               # then fill in SECRET_KEY
+
+python run.py                      # http://localhost:5000
 ```
 
-5. **Set up environment variables:**
-Create a `.env` file in the root directory:
-```env
-SECRET_KEY=your-secret-key-here
-# Optional: set `OPENAI_API_KEY` or other provider if you enable cloud AI features
-USDA_API_KEY=your-usda-api-key
-```
+No Git LFS step. The four models total ~0.5 MB and are committed directly, so a plain
+clone gives you a working app. (`GET /healthz` confirms which models loaded.)
 
-6. **Run the application:**
+### Retraining
+
+The training CSVs are gitignored — they are inputs, not outputs, and BRFSS alone is
+22 MB. Place them in `data/` and run:
+
 ```bash
-# Development mode
-python run.py
-
-# Production mode (with Gunicorn)
-gunicorn wsgi:app
+python ml_model/train_all.py                  # all four
+python ml_model/train_all.py --model heart    # just one
 ```
 
-7. **Access the application:**
-```
-http://localhost:5000
-```
+| File | Source |
+|---|---|
+| `heart_disease_health_indicators_BRFSS2015.csv` | BRFSS 2015 (Kaggle) |
+| `Sleep_health_and_lifestyle_dataset (1).csv` | Sleep Health and Lifestyle (Kaggle) |
+| `migraine_dataset_500 (1).csv` | Migraine triggers dataset |
+| `synthetic_health_data.csv` | Generated locally |
 
 ---
 
-## 📖 Usage
+## 🧩 How the ML layer is organised
 
-### Health Score Calculator
-1. Navigate to `/health`
-2. Enter vital metrics (age, weight, height, blood pressure, etc.)
-3. Submit form to receive comprehensive health score
-4. View personalized recommendations
+Feature engineering lives in exactly one place, `app/ml/features.py`, and both sides
+import it:
 
-### Heart Disease Prediction
-1. Go to `/heart_disease`
-2. Fill in 22-parameter health questionnaire
-3. Get instant cardiovascular risk assessment
-4. Receive prevention suggestions
+```
+                      app/ml/features.py
+                   (the feature contract)
+                      /              \
+                     /                \
+      ml_model/train_all.py        app/ml/bundle.py
+            (fits)                     (serves)
+                                          |
+                                    app/routes/*.py
+```
 
-### Sleep Disorder Detection
-1. Visit `/sleep`
-2. Provide sleep patterns and lifestyle data
-3. Receive disorder classification (Normal/Apnea/Insomnia)
-4. Get sleep improvement tips
+Routes map form fields to raw names and hand off; they contain no feature logic. If a
+builder's output ever stops matching the trained contract, `bundle.py` raises
+`FeatureContractError` rather than predicting — and `tests/test_feature_contract.py`
+fails first.
 
-### Migraine Assessment
-1. Access `/migraine`
-2. Answer migraine-specific questions
-3. Get risk prediction
-4. View trigger analysis
+This structure exists for a reason. Each route used to reimplement its model's feature
+engineering inline, and the loader filled in `0.0` for any name it could not find. The
+names drifted, nothing raised, and all four models were served vectors far outside their
+training distributions — the sleep model was receiving `Blood_Pressure_Mean` at
+**z = −16.7**. Adding a feature now means editing one file, and the tests will tell you
+if the artifacts need retraining.
 
-### Nutrition Tracker
-1. Navigate to `/nutrition`
-2. Input food items or meal description
-3. Get AI-powered nutritional analysis
-4. Receive dietary recommendations
+---
+
+## 🛟 The safety net
+
+Three tiers, in `app/ml/safety.py`, applied before anything is shown:
+
+| Tier | Trigger | Response |
+|---|---|---|
+| **Impossible** | Outside human physiology (HR 0, BMI 500, 25-hour sleep) | **400**, naming the field and its plausible range. Guessing from a typo is worse than declining — the user may act on the answer. |
+| **Red flag** | Possible and urgent (BP ≥180/120, HR <40 or >120, BMI <16 or ≥40) | An interstitial *before* the model runs, with an explicit "show my results anyway". |
+| **Out of range** | Possible, not urgent, but unseen in training | The result, plus a visible caveat quoting the trained range. |
+
+Tier 3's bounds come from the data — `train_all.py` records each model's actual
+input ranges into `metadata.json`, so they track retraining rather than drifting
+out of a hand-maintained table.
+
+> ⚠️ The tier-2 thresholds follow published guidance (AHA blood-pressure stages,
+> standard bradycardia/tachycardia bounds, WHO BMI classes), each cited in a
+> comment. **They have not been reviewed by a clinician.** Get that review before
+> promoting this as a pre-appointment tool.
+
+## 🔍 Explaining a result
+
+Each answer is re-scored with that one field replaced by its typical value from
+training; the shift is that field's contribution. No extra dependency, and one
+batched prediction for the whole explanation.
+
+```
+Your self-rated general health (fair) raised your estimated risk by 20.0 points
+Your high blood pressure (yes)        raised your estimated risk by 12.6 points
+Your smoking history (yes)            raised your estimated risk by  9.8 points
+```
+
+It's a counterfactual, not a decomposition — contributions don't sum to the
+total, because the model isn't additive. It answers the question people actually
+ask, which is what makes a result worth discussing rather than just reading.
+
+## 🧪 Testing
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+161 tests covering:
+
+- **Feature contract** — builder output matches each trained artifact exactly, in order
+- **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
+- **Training/serving parity** — a CSV row and the equivalent form dict produce identical vectors
+- **Model quality** — each model beats its baseline; heart stays calibrated; sleep predicts all three classes
+- **Safety** — each tier fires correctly, including the BP 190/125 and HR 0 cases that once returned a calm "No Sleep Disorder"
+- **Explanations** — directions aren't inverted below 50% risk; age actually moves the heart prediction
+- **Front end** — every referenced asset exists, pages render without JavaScript, landmarks and skip links are present
+- **Rate limiting** — bursts are throttled per client, GETs never are
+- **Routes** — every page renders, bad input returns 400 without leaking a traceback
+
+Tests that need the gitignored CSVs skip cleanly when the data isn't present.
 
 ---
 
 ## 🌐 API Endpoints
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Homepage with feature overview |
-| `/health` | GET/POST | Health score calculator |
-| `/heart_disease` | GET/POST | Heart disease prediction |
-| `/sleep` | GET/POST | Sleep disorder detection |
-| `/migraine` | GET/POST | Migraine risk assessment |
-| `/health-score` | GET/POST | Detailed health scoring |
-| `/nutrition` | GET/POST | Nutrition analysis with AI |
+|---|---|---|
+| `/` | GET | Homepage |
+| `/heart_disease/` | GET/POST | Heart disease risk |
+| `/sleep/` | GET/POST | Sleep disorder screening |
+| `/migraine/` | GET/POST | Migraine risk |
+| `/health-score/` | GET/POST | Composite health score |
+| `/health/` | GET | Health calculator form |
+| `/health/result` | POST | Calculator results |
+| `/health/calculate_metrics` | POST | Calculator as JSON |
+| `/nutrition/` | GET/POST | USDA nutrition lookup |
+| `/healthz` | GET | Liveness probe; reports which models loaded |
 
 ---
 
@@ -223,106 +250,72 @@ http://localhost:5000
 ```
 LifePulse/
 ├── app/
-│   ├── __init__.py              # Flask app initialization
-│   ├── app.py                   # Application factory
-│   ├── models/                  # ML model files (.pkl)
-│   │   ├── heart/               # Heart disease models
-│   │   ├── sleep/               # Sleep disorder models
-│   │   ├── health_score/        # Health score models
-│   │   └── *.pkl                # Migraine models
-│   ├── routes/                  # Blueprint routes
+│   ├── app.py                  # application factory
+│   ├── ratelimit.py            # per-client throttle on the model endpoints
+│   ├── ml/
+│   │   ├── features.py         # THE feature contract — training and serving
+│   │   ├── bundle.py           # model loading, contract enforcement, explanations
+│   │   ├── safety.py           # physiological limits, red flags, range caveats
+│   │   └── guidance.py         # questions to ask your doctor
+│   ├── models/<name>/          # model.joblib, scaler.joblib,
+│   │                           # features.json, metadata.json
+│   ├── routes/
+│   │   ├── support.py          # form collection, validation, error handling
+│   │   ├── heart.py  sleep.py  migraine.py  health_score.py
 │   │   ├── calculator_routes.py
-│   │   ├── heart.py
-│   │   ├── sleep.py
-│   │   ├── nutrition.py
-│   │   └── health_score.py
-│   ├── templates/               # HTML templates
-│   ├── static/                  # CSS, JS, images
-│   └── utils/                   # Helper functions
-│       ├── predictor.py         # ML prediction logic
-│       ├── model_loader.py      # Model management
-│       ├── (optional) gemini.py  # AI integration (disabled)
-│       └── nutrition.py         # USDA API handler
-├── ml_model/                    # Training scripts & datasets
-│   ├── Heart_Disease.py
-│   ├── sleep_dis.py
-│   ├── Health_score.py
-│   └── data/
-├── Procfile                     # Render deployment config
-├── wsgi.py                      # WSGI entry point
-├── requirements.txt             # Python dependencies
-└── README.md                    # This file
+│   │   └── nutrition.py
+│   ├── templates/              # Jinja templates (_caveats, _explanation,
+│   │                           # _save_summary, urgent, summary, privacy)
+│   ├── static/                 # CSS, JS, images
+│   └── utils/
+│       ├── calculator.py       # BMI / BMR / calorie rules
+│       └── nutrition.py        # USDA FoodData client
+├── ml_model/train_all.py       # retrains every model
+├── tests/                      # contract, parity, quality, safety, front-end
+├── data/                       # training CSVs (gitignored)
+├── .github/workflows/ci.yml    # pytest + boot check + contract check
+├── requirements.txt            # pinned runtime deps
+├── runtime.txt                 # Python 3.12 for Render
+├── Procfile                    # gunicorn wsgi:app
+└── wsgi.py                     # WSGI entry point
 ```
+
+### A note on CSRF
+
+There is deliberately no CSRF protection. Every form is unauthenticated and
+changes no state — there is no account, no database, and no stored result, so a
+forged cross-site submission would achieve nothing beyond making a stranger's
+browser compute a health score it never displays. Adding tokens would mean
+introducing a session cookie and a dependency to defend against nothing.
+
+**This stops being true the moment accounts or saved history exist.** If that
+changes, CSRF protection goes in at the same time, not after.
 
 ---
 
 ## 🌍 Deployment
 
-### Render Deployment (Recommended)
+**Render:**
 
-1. **Fork/Clone this repository**
+1. Connect the repository
+2. Build: `pip install -r requirements.txt`
+3. Start: `gunicorn wsgi:app`
+4. Set `SECRET_KEY` (required — the app refuses to start in production without it)
+5. Optionally set `USDA_API_KEY` to enable `/nutrition/`
 
-2. **Create new Web Service on Render:**
-   - Connect your GitHub repository
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn wsgi:app`
-   - Environment: Python 3
+`runtime.txt` pins Python 3.12 to match the pinned wheels. No Git LFS configuration
+needed. Point the health check at `/healthz`.
 
-3. **Set Environment Variables:**
-   - `SECRET_KEY`: Flask secret key
-   - `USDA_API_KEY`: USDA FoodData Central API key
-
-4. **Enable Git LFS** in Render dashboard
-
-5. **Deploy!** 🚀
-
-### Local Deployment
+**Locally, production-style:**
 ```bash
 gunicorn --bind 0.0.0.0:5000 wsgi:app
 ```
 
 ---
 
-## 🧪 Model Training
-
-To retrain models with updated datasets:
-
-```bash
-# Activate virtual environment
-source venv/bin/activate
-
-# Train heart disease model
-python ml_model/Heart_Disease.py
-
-# Train sleep disorder model
-python ml_model/sleep_dis.py
-
-# Train health score model
-python ml_model/Health_score.py
-
-# Train migraine model
-python ml_model/Migrain.py
-```
-
-Models are saved with timestamps in `app/models/` directory.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT — see [LICENSE](LICENSE).
 
 ---
 
@@ -330,26 +323,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Roger Demello**
 - GitHub: [@rogerdemello](https://github.com/rogerdemello)
-- LinkedIn: [Connect with me](https://www.linkedin.com/in/roger-demello)
+- LinkedIn: [Connect](https://www.linkedin.com/in/roger-demello)
 - Live Demo: [LifePulse](https://lifepulse-9vz4.onrender.com/)
 
 ---
 
 ## 🙏 Acknowledgments
 
-- BRFSS 2015 dataset for heart disease model
+- BRFSS 2015 dataset (heart disease indicators)
 - Sleep Health & Lifestyle dataset
-- USDA FoodData Central for nutrition data
- - Optional cloud AI integrations (disabled by default)
-- Bootstrap team for UI components
-- AOS library for smooth animations
-
----
-
-## 📊 Stats
-
-![GitHub repo size](https://img.shields.io/github/repo-size/rogerdemello/LifePulse)
-![GitHub stars](https://img.shields.io/github/stars/rogerdemello/LifePulse?style=social)
-![GitHub forks](https://img.shields.io/github/forks/rogerdemello/LifePulse?style=social)
-
----
+- USDA FoodData Central
+- Bootstrap and AOS
