@@ -15,18 +15,23 @@
 <div class="hero-section text-center py-5">
   <div class="container">
     <h1 class="display-3 fw-bold mb-3" data-aos="fade-down">
-      Welcome to <span style="color: #fff; text-shadow: 0 0 30px rgba(255,255,255,0.5);">LifePulse</span>
+      Welcome to <span >LifePulse</span>
     </h1>
     <p class="lead fs-4 mb-4" data-aos="fade-up" data-aos-delay="100">
-      AI-powered health predictions and insights at your fingertips
+      Work out whether something's worth seeing a doctor about
     </p>
     <p class="mb-4" data-aos="fade-up" data-aos-delay="200">
-      Track your wellness journey with intelligent health assessments
+      Six checks, each one showing its working. Nothing you enter is stored.
     </p>
     <div data-aos="fade-up" data-aos-delay="300">
-      <a href="#modules" class="btn btn-light btn-lg" style="background: rgba(255,255,255,0.95); color: #667eea; font-weight: 700; padding: 1rem 2.5rem; box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
-        Get Started <i class="bi bi-arrow-down-circle ms-2"></i>
+      <a href="{{ url_for('start.start') }}" class="btn btn-light btn-lg px-4">
+        Tell us what's bothering you <i class="bi bi-arrow-right-circle ms-2" aria-hidden="true"></i>
       </a>
+      <div class="mt-3">
+        <a href="#modules" class="text-white text-decoration-underline">
+          or browse all assessments
+        </a>
+      </div>
     </div>
   </div>
 </div>
@@ -34,8 +39,8 @@
 <!-- Main Content -->
 <div class="container py-5" id="modules">
   <div class="text-center mb-5">
-    <h2 class="fw-bold mb-3 section-title" data-aos="fade-up">Choose Your Health Module</h2>
-    <p class="text-muted fs-5" data-aos="fade-up" data-aos-delay="100">Select a tool below to get personalized health insights</p>
+    <h2 class="fw-bold mb-3 section-title" data-aos="fade-up">All assessments</h2>
+    <p class="text-muted fs-5" data-aos="fade-up" data-aos-delay="100">Or pick one directly</p>
   </div>
 
   <div class="row g-4">
@@ -44,15 +49,13 @@
     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
       <div class="card shadow-sm border-0 h-100 hover-card">
         <div class="card-body text-center p-4">
-          <div class="mb-3">
-            <div class="icon-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-calculator feature-icon" style="font-size: 2.5rem; color: #0d6efd;"></i>
-            </div>
+          <div class="mb-1">
+            <div class="module-icon"><i class="bi bi-calculator" aria-hidden="true"></i></div>
           </div>
           <h5 class="card-title fw-bold mb-3">Health Calculator</h5>
           <p class="card-text text-muted mb-4">Calculate BMI, BMR, calorie needs, blood pressure status, and more metrics</p>
           <a href="/health" class="btn btn-primary btn-lg w-100">
-            Start Calculation <i class="bi bi-arrow-right ms-2"></i>
+            Start Calculation <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
       </div>
@@ -62,15 +65,13 @@
     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
       <div class="card shadow-sm border-0 h-100 hover-card">
         <div class="card-body text-center p-4">
-          <div class="mb-3">
-            <div class="icon-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-heart-pulse feature-icon" style="font-size: 2.5rem; color: #dc3545;"></i>
-            </div>
+          <div class="mb-1">
+            <div class="module-icon is-danger"><i class="bi bi-heart-pulse" aria-hidden="true"></i></div>
           </div>
           <h5 class="card-title fw-bold mb-3">Heart Disease Risk</h5>
           <p class="card-text text-muted mb-4">Assess your cardiovascular health and get personalized risk analysis</p>
-          <a href="/heart_disease" class="btn btn-danger btn-lg w-100">
-            Check Risk <i class="bi bi-arrow-right ms-2"></i>
+          <a href="/heart_disease" class="btn btn-primary btn-lg w-100">
+            Check Risk <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
       </div>
@@ -80,15 +81,13 @@
     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
       <div class="card shadow-sm border-0 h-100 hover-card">
         <div class="card-body text-center p-4">
-          <div class="mb-3">
-            <div class="icon-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-moon-stars feature-icon" style="font-size: 2.5rem; color: #0dcaf0;"></i>
-            </div>
+          <div class="mb-1">
+            <div class="module-icon is-info"><i class="bi bi-moon-stars" aria-hidden="true"></i></div>
           </div>
           <h5 class="card-title fw-bold mb-3">Sleep Disorder</h5>
           <p class="card-text text-muted mb-4">Analyze your sleep patterns and identify potential sleep disorders</p>
-          <a href="/sleep" class="btn btn-info btn-lg w-100">
-            Analyze Sleep <i class="bi bi-arrow-right ms-2"></i>
+          <a href="/sleep" class="btn btn-primary btn-lg w-100">
+            Analyze Sleep <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
       </div>
@@ -98,15 +97,13 @@
     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
       <div class="card shadow-sm border-0 h-100 hover-card">
         <div class="card-body text-center p-4">
-          <div class="mb-3">
-            <div class="icon-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-lightning feature-icon" style="font-size: 2.5rem; color: #ffc107;"></i>
-            </div>
+          <div class="mb-1">
+            <div class="module-icon is-warning"><i class="bi bi-lightning" aria-hidden="true"></i></div>
           </div>
           <h5 class="card-title fw-bold mb-3">Migraine Risk</h5>
           <p class="card-text text-muted mb-4">Estimate migraine likelihood based on your lifestyle and habits</p>
-          <a href="/migraine" class="btn btn-warning btn-lg w-100">
-            Assess Risk <i class="bi bi-arrow-right ms-2"></i>
+          <a href="/migraine" class="btn btn-primary btn-lg w-100">
+            Assess Risk <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
       </div>
@@ -116,15 +113,13 @@
     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
       <div class="card shadow-sm border-0 h-100 hover-card">
         <div class="card-body text-center p-4">
-          <div class="mb-3">
-            <div class="icon-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-clipboard2-pulse feature-icon" style="font-size: 2.5rem; color: #198754;"></i>
-            </div>
+          <div class="mb-1">
+            <div class="module-icon is-success"><i class="bi bi-clipboard2-pulse" aria-hidden="true"></i></div>
           </div>
           <h5 class="card-title fw-bold mb-3">Overall Health Score</h5>
           <p class="card-text text-muted mb-4">Get comprehensive health rating based on lifestyle factors</p>
-          <a href="/health-score" class="btn btn-success btn-lg w-100">
-            Calculate Score <i class="bi bi-arrow-right ms-2"></i>
+          <a href="/health-score" class="btn btn-primary btn-lg w-100">
+            Calculate Score <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
       </div>
@@ -134,15 +129,13 @@
     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
       <div class="card shadow-sm border-0 h-100 hover-card">
         <div class="card-body text-center p-4">
-          <div class="mb-3">
-            <div class="icon-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%;">
-              <i class="bi bi-egg-fried feature-icon" style="font-size: 2.5rem; color: #198754;"></i>
-            </div>
+          <div class="mb-1">
+            <div class="module-icon is-success"><i class="bi bi-egg-fried" aria-hidden="true"></i></div>
           </div>
           <h5 class="card-title fw-bold mb-3">Nutrition Explorer</h5>
           <p class="card-text text-muted mb-4">Discover food benefits, nutrients, and health impacts</p>
-          <a href="/nutrition" class="btn btn-success btn-lg w-100">
-            Explore Foods <i class="bi bi-arrow-right ms-2"></i>
+          <a href="/nutrition" class="btn btn-primary btn-lg w-100">
+            Explore Foods <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i>
           </a>
         </div>
       </div>
@@ -158,41 +151,68 @@
     </div>
     <div class="col-md-4 text-center mb-4" data-aos="zoom-in" data-aos-delay="100">
       <div class="mb-3">
-        <i class="bi bi-cpu feature-icon" style="font-size: 3.5rem;"></i>
+        <i class="bi bi-cpu feature-icon" style="font-size:2.5rem" aria-hidden="true"></i>
       </div>
       <h5 class="fw-bold mb-2">AI-Powered</h5>
       <p class="text-muted">Advanced machine learning models for accurate predictions</p>
     </div>
     <div class="col-md-4 text-center mb-4" data-aos="zoom-in" data-aos-delay="200">
       <div class="mb-3">
-        <i class="bi bi-graph-up-arrow feature-icon" style="font-size: 3.5rem;"></i>
+        <i class="bi bi-graph-up-arrow feature-icon" style="font-size:2.5rem" aria-hidden="true"></i>
       </div>
       <h5 class="fw-bold mb-2">Data-Driven</h5>
       <p class="text-muted">Evidence-based insights from comprehensive health data</p>
     </div>
     <div class="col-md-4 text-center mb-4" data-aos="zoom-in" data-aos-delay="300">
       <div class="mb-3">
-        <i class="bi bi-shield-check feature-icon" style="font-size: 3.5rem;"></i>
+        <i class="bi bi-shield-check feature-icon" style="font-size:2.5rem" aria-hidden="true"></i>
       </div>
-      <h5 class="fw-bold mb-2">Private & Secure</h5>
-      <p class="text-muted">Your health data stays with you, no storage required</p>
+      <h5 class="fw-bold mb-2">Nothing Is Stored</h5>
+      <p class="text-muted mb-2">
+        No account, no database, no trackers. Your answers are discarded the moment
+        your result is rendered.
+      </p>
+      <a href="{{ url_for('privacy') }}" class="small">How that works &rarr;</a>
+    </div>
+  </div>
+
+  <!-- What this is for -->
+  <div class="row justify-content-center mt-5 pt-4">
+    <div class="col-lg-9">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 p-md-5">
+          <h3 class="fw-bold h4 mb-3">What LifePulse is for</h3>
+          <p class="mb-3">
+            It's for the moment before you decide whether something is worth seeing a
+            doctor about. Answer some questions, see how your numbers compare to the
+            population, and take the result with you to your appointment.
+          </p>
+          <div class="row g-4 mt-1">
+            <div class="col-md-6">
+              <h4 class="h6 fw-bold text-success">
+                <i class="bi bi-check-circle me-1" aria-hidden="true"></i>Good for
+              </h4>
+              <ul class="text-muted small mb-0 ps-3">
+                <li>Deciding whether to book an appointment</li>
+                <li>Working out what to ask when you get there</li>
+                <li>Seeing which lifestyle factors move your risk most</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h4 class="h6 fw-bold text-danger">
+                <i class="bi bi-x-circle me-1" aria-hidden="true"></i>Not for
+              </h4>
+              <ul class="text-muted small mb-0 ps-3">
+                <li>Diagnosing anything</li>
+                <li>Deciding <em>not</em> to seek care when you feel unwell</li>
+                <li>Replacing tests, examination, or your medical history</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-
-<script>
-  // Welcome toast on first visit
-  document.addEventListener('DOMContentLoaded', () => {
-    // Check if it's first visit (you can use sessionStorage)
-    if (!sessionStorage.getItem('welcomeShown')) {
-      setTimeout(() => {
-        if (window.toast) {
-          toast.info('👋 Welcome to LifePulse! Select a health module to get started.', 5000);
-        }
-        sessionStorage.setItem('welcomeShown', 'true');
-      }, 1000);
-    }
-  });
-</script>
 
 {% endblock %}

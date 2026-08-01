@@ -4,7 +4,7 @@
 {% block content %}
 <div class="container py-5">
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2">🩺 Your Health Insights</h2>
+    <h2 class="fw-bold mb-2"><i class="bi bi-clipboard2-pulse me-2" aria-hidden="true"></i>Your Health Insights</h2>
     <p class="text-muted">Comprehensive analysis of your health metrics</p>
   </div>
 
@@ -18,7 +18,7 @@
           <div class="card h-100 shadow-sm border-0 hover-lift">
             <div class="card-body text-center p-4">
               <div class="mb-2">
-                <span style="font-size: 2rem;">⚖️</span>
+                <span style="font-size: 2rem;"><i class="bi bi-speedometer2 me-2" aria-hidden="true"></i></span>
               </div>
               <h6 class="text-muted text-uppercase small mb-2">Body Mass Index</h6>
               <h2 class="fw-bold mb-2">{{ bmi }}</h2>
@@ -48,7 +48,7 @@
           <div class="card h-100 shadow-sm border-0 hover-lift">
             <div class="card-body text-center p-4">
               <div class="mb-2">
-                <span style="font-size: 2rem;">🔥</span>
+                <span style="font-size: 2rem;"><i class="bi bi-fire me-2" aria-hidden="true"></i></span>
               </div>
               <h6 class="text-muted text-uppercase small mb-2">Basal Metabolic Rate</h6>
               <h2 class="fw-bold mb-2">{{ bmr }}</h2>
@@ -65,7 +65,7 @@
           <div class="card h-100 shadow-sm border-0 hover-lift">
             <div class="card-body text-center p-4">
               <div class="mb-2">
-                <span style="font-size: 2rem;">🍽️</span>
+                <span style="font-size: 2rem;"><i class="bi bi-egg-fried me-2" aria-hidden="true"></i></span>
               </div>
               <h6 class="text-muted text-uppercase small mb-2">Daily Calorie Needs</h6>
               <h2 class="fw-bold mb-2">{{ calorie_needs }}</h2>
@@ -82,18 +82,18 @@
           <div class="card h-100 shadow-sm border-0 hover-lift">
             <div class="card-body text-center p-4">
               <div class="mb-2">
-                <span style="font-size: 2rem;">📏</span>
+                <span style="font-size: 2rem;"><i class="bi bi-rulers me-2" aria-hidden="true"></i></span>
               </div>
               <h6 class="text-muted text-uppercase small mb-2">Waist-Hip Ratio</h6>
               <h2 class="fw-bold mb-2">{{ wh_ratio }}</h2>
               <div>
                 {% if wh_ratio > 0.9 %}
-                  <span class="badge bg-warning text-dark px-3 py-2">⚠️ Elevated Risk</span>
+                  <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Elevated Risk</span>
                   <div class="mt-2">
                     <small class="text-muted">Higher risk of metabolic disorders</small>
                   </div>
                 {% else %}
-                  <span class="badge bg-success px-3 py-2">✅ Healthy Range</span>
+                  <span class="badge bg-success px-3 py-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Healthy Range</span>
                   <div class="mt-2">
                     <small class="text-muted">Good fat distribution</small>
                   </div>
@@ -108,18 +108,18 @@
           <div class="card h-100 shadow-sm border-0 hover-lift">
             <div class="card-body text-center p-4">
               <div class="mb-2">
-                <span style="font-size: 2rem;">🩺</span>
+                <span style="font-size: 2rem;"><i class="bi bi-clipboard2-pulse me-2" aria-hidden="true"></i></span>
               </div>
               <h6 class="text-muted text-uppercase small mb-2">Blood Pressure</h6>
               <h3 class="fw-bold mb-2">{{ bp_cat }}</h3>
               <div>
                 {% if bp_cat == 'Normal' %}
-                  <span class="badge bg-success px-3 py-2">✅ Healthy</span>
+                  <span class="badge bg-success px-3 py-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Healthy</span>
                   <div class="mt-2">
                     <small class="text-muted">Keep maintaining healthy habits</small>
                   </div>
                 {% else %}
-                  <span class="badge bg-warning text-dark px-3 py-2">⚠️ Attention Needed</span>
+                  <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Attention Needed</span>
                   <div class="mt-2">
                     <small class="text-muted">{{ bp_details if bp_details else 'Monitor regularly' }}</small>
                   </div>
@@ -134,7 +134,7 @@
       {% if warnings %}
       <div class="alert alert-warning border-0 shadow-sm mb-4" role="alert">
         <div class="d-flex align-items-start">
-          <div class="me-3" style="font-size: 2rem;">⚠️</div>
+          <div class="me-3" style="font-size: 2rem;"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i></div>
           <div class="flex-grow-1">
             <h5 class="alert-heading mb-3">Important Health Considerations</h5>
             <ul class="mb-0">
@@ -147,43 +147,47 @@
       </div>
       {% endif %}
 
-      <!-- AI Health Advice -->
+      <!-- General guidance. Not AI: three rules, listed below. -->
       {% if advice %}
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-          <div class="d-flex align-items-center">
-            <span class="me-2" style="font-size: 1.5rem;">🤖</span>
-            <h5 class="mb-0">AI-Powered Health Recommendations</h5>
-          </div>
+      <div class="card mb-4">
+        <div class="card-header border-0 pt-4 px-4">
+          <h2 class="h5 fw-bold mb-1">
+            <i class="bi bi-lightbulb me-2" aria-hidden="true"></i>General guidance
+          </h2>
+          <p class="text-muted small mb-0">
+            Based on the numbers above, from standard public health advice.
+          </p>
         </div>
-        <div class="card-body p-4">
-          <div style="font-size: 1rem; line-height: 1.8;">{{ advice|safe }}</div>
-          <hr class="my-3">
-          <div class="d-flex align-items-center text-muted">
-            <small>
-              <strong>ⓘ Disclaimer:</strong> This AI-generated advice is for informational purposes only. 
-              Always consult a qualified healthcare professional for medical decisions.
-            </small>
-          </div>
+        <div class="card-body px-4 pb-4">
+          <ul class="mb-3">
+            {% for tip in advice %}
+            <li class="mb-2">{{ tip }}</li>
+            {% endfor %}
+          </ul>
+          <p class="text-muted small mb-0">
+            This is generic advice keyed to your BMI and blood pressure &mdash; not a
+            plan, and not tailored to your history. Talk to a healthcare professional
+            before making decisions based on it.
+          </p>
         </div>
       </div>
       {% endif %}
 
       <!-- Quick Stats Summary -->
-      <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+      <div class="card border-0 shadow-sm mb-4 bg-primary text-white">
         <div class="card-body p-4">
-          <h5 class="fw-bold mb-3">📊 Quick Summary</h5>
+          <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart me-2" aria-hidden="true"></i>Quick Summary</h5>
           <div class="row g-3">
             <div class="col-md-6">
               <div class="d-flex justify-content-between align-items-center">
                 <span class="text-muted">Overall Assessment:</span>
                 <strong>
                   {% if warnings|length == 0 %}
-                    <span class="text-success">✅ Excellent</span>
+                    <span class="text-success"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Excellent</span>
                   {% elif warnings|length <= 2 %}
-                    <span class="text-warning">⚠️ Good with concerns</span>
+                    <span class="text-warning"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Good with concerns</span>
                   {% else %}
-                    <span class="text-danger">❗ Needs attention</span>
+                    <span class="text-danger"><i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>Needs attention</span>
                   {% endif %}
                 </strong>
               </div>
@@ -201,10 +205,10 @@
       <!-- Navigation Buttons -->
       <div class="text-center mt-4">
         <a href="/health" class="btn btn-primary btn-lg px-4 me-2">
-          🔁 Calculate Again
+          <i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>Calculate Again
         </a>
         <a href="/" class="btn btn-outline-secondary btn-lg px-4">
-          🏠 Back to Home
+          <i class="bi bi-house me-2" aria-hidden="true"></i>Back to Home
         </a>
       </div>
     </div>

@@ -1,0 +1,50 @@
+{# "Why did I get this?"
+
+   Each row is a counterfactual: the model re-run with that one answer replaced
+   by its typical value from training. A bare percentage is not something you
+   can discuss with a doctor; "your BMI moved this by 4 points" is. #}
+
+{% if factors %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-white border-0 pt-4 px-4">
+    <h2 class="h5 fw-bold mb-1">
+      <i class="bi bi-list-check me-2" aria-hidden="true"></i>What drove this result
+    </h2>
+    <p class="text-muted small mb-0">
+      Your biggest differences from a typical respondent, largest first.
+    </p>
+  </div>
+  <div class="card-body px-4 pb-4">
+
+    <ul class="list-unstyled mb-3">
+      {% for factor in factors %}
+      <li class="d-flex align-items-start py-2 border-bottom">
+        <span class="badge rounded-pill me-3 mt-1
+                     {% if factor.direction == 'raised' %}bg-danger-subtle text-danger-emphasis
+                     {% else %}bg-success-subtle text-success-emphasis{% endif %}"
+              style="min-width: 4.5rem;">
+          {% if factor.direction == 'raised' %}&uarr;{% else %}&darr;{% endif %}
+          {{ '%.1f'|format(factor.magnitude) }}
+        </span>
+        <span>
+          Your <strong>{{ factor.label }}</strong> ({{ factor.value }})
+          {{ factor.direction }} {{ factor_noun|default('this result') }} by
+          {{ '%.1f'|format(factor.magnitude) }} {{ factor_unit|default('points') }}
+          <span class="text-muted small d-block">
+            compared with a typical {{ factor.label }} of {{ factor.typical }}
+          </span>
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <p class="small text-muted mb-0">
+      Each number is worked out by asking "what if this one answer had been
+      typical instead?" They won't add up to the total, because these things
+      affect each other. Use them to decide what to ask about &mdash; not as an
+      amount of risk you can subtract by fixing one thing.
+    </p>
+
+  </div>
+</div>
+{% endif %}

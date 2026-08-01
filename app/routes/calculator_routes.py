@@ -1,8 +1,21 @@
 from flask import Blueprint, request, render_template, jsonify
+
+from app.ml.safety import check_possible
+from app.ratelimit import rate_limit
+from app.routes.support import FormError, prediction_errors, urgent_interstitial
 from app.utils.calculator import full_health_calculator
-# Gemini integration removed — use local rule-based advice generator
 
 calculator_bp = Blueprint('calculator', __name__, url_prefix='/health')
+
+# Form field -> the name app.ml.safety uses for its physiological limits and
+# red-flag rules. This page collects blood pressure, so it gets the same
+# hypertensive-crisis interrupt as the model-backed assessments.
+SAFETY_FIELDS = {
+    'age': 'Age',
+    'systolic': 'Systolic',
+    'diastolic': 'Diastolic',
+    'water_intake': 'Water Intake',
+}
 
 
 # GET route to show the health calculator form
@@ -20,7 +33,7 @@ def calculate_metrics():
         gender=data['gender'],
         height_cm=float(data['height_cm']),
         weight_kg=float(data['weight_kg']),
-        activity_level=data['activity_level'].lower(),
+        activity_level=data['activity_level'],
         water_intake_l=float(data['water_intake_l']),
         smokes_per_day=int(data['smokes_per_day'])
     )
@@ -29,21 +42,49 @@ def calculate_metrics():
 
 # POST or GET route from form → result page
 @calculator_bp.route('/result', methods=['POST', 'GET'])
+@rate_limit()
+@prediction_errors
 def show_health_result():
     if request.method == 'POST':
         form = request.form
+
+        required = ['gender', 'age', 'activity', 'height', 'weight', 'waist',
+                    'hip', 'systolic', 'diastolic', 'water_intake', 'smokes_per_day']
+        missing = [f for f in required if not str(form.get(f, '')).strip()]
+        if missing:
+            raise FormError(
+                "Please fill in every field. Missing: " + ", ".join(sorted(missing))
+            )
+
+        # BMI is derived here rather than entered, so add it to what safety sees.
+        safety_values = {
+            raw: form[field] for field, raw in SAFETY_FIELDS.items()
+        }
+        height_m = float(form['height']) / 100
+        if height_m > 0:
+            safety_values['BMI'] = float(form['weight']) / (height_m ** 2)
+        check_possible('calculator', safety_values)
+
+        interstitial = urgent_interstitial(safety_values, form)
+        if interstitial is not None:
+            return interstitial
+
         gender = form['gender']
         age = int(form['age'])
 
-        # Calculate metrics
+        # Water intake and cigarettes come from the form now. They used to be
+        # hardcoded to 2 litres and 0 cigarettes while the form never asked, so
+        # every user in the 57-71 kg band was told "Moderately Hydrated -
+        # increase your water intake" based on a number they never entered, and
+        # no smoker was ever warned about smoking.
         result = full_health_calculator(
             age=age,
             gender=gender,
             height_cm=float(form['height']),
             weight_kg=float(form['weight']),
-            activity_level=form['activity'].lower(),
-            water_intake_l=2,  # Optional: form.get("water_intake", 2)
-            smokes_per_day=0   # Optional: form.get("smokes", 0)
+            activity_level=form['activity'],
+            water_intake_l=float(form['water_intake']),
+            smokes_per_day=int(form['smokes_per_day'])
         )
 
         # Derived metrics
@@ -77,34 +118,39 @@ def show_health_result():
         elif result["Calorie_Needs"] > 3000:
             warnings.append("Your daily calorie needs are high. Maintain a balanced intake and stay active.")
 
-        # Simple local advice generator (no external APIs)
-        def simple_advice(metrics: dict, whr_val, bp_category):
+        # Returns a list of strings, not a blob of HTML.
+        #
+        # This used to concatenate <li> tags into a string that the template
+        # rendered with |safe. Nothing user-supplied reached it, so it was not
+        # exploitable -- but it was the one place in the app where an edit could
+        # turn an input into markup, and building HTML in a route is how that
+        # edit eventually gets made.
+        def lifestyle_tips(metrics, bp_category):
             tips = []
             bmi = metrics.get("BMI", 0)
-            cal = metrics.get("Calorie_Needs", None)
+            calories = metrics.get("Calorie_Needs")
 
             if bmi >= 30:
-                tips.append("Focus on gradual weight loss: balanced diet and 150+ min/week of moderate exercise.")
+                tips.append("Focus on gradual weight loss: balanced diet and "
+                            "150+ minutes a week of moderate exercise.")
             elif bmi >= 25:
-                tips.append("Aim to reduce weight slightly: combine cardio with strength training.")
+                tips.append("Aim to reduce weight slightly: combine cardio with "
+                            "strength training.")
             else:
-                tips.append("Maintain your healthy weight with balanced meals and regular activity.")
+                tips.append("Maintain your healthy weight with balanced meals and "
+                            "regular activity.")
 
             if bp_category and bp_category != "Normal":
-                tips.append("Reduce sodium, monitor BP regularly, and consult your physician if elevated.")
+                tips.append("Reduce sodium, monitor your blood pressure regularly, "
+                            "and speak to your doctor if it stays elevated.")
 
-            if cal:
-                tips.append(f"Estimated daily calories: {cal}. Adjust portion sizes for weight goals.")
+            if calories:
+                tips.append(f"Estimated daily calories: {calories}. Adjust portion "
+                            f"sizes for your goals.")
 
-            # Build simple HTML advice block
-            advice_html = "<ul>"
-            for t in tips[:3]:
-                advice_html += f"<li>{t}</li>"
-            advice_html += "</ul>"
-            advice_html += "<small class='text-muted'>This is general guidance — consult a healthcare professional for personalized advice.</small>"
-            return advice_html
+            return tips[:3]
 
-        advice = simple_advice(result, whr, bp_cat)
+        advice = lifestyle_tips(result, bp_cat)
 
         # Render final result
         return render_template("health_result.html",

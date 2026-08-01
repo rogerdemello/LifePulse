@@ -1,18 +1,33 @@
-Flask==2.3.2
-Flask-SQLAlchemy
-scikit-learn
-pandas
-numpy
-joblib
-matplotlib
-seaborn
-imbalanced-learn
-python-dotenv
-gunicorn
-xgboost
-requests
-# ONNX for efficient local inference (no API costs)
-onnx
-onnxruntime
-skl2onnx
-# google-generativeai  # Disabled: using local models to avoid API costs
+# Runtime dependencies. Pin everything.
+#
+# Only Flask was pinned before, which is how this project ended up with model
+# pickles that no longer load ("MT19937 is not a known BitGenerator") and a
+# Flask 2.3.2 / Werkzeug 3.x pairing that broke the test client. The scientific
+# stack in particular must match what the artifacts in app/models/ were built
+# with -- to move these pins, bump them and rerun `python ml_model/train_all.py`.
+
+# --- web ---
+Flask==3.1.2
+Werkzeug==3.1.3
+Jinja2==3.1.6
+itsdangerous==2.2.0
+click==8.3.1
+python-dotenv==1.1.1
+gunicorn==23.0.0
+
+# --- inference (must match the versions used to train app/models/) ---
+scikit-learn==1.8.0
+numpy==1.26.2
+pandas==2.1.3
+scipy==1.16.3
+joblib==1.5.2
+
+# --- nutrition lookup (USDA FoodData Central) ---
+requests==2.32.5
+
+# Removed, and why:
+#   onnx / onnxruntime / skl2onnx  no code ever loaded an .onnx file
+#   xgboost                        no model uses it; the estimators are sklearn
+#   imbalanced-learn               training uses class weights, not SMOTE
+#   matplotlib / seaborn           only ever used by exploratory training scripts
+#   Flask-SQLAlchemy               no model or session was ever persisted

@@ -1,274 +1,294 @@
-import requests
+"""USDA FoodData Central client.
+
+Two things this fixes beyond tidying.
+
+**It asked for one result and took it.** ``pageSize=1`` with no data-type filter
+meant a search for "banana" returned a *branded* product also called BANANA,
+listing 12.5 g of protein per 100 g. A banana has about 1.1 g. Whatever a
+manufacturer happened to submit outranked the laboratory-analysed entry. Results
+are now ranked, generic whole-food records are preferred, and the alternatives
+are offered so the user can pick.
+
+**It matched nutrients by display name.** The same nutrient arrives as "Total
+Sugars" from one endpoint and "Sugars, total including NLEA" from another.
+Everything here keys on USDA's stable numeric nutrient ids instead.
+"""
+
+from __future__ import annotations
+
+import logging
 import os
+
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
+
+log = logging.getLogger(__name__)
+
 API_KEY = os.getenv("USDA_API_KEY")
+BASE_URL = "https://api.nal.usda.gov/fdc/v1"
+TIMEOUT = 10
 
-if not API_KEY:
-    print("❗ ERROR: USDA_API_KEY not found. Please add it to your .env file.")
+# Laboratory-analysed generic foods first, manufacturer submissions last.
+# Branded entries are self-reported and vary wildly in quality.
+#
+# Foundation and SR Legacy share a tier deliberately. Both are lab-analysed, so
+# separating them lets a more specific record outrank a more general one:
+# "Bananas, overripe, raw" (Foundation) would beat "Bananas, raw" (SR Legacy)
+# for a search of "banana", which is not what anyone means.
+DATA_TYPE_RANK = {
+    "Foundation": 0,
+    "SR Legacy": 0,
+    "Survey (FNDDS)": 1,
+    "Branded": 2,
+}
 
-def search_food_item(food_name):
+# Only parenthesis-free names are sent as a filter. Including "Survey (FNDDS)"
+# makes USDA's edge proxy return an HTML 400 rather than a JSON error, and
+# intermittently, so it presents as flaky connectivity rather than a bad
+# request. Survey and Branded records still surface through the unfiltered
+# fallback in search_foods and are ordered correctly by _rank -- they simply
+# are not requested by name.
+PREFERRED_DATA_TYPES = ["Foundation", "SR Legacy"]
+
+
+class NutritionUnavailable(RuntimeError):
+    """The lookup cannot run — no API key, or USDA is unreachable."""
+
+
+class FoodNotRetrievable(NutritionUnavailable):
+    """A search hit exists but its full record cannot be fetched.
+
+    USDA's search index returns ids that the detail endpoint 404s on. A search
+    for "cheddar cheese" hits one. Treating that as a connectivity failure would
+    show "could not reach the food database" for a perfectly good search, so it
+    is distinguished here and the caller falls through to the next candidate.
     """
-    Search food using USDA API and return a list of matching FDC IDs.
-    """
-    url = f"https://api.nal.usda.gov/fdc/v1/foods/search?api_key={API_KEY}&query={food_name}&pageSize=1"
+
+
+def is_configured():
+    return bool(API_KEY)
+
+
+def _get(path, **params):
+    if not API_KEY:
+        raise NutritionUnavailable(
+            "USDA_API_KEY is not set, so food lookups are unavailable. "
+            "A free key is available at fdc.nal.usda.gov/api-key-signup.html"
+        )
     try:
-        response = requests.get(url)
+        response = requests.get(
+            f"{BASE_URL}/{path}", params={"api_key": API_KEY, **params},
+            timeout=TIMEOUT,
+        )
         response.raise_for_status()
-        data = response.json()
-        if "foods" in data and len(data["foods"]) > 0:
-            return [item["fdcId"] for item in data["foods"]]
-    except Exception as e:
-        print(f"❌ search_food_item() error for '{food_name}':", e)
-    return []
+        return response.json()
+    except requests.Timeout as exc:
+        raise NutritionUnavailable(
+            "The USDA food database did not respond in time. Please try again."
+        ) from exc
+    except requests.RequestException as exc:
+        status = getattr(exc.response, "status_code", None)
+        if status == 404:
+            raise FoodNotRetrievable(
+                "That food's full record is not available from USDA."
+            ) from exc
+        if status == 429:
+            raise NutritionUnavailable(
+                "The USDA food database is rate-limiting this server. "
+                "Please try again in a few minutes."
+            ) from exc
+        raise NutritionUnavailable(
+            "Could not reach the USDA food database. Please try again."
+        ) from exc
+    except ValueError as exc:
+        raise NutritionUnavailable(
+            "The USDA food database returned an unreadable response."
+        ) from exc
 
-def get_nutrition_details(fdc_id):
+
+def _matches(word, query_word):
+    """Loose word match, so "banana" finds "Bananas" and "lentil" finds "Lentils"."""
+    return word.startswith(query_word) or query_word.startswith(word)
+
+
+def _rank(food, query):
+    """Sort key: trustworthy data type, then relevance, then the most generic entry.
+
+    Relevance has to come before brevity. Ranking on description length alone
+    sent "cheddar cheese" to "Cheese, blue" and "almond milk" to "Milk and
+    cereal bar" -- both shorter than the right answer, and both wrong. Counting
+    how many of the query's words actually appear fixes that, while brevity
+    still breaks ties so "banana" lands on "Bananas, raw" rather than
+    "Bananas, overripe, raw".
     """
-    Fetch nutrition details by FDC ID and return nutrients dict.
-    Handles both flat and nested nutrient formats.
+    description = (food.get("description") or "").lower()
+    words = description.replace(",", " ").split()
+    query_words = [w for w in query.lower().split() if w]
+
+    matched = sum(
+        1 for q in query_words if any(_matches(w, q) for w in words)
+    )
+    leads = words and query_words and any(_matches(words[0], q) for q in query_words)
+
+    return (
+        DATA_TYPE_RANK.get(food.get("dataType"), 9),
+        -matched,                       # most query words present wins
+        0 if leads else 1,              # then: is it the head noun?
+        description.count(","),         # then: fewest qualifying clauses
+        len(description),
+    )
+
+
+def search_foods(query, limit=6):
+    """Return ranked candidate foods for ``query``.
+
+    Each item is ``{fdc_id, description, data_type}``. Empty list if nothing
+    matched — that is a real answer, not an error.
     """
-    url = f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}?api_key={API_KEY}"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        data = response.json()
+    query = (query or "").strip()
+    if not query:
+        return []
 
-        nutrients = {}
-        for nutrient in data.get("foodNutrients", []):
-            # ✅ Handle both USDA formats
-            if "nutrientName" in nutrient:
-                name = nutrient["nutrientName"]
-                value = nutrient.get("value")
-                unit = nutrient.get("unitName", "")
-            elif "nutrient" in nutrient:
-                name = nutrient["nutrient"].get("name")
-                value = nutrient.get("amount")
-                unit = nutrient.get("unitName", "")
-            else:
-                continue
+    payload = _get(
+        "foods/search",
+        query=query,
+        pageSize=25,
+        dataType=PREFERRED_DATA_TYPES,
+    )
+    foods = payload.get("foods") or []
 
-            if name and value is not None:
-                nutrients[name] = f"{value} {unit}"
+    if not foods:
+        # Nothing lab-analysed matched; fall back to the full index, which
+        # brings in Survey and Branded records. _rank still puts them last.
+        payload = _get("foods/search", query=query, pageSize=25)
+        foods = payload.get("foods") or []
 
-        if not nutrients:
-            print("⚠️ No nutrients found for FDC ID:", fdc_id)
-
-        return {"nutrients": nutrients}
-    except Exception as e:
-        print(f"❌ get_nutrition_details() error for ID {fdc_id}:", e)
-        return {"nutrients": {}}
-
-def food_benefits_disadvantages(food_name):
-    """
-    Expanded database of health benefits and considerations for popular foods.
-    """
-    food_map = {
-        "banana": {
-            "benefits": [
-                "Rich in potassium - supports heart health and regulates blood pressure",
-                "Good source of fiber - aids digestion and promotes gut health",
-                "Quick energy boost from natural sugars",
-                "Contains vitamin B6 for brain health",
-                "May improve mood and reduce stress"
-            ],
-            "disadvantages": [
-                "High in sugar - may spike blood sugar in diabetics",
-                "Not suitable for low-carb or ketogenic diets",
-                "Can cause constipation if eaten unripe"
-            ]
-        },
-        "spinach": {
-            "benefits": [
-                "Excellent source of iron - prevents anemia",
-                "High in vitamins A, C, and K",
-                "Rich in antioxidants that fight inflammation",
-                "Supports bone health and blood clotting",
-                "Low in calories - great for weight management"
-            ],
-            "disadvantages": [
-                "High in oxalates - may contribute to kidney stones",
-                "Can interfere with mineral absorption when eaten raw in large amounts",
-                "May cause bloating in some people"
-            ]
-        },
-        "apple": {
-            "benefits": [
-                "High in soluble fiber - lowers cholesterol",
-                "Rich in antioxidants - reduces disease risk",
-                "Supports heart health and blood sugar regulation",
-                "May aid weight loss by promoting fullness",
-                "Good for dental health"
-            ],
-            "disadvantages": [
-                "May cause bloating or gas in sensitive individuals",
-                "Seeds contain small amounts of cyanide (don't eat in large quantities)",
-                "Acidic - may affect tooth enamel"
-            ]
-        },
-        "milk": {
-            "benefits": [
-                "Excellent source of calcium - builds strong bones",
-                "High in protein - supports muscle growth",
-                "Contains vitamin D and B vitamins",
-                "May improve bone density and reduce fracture risk"
-            ],
-            "disadvantages": [
-                "Lactose intolerance affects many people",
-                "Full-fat milk high in saturated fat",
-                "May trigger acne in some individuals",
-                "Not suitable for vegans"
-            ]
-        },
-        "chicken": {
-            "benefits": [
-                "High-quality lean protein - builds and repairs muscle",
-                "Rich in B vitamins - supports energy metabolism",
-                "Good source of selenium - boosts immune function",
-                "Low in fat (especially breast meat)",
-                "Supports weight management"
-            ],
-            "disadvantages": [
-                "Can harbor harmful bacteria if undercooked",
-                "May contain antibiotics or hormones (in factory-farmed)",
-                "Skin and dark meat higher in saturated fat"
-            ]
-        },
-        "broccoli": {
-            "benefits": [
-                "High in vitamin C - boosts immune system",
-                "Rich in fiber - supports digestive health",
-                "Contains sulforaphane - may have anti-cancer properties",
-                "Good source of vitamins K and A",
-                "Low calorie - excellent for weight loss"
-            ],
-            "disadvantages": [
-                "May cause gas and bloating",
-                "Can interfere with thyroid function if eaten raw in excess",
-                "Difficult to digest for some people"
-            ]
-        },
-        "salmon": {
-            "benefits": [
-                "Excellent source of omega-3 fatty acids - reduces inflammation",
-                "High-quality protein - supports muscle health",
-                "Rich in vitamin D and B vitamins",
-                "Supports heart and brain health",
-                "May reduce risk of depression"
-            ],
-            "disadvantages": [
-                "Can be high in mercury (especially farmed)",
-                "Expensive compared to other proteins",
-                "May contain PCBs or other contaminants",
-                "Not suitable for fish allergies"
-            ]
-        },
-        "avocado": {
-            "benefits": [
-                "Rich in healthy monounsaturated fats",
-                "High in potassium - more than bananas",
-                "Contains fiber - promotes satiety",
-                "Supports heart health and cholesterol levels",
-                "Rich in vitamins E and K"
-            ],
-            "disadvantages": [
-                "High in calories - can contribute to weight gain",
-                "May cause allergic reactions in some people",
-                "Expensive and not always available",
-                "Can spoil quickly"
-            ]
-        },
-        "egg": {
-            "benefits": [
-                "Complete protein source - all essential amino acids",
-                "Rich in choline - supports brain function",
-                "Contains lutein and zeaxanthin - good for eye health",
-                "Inexpensive and versatile",
-                "Helps with weight management"
-            ],
-            "disadvantages": [
-                "High in cholesterol (though dietary cholesterol has less impact than once thought)",
-                "Common food allergen",
-                "Must be cooked properly to avoid salmonella"
-            ]
-        },
-        "rice": {
-            "benefits": [
-                "Good source of energy from carbohydrates",
-                "Gluten-free - safe for celiac disease",
-                "Brown rice high in fiber and nutrients",
-                "Easy to digest",
-                "Affordable and widely available"
-            ],
-            "disadvantages": [
-                "White rice has high glycemic index - spikes blood sugar",
-                "Low in protein compared to other grains",
-                "Rice may contain arsenic (especially brown rice)",
-                "Can contribute to weight gain if eaten in excess"
-            ]
-        },
-        "yogurt": {
-            "benefits": [
-                "Rich in probiotics - supports gut health",
-                "High in protein and calcium",
-                "May boost immune function",
-                "Supports bone health",
-                "Easier to digest than milk for some people"
-            ],
-            "disadvantages": [
-                "Flavored varieties often high in added sugar",
-                "Not suitable for lactose intolerance (except lactose-free)",
-                "Some brands contain artificial ingredients",
-                "Can be high in calories"
-            ]
-        },
-        "oats": {
-            "benefits": [
-                "High in soluble fiber (beta-glucan) - lowers cholesterol",
-                "Stabilizes blood sugar levels",
-                "Promotes feelings of fullness - aids weight loss",
-                "Rich in antioxidants",
-                "Supports heart health"
-            ],
-            "disadvantages": [
-                "May cause bloating or gas in some people",
-                "Instant oats often contain added sugars",
-                "Can be contaminated with gluten during processing"
-            ]
-        },
-        "tomato": {
-            "benefits": [
-                "Rich in lycopene - powerful antioxidant",
-                "High in vitamin C and potassium",
-                "May reduce risk of heart disease and cancer",
-                "Supports skin health",
-                "Low in calories"
-            ],
-            "disadvantages": [
-                "Acidic - may trigger heartburn or acid reflux",
-                "Can cause allergic reactions in some people",
-                "Nightshade family - may affect some autoimmune conditions"
-            ]
+    foods.sort(key=lambda food: _rank(food, query))
+    return [
+        {
+            "fdc_id": food["fdcId"],
+            "description": food.get("description", "Unknown food"),
+            "data_type": food.get("dataType", ""),
         }
+        for food in foods[:limit]
+    ]
+
+
+def _parse_nutrients(payload):
+    """Map USDA nutrient id -> {name, amount, unit}, per 100 g.
+
+    Handles both response shapes: the detail endpoint nests the nutrient under
+    a "nutrient" key, the search endpoint flattens it.
+    """
+    nutrients = {}
+    for entry in payload.get("foodNutrients", []) or []:
+        if "nutrient" in entry:
+            nutrient = entry["nutrient"] or {}
+            nutrient_id = nutrient.get("id")
+            name = nutrient.get("name")
+            unit = nutrient.get("unitName")
+            amount = entry.get("amount")
+        else:
+            nutrient_id = entry.get("nutrientId")
+            name = entry.get("nutrientName")
+            unit = entry.get("unitName")
+            amount = entry.get("value")
+
+        if nutrient_id is None or amount is None:
+            continue
+
+        # Energy is reported twice, in kcal and kJ, under different ids; the
+        # panel wants kcal, which is id 1008.
+        nutrients[int(nutrient_id)] = {
+            "name": name,
+            "amount": amount,
+            "unit": (unit or "").replace("KCAL", "kcal").replace("G", "g")
+                                 .replace("MG", "mg").replace("UG", "µg"),
+        }
+    return nutrients
+
+
+def _parse_portions(payload, limit=5):
+    """Household measures for a food, as ``{label, grams}``.
+
+    Everything else on the page is per 100 g, which is the right basis for
+    comparing two foods and the wrong one for "I ate a banana". USDA knows a
+    large banana is 136 g; there is no reason to make someone guess.
+
+    ``NLEA serving`` is the serving size used on nutrition labels, so it leads
+    where present.
+    """
+    portions = []
+    for entry in payload.get("foodPortions", []) or []:
+        grams = entry.get("gramWeight")
+        if not grams:
+            continue
+        modifier = (entry.get("modifier") or "").strip()
+        unit = (entry.get("measureUnit") or {}).get("name") or ""
+        if unit in ("undetermined", ""):
+            unit = ""
+        amount = entry.get("amount")
+
+        label = " ".join(part for part in [
+            f"{amount:g}" if amount and amount != 1 else "",
+            unit,
+            modifier,
+        ] if part).strip()
+        if not label:
+            continue
+        portions.append({"label": label, "grams": float(grams)})
+
+    def rank(portion):
+        label = portion["label"].lower()
+        return (0 if "nlea" in label else 1, portion["grams"])
+
+    portions.sort(key=rank)
+
+    seen, unique = set(), []
+    for portion in portions:
+        key = round(portion["grams"], 1)
+        if key in seen:
+            continue
+        seen.add(key)
+        # "NLEA serving" is jargon; it means the labelling serving size.
+        if "nlea" in portion["label"].lower():
+            portion = {**portion, "label": "standard serving"}
+        unique.append(portion)
+
+    return unique[:limit]
+
+
+def get_food(fdc_id):
+    """Full record for one food: description, data type, nutrients and portions."""
+    payload = _get(f"food/{fdc_id}")
+    return {
+        "fdc_id": fdc_id,
+        "description": payload.get("description", "Unknown food"),
+        "data_type": payload.get("dataType", ""),
+        "brand": payload.get("brandOwner"),
+        "nutrients": _parse_nutrients(payload),
+        "portions": _parse_portions(payload),
     }
-    
-    # Normalize the food name for matching
-    normalized_name = food_name.lower().strip()
-    
-    # Try direct match first
-    if normalized_name in food_map:
-        return food_map[normalized_name]
-    
-    # Try partial matches
-    for key in food_map.keys():
-        if key in normalized_name or normalized_name in key:
-            return food_map[key]
-    
-    # Return empty if not found
-    return {"benefits": [], "disadvantages": []}
 
 
+def get_first_retrievable(matches, preferred_id=None):
+    """Fetch the best match whose full record actually exists.
 
+    Returns ``(food, used_id)``, or ``(None, None)`` if every candidate 404s.
+    Walking the list matters because USDA's index contains ids the detail
+    endpoint does not serve.
+    """
+    ordered = list(matches)
+    if preferred_id is not None:
+        ordered.sort(key=lambda m: str(m["fdc_id"]) != str(preferred_id))
 
-
-
+    for match in ordered:
+        try:
+            return get_food(match["fdc_id"]), match["fdc_id"]
+        except FoodNotRetrievable:
+            log.info("USDA has no detail record for %s (%s)",
+                     match["fdc_id"], match.get("description"))
+            continue
+    return None, None

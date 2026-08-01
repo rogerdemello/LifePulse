@@ -4,7 +4,7 @@
 {% block content %}
 <div class="container py-5">
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2">🤕 Migraine Risk Assessment</h2>
+    <h2 class="fw-bold mb-2"><i class="bi bi-bandaid me-2" aria-hidden="true"></i>Migraine Risk Assessment</h2>
     <p class="text-muted">Evaluate your migraine risk based on lifestyle and health factors</p>
   </div>
   
@@ -16,15 +16,21 @@
             
             <!-- Personal Information Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary">👤 Personal Information</h5>
+              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-person me-2" aria-hidden="true"></i>Personal Information</h5>
               <div class="row g-3">
                 <div class="col-md-4">
                   <label class="form-label fw-semibold">Gender</label>
-                  <select name="Gender" class="form-select" required>
-                    <option value="">Select gender...</option>
-                    <option value="Male">Male</option>
+                  <select name="Gender" class="form-select" required
+                          aria-describedby="genderNote">
+                    <option value="">Select...</option>
                     <option value="Female">Female</option>
+                    <option value="Male">Male</option>
                   </select>
+                  <small class="text-muted" id="genderNote">
+                    Sex recorded at birth is what affects the estimate here. The
+                    dataset behind this model only recorded two values, so those
+                    are the only options it can use.
+                  </small>
                   <small class="text-muted">Women are 3x more likely to have migraines</small>
                 </div>
 
@@ -49,7 +55,7 @@
 
             <!-- Sleep & Rest Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary">😴 Sleep & Rest</h5>
+              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-moon-stars me-2" aria-hidden="true"></i>Sleep & Rest</h5>
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label fw-semibold">Sleep Duration</label>
@@ -67,7 +73,7 @@
 
             <!-- Nutrition & Hydration Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary">🍽️ Nutrition & Hydration</h5>
+              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-egg-fried me-2" aria-hidden="true"></i>Nutrition & Hydration</h5>
               <div class="row g-3">
                 <div class="col-md-4">
                   <label class="form-label fw-semibold">Water Intake</label>
@@ -95,7 +101,7 @@
 
             <!-- Activity & Screen Time Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary">🏃 Activity & Screen Exposure</h5>
+              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-activity me-2" aria-hidden="true"></i>Activity & Screen Exposure</h5>
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label fw-semibold">Physical Activity Frequency</label>
@@ -120,10 +126,10 @@
             <!-- Submit Buttons -->
             <div class="d-grid gap-2 mt-4">
               <button type="submit" class="btn btn-primary btn-lg">
-                <span style="font-size: 1.2rem;">🔮</span> Assess Migraine Risk
+                <span style="font-size: 1.2rem;"><i class="bi bi-search me-2" aria-hidden="true"></i></span> Assess Migraine Risk
               </button>
               <a href="/" class="btn btn-outline-secondary">
-                <span style="font-size: 1rem;">🏠</span> Back to Home
+                <span style="font-size: 1rem;"><i class="bi bi-house me-2" aria-hidden="true"></i></span> Back to Home
               </a>
             </div>
 
@@ -134,9 +140,9 @@
       <!-- Info Cards -->
       <div class="row g-3 mt-4">
         <div class="col-md-6">
-          <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <div class="card border-0 shadow-sm h-100 bg-primary text-white">
             <div class="card-body text-white p-4">
-              <h6 class="fw-bold mb-2">💡 Common Migraine Triggers</h6>
+              <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb me-2" aria-hidden="true"></i>Common Migraine Triggers</h6>
               <ul class="mb-0 small">
                 <li>Dehydration & skipped meals</li>
                 <li>Poor sleep or irregular sleep patterns</li>
@@ -150,12 +156,16 @@
         </div>
 
         <div class="col-md-6">
-          <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+          <div class="card border-0 shadow-sm h-100 bg-danger text-white">
             <div class="card-body text-white p-4">
-              <h6 class="fw-bold mb-2">🤖 About This Assessment</h6>
+              <h6 class="fw-bold mb-2"><i class="bi bi-cpu me-2" aria-hidden="true"></i>About This Assessment</h6>
               <p class="mb-0 small">
-                Our AI model analyzes 10+ lifestyle factors to predict migraine risk using machine learning 
-                with <strong>51% accuracy</strong>. This is a screening tool based on common migraine triggers. 
+                Ten questions about your habits. Tested on people it had never seen, it
+                gets the answer right about
+                {{ '%.0f'|format(model_meta.migraine.metrics.accuracy * 100) }} times in 100 &mdash;
+                where always guessing "no risk" would get
+                {{ '%.0f'|format(model_meta.migraine.metrics.baseline_majority_accuracy * 100) }}.
+                It looks at common migraine triggers, not at you specifically.
                 <strong>Note:</strong> This is not a medical diagnosis. Consult a neurologist for proper evaluation.
               </p>
             </div>

@@ -1,0 +1,22 @@
+[
+  "Age",
+  "Gender",
+  "Sleep Hours",
+  "Water Intake",
+  "Skipped Meals",
+  "Caffeine",
+  "Stress",
+  "Screen Time",
+  "Physical Activity",
+  "Menstruating",
+  "Sleep_Stress",
+  "Water_Caffeine",
+  "Activity_Stress_Ratio",
+  "Screen_Sleep_Ratio",
+  "Dehydration_Risk",
+  "Sleep_Quality",
+  "High_Risk_Combo",
+  "Stress_Squared",
+  "Water_Squared",
+  "Sleep_Squared"
+]

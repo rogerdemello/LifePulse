@@ -1,0 +1,33 @@
+{# Extrapolation warnings. Included at the top of every result page.
+
+   Shown when an answer falls outside the range the model was trained on. This
+   is not decoration: the sleep model's training data contains no systolic
+   reading above 144 and no resting heart rate outside 60-89, so for a
+   hypertensive user it is extrapolating with nothing to extrapolate from. #}
+
+{% if caveats %}
+<div class="alert alert-warning border-0 shadow-sm mb-4" role="status">
+  <div class="d-flex align-items-start">
+    <i class="bi bi-info-circle-fill me-3 mt-1" style="font-size: 1.4rem;" aria-hidden="true"></i>
+    <div>
+      <h2 class="h6 fw-bold mb-2">
+        {% if caveats|length == 1 %}
+          One of your answers is outside this model's experience
+        {% else %}
+          {{ caveats|length }} of your answers are outside this model's experience
+        {% endif %}
+      </h2>
+      <ul class="mb-2 ps-3">
+        {% for caveat in caveats %}
+        <li class="mb-1">{{ caveat.message }}</li>
+        {% endfor %}
+      </ul>
+      <p class="small mb-0 text-muted">
+        A model can only generalise from what it has seen. Where your answers fall
+        outside that, the result below is a guess rather than a prediction — worth
+        raising with a doctor rather than relying on.
+      </p>
+    </div>
+  </div>
+</div>
+{% endif %}

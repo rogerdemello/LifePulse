@@ -3,7 +3,7 @@
 
 <div class="container py-5">
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2">❤️ Heart Disease Risk Prediction</h2>
+    <h2 class="fw-bold mb-2"><i class="bi bi-heart-pulse me-2" aria-hidden="true"></i>Heart Disease Risk Prediction</h2>
     <p class="text-muted">Answer these questions to assess your heart disease risk</p>
   </div>
   
@@ -11,11 +11,14 @@
     <div class="col-lg-10">
       <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-          <form action="{{ url_for('heart_disease.predict_heart_disease') }}" method="POST">
+          <form action="{{ url_for('heart_disease.predict_heart_disease') }}" method="POST" data-steps>
 
-            <!-- Basic Info Section -->
+            <!-- Sections carry data-step so static/js/steps.js can present them
+                 one at a time. Without JavaScript they all render as one form,
+                 which still submits correctly. -->
+            <section data-step="About you">
             <h5 class="fw-bold mb-3 text-primary">
-              <i class="bi bi-person-fill"></i> Basic Information
+              <i class="bi bi-person-fill" aria-hidden="true"></i> Basic Information
             </h5>
             <div class="row g-3 mb-4">
               <div class="col-md-4">
@@ -25,11 +28,16 @@
 
               <div class="col-md-4">
                 <label for="sex" class="form-label">Gender</label>
-                <select class="form-select" name="sex" required>
+                <select class="form-select" name="sex" required aria-describedby="sexNote">
                   <option value="" selected disabled>Select...</option>
                   <option value="0">Female</option>
                   <option value="1">Male</option>
                 </select>
+                <small class="text-muted" id="sexNote">
+                  Sex recorded at birth is what affects the estimate here. The
+                  BRFSS survey behind this model only recorded two values, so
+                  those are the only options it can use.
+                </small>
               </div>
 
               <div class="col-md-4">
@@ -38,9 +46,11 @@
               </div>
             </div>
 
-            <!-- Health Conditions Section -->
+            </section>
+
+            <section data-step="Health conditions">
             <h5 class="fw-bold mb-3 text-danger">
-              <i class="bi bi-heart-pulse-fill"></i> Health Conditions
+              <i class="bi bi-heart-pulse-fill" aria-hidden="true"></i> Health Conditions
             </h5>
             <div class="row g-3 mb-4">
               <div class="col-md-4">
@@ -101,9 +111,11 @@
               </div>
             </div>
 
-            <!-- Lifestyle Section -->
+            </section>
+
+            <section data-step="Lifestyle">
             <h5 class="fw-bold mb-3 text-success">
-              <i class="bi bi-activity"></i> Lifestyle Habits
+              <i class="bi bi-activity" aria-hidden="true"></i> Lifestyle Habits
             </h5>
             <div class="row g-3 mb-4">
               <div class="col-md-4">
@@ -135,25 +147,6 @@
                   <option value="1">Yes</option>
                 </select>
               </div>
-
-              <div class="col-md-4">
-                <label for="fruit" class="form-label">Daily Fruit Intake?</label>
-                <select class="form-select" name="fruit" required>
-                  <option value="" selected disabled>Select...</option>
-                  <option value="0">No</option>
-                  <option value="1">Yes</option>
-                </select>
-              </div>
-
-              <div class="col-md-4">
-                <label for="veggies" class="form-label">Daily Vegetable Intake?</label>
-                <select class="form-select" name="veggies" required>
-                  <option value="" selected disabled>Select...</option>
-                  <option value="0">No</option>
-                  <option value="1">Yes</option>
-                </select>
-              </div>
-
               <div class="col-md-4">
                 <label for="gen_health" class="form-label">General Health</label>
                 <select class="form-select" name="gen_health" required>
@@ -167,9 +160,11 @@
               </div>
             </div>
 
-            <!-- Health Status Section -->
+            </section>
+
+            <section data-step="How you've felt lately">
             <h5 class="fw-bold mb-3 text-info">
-              <i class="bi bi-clipboard2-pulse"></i> Recent Health Status
+              <i class="bi bi-clipboard2-pulse" aria-hidden="true"></i> Recent Health Status
             </h5>
             <div class="row g-3 mb-4">
               <div class="col-md-6">
@@ -185,13 +180,15 @@
               </div>
             </div>
 
+            </section>
+
             <!-- Submit Buttons -->
-            <div class="d-grid gap-2 mt-4">
+            <div class="d-grid gap-2 mt-4" data-step-actions>
               <button type="submit" class="btn btn-danger btn-lg">
-                <i class="bi bi-search"></i> Predict Heart Disease Risk
+                <i class="bi bi-search" aria-hidden="true"></i> Predict Heart Disease Risk
               </button>
               <a href="/" class="btn btn-outline-secondary btn-lg">
-                <i class="bi bi-house-fill"></i> Back to Home
+                <i class="bi bi-house-fill" aria-hidden="true"></i> Back to Home
               </a>
             </div>
 

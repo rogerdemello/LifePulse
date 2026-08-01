@@ -6,8 +6,9 @@
 {% block content %}
 
 <div class="container py-5">
+  {% include "_caveats.html" %}
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2">❤️ Heart Disease Risk Assessment</h2>
+    <h2 class="fw-bold mb-2"><i class="bi bi-heart-pulse me-2" aria-hidden="true"></i>Heart Disease Risk Assessment</h2>
     <p class="text-muted">Your personalized cardiovascular health evaluation</p>
   </div>
 
@@ -15,25 +16,25 @@
     <div class="col-md-10">
       
       <!-- Main Result Card -->
-      <div class="card result-card border-0 shadow mb-4">
+      <div class="card mb-4">
         {% if prediction == "Yes" %}
-          <div class="result-card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+          <div class="result-header is-danger">
         {% else %}
-          <div class="result-card-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+          <div class="result-header is-success">
         {% endif %}
           <div class="text-center position-relative">
             <h3 class="mb-2">
               {% if prediction == "Yes" %}
-                ⚠️ High Risk Detected
+                <i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>High Risk Detected
               {% else %}
-                ✅ Low Risk Profile
+                <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Low Risk Profile
               {% endif %}
             </h3>
             <p class="mb-0 opacity-90">Cardiovascular Health Assessment Complete</p>
           </div>
         </div>
 
-        <div class="result-card-body p-5">
+        <div class="card-body p-4 p-md-5">
           
           <!-- Risk Gauge -->
           <div class="text-center mb-5">
@@ -41,44 +42,72 @@
             
             <div class="mt-4">
               {% if prediction == "Yes" %}
-                <span class="probability-badge" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                  <i class="bi bi-exclamation-triangle-fill"></i>
-                  {{ probability }}% Risk Probability
+                <span class="probability-badge bg-danger text-white">
+                  <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                  {{ probability }}% estimated risk
                 </span>
               {% else %}
-                <span class="probability-badge" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
-                  <i class="bi bi-check-circle-fill"></i>
-                  {{ probability }}% Health Score
+                <span class="probability-badge bg-success text-white">
+                  <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                  {{ probability }}% estimated risk
                 </span>
               {% endif %}
             </div>
+
+            <p class="mt-3 mb-2 mx-auto" style="max-width: 42rem;">
+              Out of 100 people who answered the way you did, we'd expect
+              <strong>about {{ probability|float|round|int }}</strong> to have heart
+              disease. Across everyone in the survey, it's about
+              {{ '%.0f'|format(metrics.observed_prevalence * 100) }} in 100.
+            </p>
+            <p class="text-muted small mb-0 mx-auto" style="max-width: 42rem;">
+              This is not a score out of 100, and it is not a diagnosis &mdash; it's how
+              common heart disease is among people who gave your answers.
+            </p>
+
+            <details class="mt-3 mx-auto text-start" style="max-width: 42rem;">
+              <summary class="small text-muted">The technical version</summary>
+              <p class="small text-muted mt-2 mb-0">
+                A calibrated probability from a gradient-boosting classifier: mean
+                predicted risk across the test set matches observed prevalence
+                ({{ '%.3f'|format(metrics.mean_predicted_risk) }} vs
+                {{ '%.3f'|format(metrics.observed_prevalence) }}), Brier score
+                {{ '%.3f'|format(metrics.brier_score) }}. ROC-AUC
+                {{ '%.3f'|format(metrics.roc_auc) }}, PR-AUC
+                {{ '%.3f'|format(metrics.pr_auc) }} against a
+                {{ '%.3f'|format(metrics.baseline_pr_auc) }} prevalence baseline.
+                Anything at or above {{ threshold }}% is flagged for follow-up &mdash;
+                a threshold tuned by Youden's J on a held-out validation split, not a
+                hardcoded 0.5.
+              </p>
+            </details>
           </div>
 
           <!-- Result Message -->
           <div class="text-center mb-4 py-3">
             {% if prediction == "Yes" %}
-              <div class="display-1 mb-3">⚠️</div>
+              <div class="mb-3"><i class="bi bi-exclamation-triangle" style="font-size:3rem" aria-hidden="true"></i></div>
               <h4 class="text-danger mb-3">Elevated Heart Disease Risk</h4>
               <p class="text-muted lead">
                 Based on your health indicators, our AI model has detected a significant risk for heart disease. 
                 This requires immediate attention and professional medical consultation.
               </p>
               <div class="alert alert-danger border-0 shadow-sm mt-4" role="alert">
-                <h6 class="fw-bold mb-2"><i class="bi bi-info-circle"></i> Important Notice:</h6>
+                <h6 class="fw-bold mb-2"><i class="bi bi-info-circle" aria-hidden="true"></i> Important Notice:</h6>
                 <p class="mb-0">
                   This is a screening tool, not a diagnosis. Please consult with a cardiologist 
                   or healthcare provider for a comprehensive evaluation and personalized treatment plan.
                 </p>
               </div>
             {% else %}
-              <div class="display-1 mb-3">✅</div>
+              <div class="mb-3"><i class="bi bi-circle" style="font-size:3rem" aria-hidden="true"></i></div>
               <h4 class="text-success mb-3">Healthy Heart Profile</h4>
               <p class="text-muted lead">
                 Great news! Your health indicators suggest a low risk of heart disease. 
                 Your cardiovascular system appears to be functioning well.
               </p>
               <div class="alert alert-success border-0 shadow-sm mt-4" role="alert">
-                <h6 class="fw-bold mb-2"><i class="bi bi-heart-fill"></i> Keep It Up!</h6>
+                <h6 class="fw-bold mb-2"><i class="bi bi-heart-fill" aria-hidden="true"></i> Keep It Up!</h6>
                 <p class="mb-0">
                   Continue maintaining your healthy lifestyle choices. Regular check-ups and 
                   preventive care will help you stay on track for long-term heart health.
@@ -92,35 +121,35 @@
           <!-- Recommendations -->
           <div class="mb-4">
             <h5 class="fw-bold mb-4">
-              <i class="bi bi-clipboard-heart"></i> Recommendations
+              <i class="bi bi-clipboard-heart" aria-hidden="true"></i> Recommendations
             </h5>
             
             {% if prediction == "Yes" %}
               <div class="row g-3">
                 <div class="col-md-6">
                   <div class="stat-card">
-                    <span class="stat-card-icon">🏥</span>
+                    <span class="stat-card-icon"><i class="bi bi-hospital me-2" aria-hidden="true"></i></span>
                     <div class="stat-card-label">Immediate Action</div>
                     <p class="small mt-2 mb-0 text-muted">Schedule a cardiology appointment</p>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="stat-card">
-                    <span class="stat-card-icon">💊</span>
+                    <span class="stat-card-icon"><i class="bi bi-capsule me-2" aria-hidden="true"></i></span>
                     <div class="stat-card-label">Medical Review</div>
                     <p class="small mt-2 mb-0 text-muted">Discuss medications with your doctor</p>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="stat-card">
-                    <span class="stat-card-icon">🥗</span>
+                    <span class="stat-card-icon"><i class="bi bi-egg-fried me-2" aria-hidden="true"></i></span>
                     <div class="stat-card-label">Diet Changes</div>
                     <p class="small mt-2 mb-0 text-muted">Adopt heart-healthy eating habits</p>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="stat-card">
-                    <span class="stat-card-icon">🚶</span>
+                    <span class="stat-card-icon"><i class="bi bi-activity me-2" aria-hidden="true"></i></span>
                     <div class="stat-card-label">Physical Activity</div>
                     <p class="small mt-2 mb-0 text-muted">Start gentle, regular exercise</p>
                   </div>
@@ -130,28 +159,28 @@
               <div class="row g-3">
                 <div class="col-md-6">
                   <div class="stat-card">
-                    <span class="stat-card-icon">🏃</span>
+                    <span class="stat-card-icon"><i class="bi bi-activity me-2" aria-hidden="true"></i></span>
                     <div class="stat-card-label">Stay Active</div>
                     <p class="small mt-2 mb-0 text-muted">150+ minutes of exercise weekly</p>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="stat-card">
-                    <span class="stat-card-icon">🥑</span>
+                    <span class="stat-card-icon"><i class="bi bi-egg-fried me-2" aria-hidden="true"></i></span>
                     <div class="stat-card-label">Healthy Diet</div>
                     <p class="small mt-2 mb-0 text-muted">Continue nutritious food choices</p>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="stat-card">
-                    <span class="stat-card-icon">📅</span>
+                    <span class="stat-card-icon"><i class="bi bi-calendar-check me-2" aria-hidden="true"></i></span>
                     <div class="stat-card-label">Regular Check-ups</div>
                     <p class="small mt-2 mb-0 text-muted">Annual health screenings</p>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="stat-card">
-                    <span class="stat-card-icon">😌</span>
+                    <span class="stat-card-icon"><i class="bi bi-emoji-smile me-2" aria-hidden="true"></i></span>
                     <div class="stat-card-label">Stress Management</div>
                     <p class="small mt-2 mb-0 text-muted">Practice relaxation techniques</p>
                   </div>
@@ -162,13 +191,17 @@
         </div>
       </div>
 
+      {% include "_save_summary.html" %}
+
+      {% include "_explanation.html" %}
+
       <!-- Action Buttons -->
       <div class="text-center mt-4">
         <a href="{{ url_for('heart_disease.predict_heart_disease') }}" class="btn btn-primary btn-lg me-2">
-          <i class="bi bi-arrow-repeat"></i> Take Another Assessment
+          <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Take Another Assessment
         </a>
         <a href="/" class="btn btn-outline-secondary btn-lg">
-          <i class="bi bi-house-fill"></i> Back to Home
+          <i class="bi bi-house-fill" aria-hidden="true"></i> Back to Home
         </a>
       </div>
 
