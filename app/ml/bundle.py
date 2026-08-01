@@ -65,7 +65,7 @@ class Factor:
 
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 
-MODEL_NAMES = ("heart", "sleep", "migraine")
+MODEL_NAMES = ("heart", "migraine")
 
 
 class ModelNotAvailable(RuntimeError):

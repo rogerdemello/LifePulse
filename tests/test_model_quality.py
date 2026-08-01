@@ -46,16 +46,20 @@ def test_heart_threshold_is_tuned_not_hardcoded():
     assert meta["metrics"]["recall"] > 0.70
 
 
-def test_sleep_predicts_three_classes_including_healthy():
-    """The previous model had two classes and told every user they were ill."""
-    meta = load_metadata("sleep")
-    assert meta["classes"] == ["None", "Insomnia", "Sleep Apnea"]
-    m = meta["metrics"]
-    assert m["accuracy"] > m["baseline_majority_accuracy"]
-    assert m["balanced_accuracy"] > 0.70
-    # Every class must be genuinely predicted, not just the majority.
-    for label in meta["classes"]:
-        assert m["per_class"][label]["recall"] > 0.4, f"{label} recall too low"
+def test_sleep_is_no_longer_a_model():
+    """Retraining on real national data showed no model was warranted.
+
+    On NHANES 2017-18, snoring plus daytime sleepiness reaches ROC-AUC 0.791;
+    adding age, sex, BMI, blood pressure and pulse drops it to 0.741, and an
+    unfitted `2*snoring + sleepiness` matches the fitted model exactly. So the
+    page reports the observed rate from the survey instead. See
+    app/ml/sleep_risk.py and tests/test_sleep_risk.py.
+    """
+    from app.ml.features import BUILDERS
+
+    assert "sleep" not in MODEL_NAMES
+    assert "sleep" not in BUILDERS
+    assert not (MODELS_DIR / "sleep").exists()
 
 
 def test_migraine_beats_majority_class():

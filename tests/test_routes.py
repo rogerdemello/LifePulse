@@ -11,10 +11,9 @@ FORMS = {
         "sex": "1", "age": "11",
     },
     "/sleep/": {
-        "Gender": "Male", "Age": "58", "SleepDuration": "5.5",
-        "QualitySleep": "4", "PhysicalActivity": "30", "StressLevel": "8",
-        "BMICategory": "Obese", "Systolic": "145", "Diastolic": "95",
-        "HeartRate": "86", "DailySteps": "3000",
+        "snoring": "3", "gasping": "0", "sleepiness": "2",
+        "insomnia_nights": "4", "insomnia_months": "1", "insomnia_impact": "1",
+        "sleep_hours": "5.5",
     },
     "/migraine/": {
         "Age": "32", "Gender": "Female", "SleepHours": "4.5",
@@ -70,29 +69,27 @@ def test_garbage_input_does_not_leak_exception_text(client, path):
     assert "<script>alert(1)</script>" not in body
 
 
-def test_sleep_can_return_a_healthy_verdict(client):
-    """The old two-class model could not say 'None' to anyone."""
+def test_sleep_can_return_a_reassuring_verdict(client):
+    """The old two-class model could not tell anyone they were fine."""
     healthy = {
-        "Gender": "Female", "Age": "30", "SleepDuration": "7.5",
-        "QualitySleep": "8", "PhysicalActivity": "60", "StressLevel": "3",
-        "BMICategory": "Normal", "Systolic": "118", "Diastolic": "76",
-        "HeartRate": "68", "DailySteps": "9000",
+        "snoring": "0", "gasping": "0", "sleepiness": "0",
+        "insomnia_nights": "0", "insomnia_months": "0", "insomnia_impact": "0",
+        "sleep_hours": "8",
     }
     body = client.post("/sleep/", data=healthy).get_data(as_text=True)
-    assert "No Sleep Disorder" in body
+    assert "least likely to have sleep apnea" in body
+    assert "No trouble sleeping reported" in body
 
 
-def test_sleep_accepts_a_blood_pressure_outside_the_old_eight(client):
-    """The old encoder knew 8 readings while the form offered 14.
+def test_sleep_accepts_any_blood_pressure(client):
+    """The old encoder knew 8 literal readings while the form offered 14.
 
-    Everything in the form's "High" group -- 140/90, 142/92 and friends, i.e.
-    exactly the readings that matter -- raised on submit. Such a reading now
-    goes through, but only via the red-flag interstitial: 163/104 is stage 2
-    hypertension and gets flagged before any sleep result is shown.
-    See tests/test_safety.py for the full three-tier behaviour.
+    Everything in its "High" group -- 140/90, 142/92, i.e. exactly the readings
+    that matter -- raised on submit. Blood pressure is optional here now and
+    any value is accepted, though a stage-2 reading is still flagged first.
     """
     payload = dict(FORMS["/sleep/"])
-    payload.update(Systolic="163", Diastolic="104")
+    payload.update(systolic="163", diastolic="104")
 
     flagged = client.post("/sleep/", data=payload)
     assert flagged.status_code == 200

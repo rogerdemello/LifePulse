@@ -17,6 +17,7 @@ from flask import current_app, render_template, request
 from app.ml.bundle import ModelNotAvailable
 from app.ml.features import FeatureContractError, describe_value, label_for
 from app.ml.guidance import questions_for
+from app.ml.sleep_risk import SLEEPINESS_LABELS, SNORING_LABELS
 from app.ml.safety import (
     ImpossibleValue,
     check_possible,
@@ -184,6 +185,65 @@ def build_rubric_summary(result, raw, form):
             )
             if component.lost >= 1
         ],
+        "caveats": [],
+        "flags": [
+            {"title": f.title, "detail": f.detail, "urgency": f.urgency}
+            for f in flags
+        ],
+        "questions": questions[:6],
+    }
+
+
+def build_sleep_summary(apnea, insomnia, sleep_hours, vitals, form):
+    """Visit summary for the sleep screening.
+
+    Same shape as the model-backed ones so the summary page renders them
+    identically, but sourced from observed national rates rather than a
+    prediction.
+    """
+    flags = check_red_flags(vitals)
+    questions = [f"Should we talk about {f.title.lower()}?" for f in flags]
+
+    if apnea.witnessed_gasping:
+        questions.append(
+            "Someone has seen me stop breathing or gasp in my sleep. "
+            "Should I be referred for a sleep study?"
+        )
+    elif apnea.band in ("high", "raised"):
+        questions.append(
+            f"A screening tool put me in a group where {apnea.percent}% report "
+            f"signs of sleep apnea. Is a sleep study worth doing?"
+        )
+
+    if insomnia.meets_criteria:
+        questions.append(
+            "My sleep problems meet the definition of chronic insomnia. "
+            "Can I be referred for CBT-I rather than sleeping tablets?"
+        )
+    if not 7 <= sleep_hours <= 9:
+        questions.append(
+            f"I sleep about {sleep_hours:g} hours a night. Could that be "
+            f"behind symptoms I've noticed?"
+        )
+
+    return {
+        "title": "Sleep screening",
+        "date": datetime.now().strftime("%d %b %Y"),
+        "headline": apnea.headline,
+        "detail": apnea.comparison,
+        "inputs": [
+            {"label": "Snoring", "value": SNORING_LABELS[apnea.snoring]},
+            {"label": "Daytime sleepiness", "value": SLEEPINESS_LABELS[apnea.sleepiness]},
+            {"label": "Witnessed gasping or stopping breathing",
+             "value": "yes" if apnea.witnessed_gasping else "no"},
+            {"label": "Nights a week with trouble sleeping", "value": str(insomnia.nights)},
+            {"label": "Going on 3 months or more",
+             "value": "yes" if insomnia.months_3_plus else "no"},
+            {"label": "Affects my daytime",
+             "value": "yes" if insomnia.daytime_impact else "no"},
+            {"label": "Hours of sleep a night", "value": f"{sleep_hours:g}"},
+        ],
+        "factors": [],
         "caveats": [],
         "flags": [
             {"title": f.title, "detail": f.detail, "urgency": f.urgency}

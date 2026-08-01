@@ -1,151 +1,164 @@
 {% extends "base.html" %}
-{% block title %}Predict Sleep Disorder{% endblock %}
+
+{% block title %}Sleep Screening - LifePulse{% endblock %}
+{% block description %}Screen for signs of sleep apnea and insomnia using the questions clinicians ask, scored against real national survey data.{% endblock %}
 
 {% block content %}
 <div class="container py-5">
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2">😴 Sleep Disorder Prediction</h2>
-    <p class="text-muted">Assess your sleep health and identify potential sleep disorders</p>
+    <h1 class="fw-bold h2 mb-2">Sleep screening</h1>
+    <p class="text-muted mb-0">
+      Seven questions. Answers are compared with 4,417 adults in the US national
+      health survey &mdash; there's no model guessing about you.
+    </p>
   </div>
 
   <div class="row justify-content-center">
-    <div class="col-md-10">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-4">
-          <form method="POST">
-            
-            <!-- Personal Information Section -->
+    <div class="col-lg-8">
+      <form method="POST" action="{{ url_for('sleep.predict_sleep') }}">
+
+        <!-- Breathing during sleep -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-0 pt-4 px-4">
+            <h2 class="h5 fw-bold mb-1">Breathing during sleep</h2>
+            <p class="text-muted small mb-0">
+              These are the questions used to screen for sleep apnea. If you share
+              a bed, it's worth asking whoever you sleep next to.
+            </p>
+          </div>
+          <div class="card-body px-4 pb-4">
+
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary">👤 Personal Information</h5>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Gender</label>
-                  <select name="Gender" class="form-select" required
-                          aria-describedby="genderNote">
-                    <option value="">Select...</option>
-                    <option value="Female">Female</option>
-                    <option value="Male">Male</option>
-                  </select>
-                  <small class="text-muted" id="genderNote">
-                    Sex recorded at birth is what affects the estimate here. The
-                    dataset behind this model only recorded two values, so those
-                    are the only options it can use.
-                  </small>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Age</label>
-                  <input type="number" name="Age" class="form-control" min="18" max="100" placeholder="e.g., 35" required>
-                  <small class="text-muted">18-100 years</small>
-                </div>
-              </div>
+              <label for="snoring" class="form-label fw-semibold">
+                In the past year, how often did you snore while sleeping?
+              </label>
+              <select id="snoring" name="snoring" class="form-select" required>
+                <option value="">Select...</option>
+                {% for value, label in snoring_labels.items() %}
+                <option value="{{ value }}">{{ label|capitalize }}</option>
+                {% endfor %}
+              </select>
             </div>
 
-            <!-- Sleep Metrics Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary">🌙 Sleep Metrics</h5>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Sleep Duration</label>
-                  <input type="number" name="SleepDuration" step="0.5" class="form-control" min="3" max="12" placeholder="e.g., 7.5" required>
-                  <small class="text-muted">Hours per night (Recommended: 7-9 hours)</small>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Quality of Sleep</label>
-                  <input type="number" name="QualitySleep" class="form-control" min="1" max="10" placeholder="Rate 1-10" required>
-                  <small class="text-muted">1 = Poor, 10 = Excellent</small>
-                </div>
-              </div>
+              <label for="gasping" class="form-label fw-semibold">
+                Has anyone seen you snort, gasp, or stop breathing while asleep?
+              </label>
+              <select id="gasping" name="gasping" class="form-select" required>
+                <option value="">Select...</option>
+                <option value="0">No, or nobody has mentioned it</option>
+                <option value="1">Yes</option>
+              </select>
+              <small class="text-muted">
+                This is the single most important question on the page.
+              </small>
             </div>
 
-            <!-- Lifestyle & Health Section -->
-            <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary">🏃 Lifestyle & Health</h5>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Physical Activity Level</label>
-                  <input type="number" name="PhysicalActivity" class="form-control" min="0" max="180" placeholder="e.g., 30" required>
-                  <small class="text-muted">Minutes of exercise per day (WHO: 150+ min/week)</small>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Stress Level</label>
-                  <input type="number" name="StressLevel" class="form-control" min="1" max="10" placeholder="Rate 1-10" required>
-                  <small class="text-muted">1 = Low stress, 10 = Very high stress</small>
-                </div>
-
-                <div class="col-md-12">
-                  <label class="form-label fw-semibold">Daily Steps</label>
-                  <input type="number" name="DailySteps" class="form-control" min="0" max="30000" placeholder="e.g., 8000" required>
-                  <small class="text-muted">Average steps per day (Target: 8,000-10,000 steps)</small>
-                </div>
-              </div>
+            <div>
+              <label for="sleepiness" class="form-label fw-semibold">
+                In the past month, how often did you feel overly sleepy during the day?
+              </label>
+              <select id="sleepiness" name="sleepiness" class="form-select" required>
+                <option value="">Select...</option>
+                {% for value, label in sleepiness_labels.items() %}
+                <option value="{{ value }}">{{ label|capitalize }}</option>
+                {% endfor %}
+              </select>
             </div>
 
-            <!-- Vitals Section -->
-            <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary">🩺 Health Vitals</h5>
-              <div class="row g-3">
-                <div class="col-md-4">
-                  <label class="form-label fw-semibold">BMI Category</label>
-                  <select name="BMICategory" class="form-select" required>
-                    <option value="">Select category...</option>
-                    <option value="Normal">Normal (18.5-24.9)</option>
-                    <option value="Normal Weight">Normal Weight</option>
-                    <option value="Overweight">Overweight (25-29.9)</option>
-                    <option value="Obese">Obese (30+)</option>
-                  </select>
-                </div>
-
-                <div class="col-md-4">
-                  <label class="form-label fw-semibold">Blood Pressure</label>
-                  <div class="input-group">
-                    <input type="number" name="Systolic" class="form-control"
-                           min="70" max="250" step="1" placeholder="120" required
-                           aria-label="Systolic blood pressure">
-                    <span class="input-group-text">/</span>
-                    <input type="number" name="Diastolic" class="form-control"
-                           min="40" max="150" step="1" placeholder="80" required
-                           aria-label="Diastolic blood pressure">
-                  </div>
-                  <small class="text-muted">Systolic / diastolic, e.g. 120 / 80</small>
-                </div>
-
-                <div class="col-md-4">
-                  <label class="form-label fw-semibold">Resting Heart Rate</label>
-                  <input type="number" name="HeartRate" class="form-control" min="40" max="120" placeholder="e.g., 72" required>
-                  <small class="text-muted">Normal: 60-100 bpm</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Submit Buttons -->
-            <div class="d-grid gap-2 mt-4">
-              <button type="submit" class="btn btn-primary btn-lg">
-                <span style="font-size: 1.2rem;">😴</span> Analyze Sleep Health
-              </button>
-              <a href="/" class="btn btn-outline-secondary">
-                <span style="font-size: 1rem;">🏠</span> Back to Home
-              </a>
-            </div>
-          </form>
+          </div>
         </div>
+
+        <!-- Trouble sleeping -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-0 pt-4 px-4">
+            <h2 class="h5 fw-bold mb-1">Trouble sleeping</h2>
+            <p class="text-muted small mb-0">
+              Insomnia is defined by these three things together, so all three are asked.
+            </p>
+          </div>
+          <div class="card-body px-4 pb-4">
+
+            <div class="mb-4">
+              <label for="insomnia_nights" class="form-label fw-semibold">
+                On how many nights a week do you have trouble falling or staying asleep?
+              </label>
+              <input type="number" id="insomnia_nights" name="insomnia_nights"
+                     class="form-control" min="0" max="7" step="1"
+                     placeholder="0 to 7" required>
+            </div>
+
+            <div class="mb-4">
+              <label for="insomnia_months" class="form-label fw-semibold">
+                Has this been going on for three months or more?
+              </label>
+              <select id="insomnia_months" name="insomnia_months" class="form-select" required>
+                <option value="">Select...</option>
+                <option value="0">No, it's more recent than that</option>
+                <option value="1">Yes</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="insomnia_impact" class="form-label fw-semibold">
+                Does it affect your daytime &mdash; mood, concentration, or energy?
+              </label>
+              <select id="insomnia_impact" name="insomnia_impact" class="form-select" required>
+                <option value="">Select...</option>
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Context -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-0 pt-4 px-4">
+            <h2 class="h5 fw-bold mb-1">A bit of context</h2>
+          </div>
+          <div class="card-body px-4 pb-4">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="sleep_hours" class="form-label fw-semibold">Hours of sleep a night</label>
+                <input type="number" id="sleep_hours" name="sleep_hours" class="form-control"
+                       min="0" max="24" step="0.5" placeholder="e.g. 7" required>
+              </div>
+              <div class="col-md-8">
+                <label class="form-label fw-semibold">
+                  Blood pressure <span class="text-muted fw-normal">(optional)</span>
+                </label>
+                <div class="input-group">
+                  <input type="number" name="systolic" class="form-control"
+                         min="60" max="260" placeholder="120" aria-label="Systolic">
+                  <span class="input-group-text">/</span>
+                  <input type="number" name="diastolic" class="form-control"
+                         min="30" max="160" placeholder="80" aria-label="Diastolic">
+                </div>
+                <small class="text-muted">
+                  Not used in the screening &mdash; but if it's very high we'll say so.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary btn-lg px-5">
+            <i class="bi bi-moon-stars me-1" aria-hidden="true"></i>See my results
+          </button>
+        </div>
+      </form>
+
+      <div class="alert alert-secondary border-0 mt-4">
+        <p class="small mb-0">
+          Sleep apnea is diagnosed with a sleep study, not a questionnaire. This page
+          compares your answers with what other people who answered the same way
+          reported &mdash; it's a prompt to get assessed, not an assessment.
+        </p>
       </div>
 
-      <!-- Info Card -->
-      <div class="card border-0 shadow-sm mt-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-        <div class="card-body text-white p-4">
-          <h6 class="fw-bold mb-2">💡 About Sleep Disorders</h6>
-          <p class="mb-0 small">
-            Our model analyzes your sleep patterns, lifestyle factors, and health vitals to identify potential sleep disorders
-            like insomnia or sleep apnea &mdash; or to confirm neither is indicated. It scores
-            {{ '%.1f'|format(model_meta.sleep.metrics.accuracy * 100) }}% accuracy against a
-            {{ '%.1f'|format(model_meta.sleep.metrics.baseline_majority_accuracy * 100) }}% baseline.
-            <strong>Note:</strong> This is a screening tool, not a diagnosis. Consult a sleep specialist for proper evaluation.
-          </p>
-        </div>
-      </div>
     </div>
   </div>
 </div>

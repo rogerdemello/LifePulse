@@ -70,12 +70,6 @@ def test_age_actually_changes_the_heart_prediction(client):
 def test_explanations_appear_on_every_result_page(client):
     cases = [
         ("/heart_disease/", HIGH_RISK_HEART),
-        ("/sleep/", {
-            "Gender": "Male", "Age": "58", "SleepDuration": "5.5",
-            "QualitySleep": "4", "PhysicalActivity": "30", "StressLevel": "8",
-            "BMICategory": "Obese", "Systolic": "138", "Diastolic": "88",
-            "HeartRate": "86", "DailySteps": "3000",
-        }),
         ("/migraine/", {
             "Age": "32", "Gender": "Female", "SleepHours": "4.5",
             "WaterIntake": "1", "SkippedMeals": "Yes", "Caffeine": "5",
@@ -226,11 +220,11 @@ def test_red_flags_lead_the_question_list():
 
 def test_caveats_produce_a_question_about_applicability(client):
     """If the model admits it can't judge you, that belongs in the summary."""
-    summary = _summary(client, "/sleep/", {
-        "Gender": "Male", "Age": "58", "SleepDuration": "5.5",
-        "QualitySleep": "4", "PhysicalActivity": "30", "StressLevel": "8",
-        "BMICategory": "Obese", "Systolic": "138", "Diastolic": "88",
-        "HeartRate": "150", "DailySteps": "3000", "acknowledged": "1",
+    summary = _summary(client, "/migraine/", {
+        "Age": "80", "Gender": "Female", "SleepHours": "6.5",
+        "WaterIntake": "5", "SkippedMeals": "No", "Caffeine": "2",
+        "Stress": "5", "ScreenTime": "8", "PhysicalActivity": "0",
+        "Menstruating": "2",
     })
     assert summary["caveats"]
     assert any("outside the range" in q or "may not apply" in q

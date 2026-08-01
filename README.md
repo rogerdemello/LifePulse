@@ -14,7 +14,7 @@
 ### What makes it different
 
 - **It refuses to answer when it shouldn't.** A heart rate of 0 or a BMI of 500 is rejected, not answered. A blood pressure of 190/125 interrupts with "contact a doctor" *before* any model runs.
-- **It admits what it hasn't seen.** The sleep model was trained on people with systolic 110–144 and resting heart rates of 60–89. Outside that it says so, rather than returning a confident guess.
+- **It admits what it hasn't seen.** Where a model is used, inputs outside its training range are flagged as unreliable rather than answered confidently.
 - **Every result is explained.** Which of your answers moved the outcome, in which direction, by how much.
 - **Every result is printable.** A visit summary with your results, what drove them, and questions to ask — assembled in your browser and never uploaded.
 
@@ -41,9 +41,11 @@ Cardiovascular risk from 17 survey answers, expanded to 25 engineered features.
 Returns a **calibrated probability** — mean predicted risk (9.4%) matches observed
 prevalence (9.4%) — rather than a score out of 100.
 
-### 😴 Sleep Disorder Screening
-Three-way classification: **no disorder**, insomnia, or sleep apnea. Blood pressure
-is entered as real numbers and parsed, so any reading works.
+### 😴 Sleep Screening
+Apnea signs scored against **real observed rates** from NHANES 2017-18 (4,417 US
+adults), and an insomnia check against the standard diagnostic criteria. **Not a
+model** — the percentage shown is a count from the survey, so there is no training
+range to fall outside.
 
 ### 🤕 Migraine Risk Assessment
 Binary risk from 10 lifestyle inputs plus 10 derived interactions (sleep×stress,
@@ -79,14 +81,14 @@ rerun `python ml_model/train_all.py` together, never separately.
 
 ## 🤖 ML Models
 
-The three models are retrained from scratch by `python ml_model/train_all.py`. Metrics come
+The two models are retrained from scratch by `python ml_model/train_all.py`. Metrics come
 from a held-out 20% test split and are written to `app/models/<name>/metadata.json`,
 which is what the app displays — no figure in this table is hardcoded anywhere in the UI.
 
 | Feature | Algorithm | Headline metric | Baseline it beats | Size |
 |---|---|---|---|---|
 | Heart Disease | HistGradientBoosting | **ROC-AUC 0.849**, PR-AUC 0.368 | PR-AUC 0.094 (prevalence) | 0.16 MB |
-| Sleep Disorder | HistGradientBoosting | **85.8%** accuracy, 79.6% balanced | 70.0% (majority class) | 0.24 MB |
+| Sleep | *empirical lookup, not a model* | — | — | — |
 | Migraine | HistGradientBoosting | **84.0%** accuracy, ROC-AUC 0.924 | 60.0% (majority class) | 0.12 MB |
 | Lifestyle Score | *rubric, not a model* | — | — | — |
 
@@ -115,6 +117,37 @@ It was one — a RandomForest reporting R² 0.81. Three things were wrong with i
 A rubric wins on every axis that matters here: explainable by construction, every
 weight a stated judgement traceable to public guidance, and it cannot silently
 drift from the form. The weights are editorial and the page says so.
+
+### Why sleep isn't a model either
+
+The old sleep model was trained on a file whose respondents all had a systolic
+blood pressure between 110 and 144 and a resting pulse between 60 and 89, so the
+app refused to trust its own answer for anyone hypertensive — exactly the people
+most likely to have sleep apnea.
+
+Retraining on **NHANES 2017-18** (a real, public-domain US national survey with
+*measured* blood pressure and pulse, 4,417 adults, systolic 72–224) fixed the
+range and then showed something more useful:
+
+| | ROC-AUC |
+|---|---|
+| snoring alone | 0.775 |
+| snoring + daytime sleepiness | **0.791** |
+| …plus age, sex, BMI, blood pressure and pulse | 0.741 |
+| unfitted rule `2×snoring + sleepiness` | **0.791** |
+
+Two questions carry the signal, extra features actively hurt, and an unfitted
+rule matches a fitted model. So the page reports the survey's own numbers: of the
+418 adults who snore frequently and are often sleepy, 37% reported gasping or
+stopping breathing in their sleep, against a 11.5% national average. It is a
+count, not a prediction — nothing fitted, nothing extrapolated.
+
+Insomnia is deliberately **not** predicted. On the same data, inferring it from
+body measurements reaches ROC-AUC 0.616, close enough to chance not to show
+anyone. It is defined by symptoms, so those are asked about directly and checked
+against the standard criteria.
+
+Rebuild the table: `python ml_model/fetch_nhanes.py`
 
 ### Datasets I checked and rejected
 
@@ -153,7 +186,7 @@ cp .env.example .env               # then fill in SECRET_KEY
 python run.py                      # http://localhost:5000
 ```
 
-No Git LFS step. The three models total ~0.5 MB and are committed directly, so a plain
+No Git LFS step. The two models total ~0.5 MB and are committed directly, so a plain
 clone gives you a working app. (`GET /healthz` confirms which models loaded.)
 
 ### Retraining
@@ -247,7 +280,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-195 tests covering:
+207 tests covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero

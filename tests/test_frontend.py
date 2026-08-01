@@ -161,7 +161,7 @@ def test_the_loading_overlay_cannot_strand_a_back_navigation():
 # honest limitations in the UI
 # --------------------------------------------------------------------------
 
-@pytest.mark.parametrize("path", ["/sleep/", "/migraine/", "/heart_disease/"])
+@pytest.mark.parametrize("path", ["/migraine/", "/heart_disease/"])
 def test_binary_sex_field_explains_itself(client, path):
     """The models only know two values. Say so rather than implying otherwise."""
     body = client.get(path).get_data(as_text=True)

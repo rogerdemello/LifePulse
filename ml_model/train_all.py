@@ -242,81 +242,6 @@ def train_heart():
 
 
 # --------------------------------------------------------------------------
-# sleep disorder
-# --------------------------------------------------------------------------
-
-def train_sleep():
-    log.info("sleep: loading sleep health & lifestyle")
-    df = pd.read_csv(DATA / "Sleep_health_and_lifestyle_dataset (1).csv")
-
-    # The previous model dropped every row with a null Sleep Disorder and so had
-    # only two classes -- it could not tell anyone they were healthy. Those 3,500
-    # nulls are the healthy majority of the dataset, not missing data.
-    label = df["Sleep Disorder"].fillna("None")
-    classes = F.SLEEP_CLASSES
-    y = label.map({c: i for i, c in enumerate(classes)})
-    if y.isna().any():
-        raise ValueError(f"unexpected Sleep Disorder values: "
-                         f"{sorted(set(label) - set(classes))}")
-    y = y.astype(int)
-
-    X = F.build_sleep(df)
-    # The form collects two numbers, not the CSV's "120/80" string, so profile
-    # the fields the user actually enters.
-    df["Systolic"], df["Diastolic"] = F.parse_blood_pressure(df)
-    majority = float(label.value_counts(normalize=True).max())
-    log.info("  %d rows, classes %s (majority baseline %.3f)",
-             len(y), label.value_counts().to_dict(), majority)
-
-    X_train, X_test, y_train, y_test = _split(X, y)
-    scaler, Xtr, Xte = _scaled(X_train, X_test)
-
-    # Boosting rather than a forest: it matches the best forest's accuracy while
-    # scoring 5 points higher on balanced accuracy -- which is what matters when
-    # 70% of the data is the healthy class -- in 1/23rd of the file size.
-    model = HistGradientBoostingClassifier(
-        max_iter=300,
-        learning_rate=0.08,
-        min_samples_leaf=20,
-        class_weight="balanced",
-        early_stopping=True,
-        random_state=SEED,
-    ).fit(Xtr, y_train)
-
-    pred = model.predict(Xte)
-    metrics = {
-        "accuracy": float(accuracy_score(y_test, pred)),
-        "balanced_accuracy": float(balanced_accuracy_score(y_test, pred)),
-        "macro_f1": float(f1_score(y_test, pred, average="macro")),
-        "baseline_majority_accuracy": majority,
-        "cv_accuracy_mean": float(
-            cross_val_score(model, Xtr, y_train, cv=5, n_jobs=-1).mean()
-        ),
-        "per_class": classification_report(
-            y_test, pred, target_names=classes, output_dict=True, zero_division=0
-        ),
-    }
-    log.info("  accuracy %.4f (baseline %.4f) | balanced %.4f | macro-F1 %.4f",
-             metrics["accuracy"], majority,
-             metrics["balanced_accuracy"], metrics["macro_f1"])
-
-    return _save("sleep", model, scaler, F.SLEEP_FEATURES, {
-        "task": "multiclass classification",
-        "target": "Sleep Disorder",
-        "classes": classes,
-        "dataset": "Sleep Health and Lifestyle",
-        "n_rows": int(len(y)),
-        "estimator": type(model).__name__,
-        "raw_profile": _profile(
-            df,
-            [f for f in F.SLEEP_RAW if f != "BMI Category"]
-            + ["BMI Category", "Systolic", "Diastolic"],
-        ),
-        "metrics": metrics,
-    })
-
-
-# --------------------------------------------------------------------------
 # migraine
 # --------------------------------------------------------------------------
 
@@ -376,12 +301,12 @@ def train_migraine():
     })
 
 
-# The lifestyle score is scored by a rubric in app/ml/lifestyle.py rather than
-# a model. Its old training data was Gaussian noise -- 70 rows had negative
-# alcohol consumption -- so there was nothing real to learn.
+# Two models, not four. The lifestyle score is a rubric (app/ml/lifestyle.py):
+# its old training data was Gaussian noise. Sleep is an empirical lookup over
+# NHANES (app/ml/sleep_risk.py): retraining on real national data showed an
+# unfitted rule over two questions matched a fitted model over nine features.
 TRAINERS = {
     "heart": train_heart,
-    "sleep": train_sleep,
     "migraine": train_migraine,
 }
 

@@ -416,24 +416,23 @@ def build_health(raw):
 # registry
 # --------------------------------------------------------------------------
 
-# The lifestyle score is a rubric (app/ml/lifestyle.py), not a model, so it is
-# absent here. build_health remains for anyone who wants to refit it against a
-# real dataset; nothing in the app calls it.
+# Only heart and migraine are models. The lifestyle score is a rubric
+# (app/ml/lifestyle.py) and sleep is an empirical lookup over real survey data
+# (app/ml/sleep_risk.py) -- in both cases the evidence said a model earned
+# nothing. build_health and build_sleep remain for anyone refitting them
+# against better data; nothing in the app calls them.
 BUILDERS = {
     "heart": build_heart,
-    "sleep": build_sleep,
     "migraine": build_migraine,
 }
 
 FEATURES = {
     "heart": HEART_FEATURES,
-    "sleep": SLEEP_FEATURES,
     "migraine": MIGRAINE_FEATURES,
 }
 
 RAW_FIELDS = {
     "heart": HEART_RAW,
-    "sleep": SLEEP_RAW,
     "migraine": MIGRAINE_RAW,
 }
 

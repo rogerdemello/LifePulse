@@ -13,11 +13,11 @@ import pytest
 from app.ml import features as F
 from conftest import DATA, requires_dataset
 
-# health_score is absent: it is scored by a rubric now, not a model, so there
-# is no training path for a serving path to drift from.
+# Only the two remaining models appear here. The lifestyle score is a rubric
+# and sleep is an empirical lookup, so neither has a training path for a
+# serving path to drift from.
 CSV = {
     "heart": "heart_disease_health_indicators_BRFSS2015.csv",
-    "sleep": "Sleep_health_and_lifestyle_dataset (1).csv",
     "migraine": "migraine_dataset_500 (1).csv",
 }
 
@@ -56,39 +56,7 @@ def test_csv_row_and_form_dict_agree(name):
 
 
 def _source_fields(name, df):
-    fields = list(F.RAW_FIELDS[name])
-    if name == "sleep":
-        # build_sleep accepts either the CSV's "120/80" string or two numbers.
-        fields += ["Blood Pressure"] if "Blood Pressure" in df.columns else []
-    return fields
-
-
-@requires_dataset(CSV["sleep"])
-def test_blood_pressure_string_and_numbers_agree():
-    """The form posts two numbers; the CSV carries "132/87". Same result."""
-    base = {
-        "Gender": "Male", "Age": 40, "Sleep Duration": 6.5,
-        "Quality of Sleep": 7, "Physical Activity Level": 50,
-        "Stress Level": 5, "Heart Rate": 72, "Daily Steps": 7000,
-        "BMI Category": "Normal",
-    }
-    from_string = F.build_sleep({**base, "Blood Pressure": "132/87"})
-    from_numbers = F.build_sleep({**base, "Systolic": 132, "Diastolic": 87})
-    pd.testing.assert_frame_equal(from_string, from_numbers)
-
-
-@requires_dataset(CSV["sleep"])
-def test_normal_weight_and_normal_are_the_same_band():
-    """The source records the same BMI band under two labels."""
-    base = {
-        "Gender": "Male", "Age": 40, "Sleep Duration": 6.5,
-        "Quality of Sleep": 7, "Physical Activity Level": 50,
-        "Stress Level": 5, "Heart Rate": 72, "Daily Steps": 7000,
-        "Systolic": 120, "Diastolic": 80,
-    }
-    a = F.build_sleep({**base, "BMI Category": "Normal"})
-    b = F.build_sleep({**base, "BMI Category": "Normal Weight"})
-    pd.testing.assert_frame_equal(a, b)
+    return list(F.RAW_FIELDS[name])
 
 
 @requires_dataset(CSV["migraine"])
