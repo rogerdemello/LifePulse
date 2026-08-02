@@ -8,14 +8,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // ========================================
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      // A bare "#" is not a valid selector; querySelector throws on it.
+      if (!href || href.length < 2) return;
+      const target = document.querySelector(href);
+      if (!target) return;
       e.preventDefault();
-      const target = document.querySelector(this.getAttribute('href'));
-      if (target) {
-        target.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+
+      // preventDefault() cancels the fragment navigation, and with it the
+      // focus move the browser would have made. That is what broke the skip
+      // link on every page: it scrolled, focus stayed on the link, and the
+      // next Tab went to the navbar brand -- back into the navigation the
+      // link exists to skip. Scrolling a sighted user to the content while
+      // leaving a keyboard user where they were is the one thing it must not
+      // do.
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
     });
   });
 

@@ -132,7 +132,13 @@
 </nav>
 
 <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Main Content -->
-<main id="mainContent" class="container my-4">
+{# tabindex="-1" is what makes the skip link above do anything.
+
+   Without it <main> is not a focusable target, so following the link moved the
+   scroll position and left focus on the link itself -- the next Tab went to the
+   navbar brand, i.e. straight back into the navigation the user had just asked
+   to skip. The link was decorative on every page. #}
+<main id="mainContent" class="container my-4" tabindex="-1">
   {% block content %}
   {% endblock %}
 </main>

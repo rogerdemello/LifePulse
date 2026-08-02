@@ -115,10 +115,57 @@ def test_native_form_validation_is_not_suppressed():
 
 @pytest.mark.parametrize("path", PAGES)
 def test_landmarks_and_skip_link(client, path):
+    """The skip link has to land somewhere that can hold focus.
+
+    This test used to assert the link existed and `id="mainContent"` existed,
+    and passed on every page while the link did nothing at all: <main> was not
+    focusable, so following it moved the scroll position and left focus on the
+    link. The next Tab went to the navbar brand -- back into the navigation the
+    link exists to skip. Both halves being present was never the claim worth
+    checking; that they connect is.
+    """
     body = client.get(path).get_data(as_text=True)
-    assert 'class="skip-link"' in body
-    assert 'id="mainContent"' in body
     assert "<main" in body and "</main>" in body
+
+    link = re.search(r'<a\s[^>]*class="skip-link"[^>]*>', body)
+    assert link, "no skip link"
+    href = re.search(r'href="#([^"]+)"', link.group(0))
+    assert href, "the skip link does not point at a fragment"
+
+    target = re.search(rf'<(\w+)\s[^>]*id="{re.escape(href.group(1))}"[^>]*>', body)
+    assert target, f"the skip link points at #{href.group(1)}, which is not on the page"
+    focusable = ("tabindex" in target.group(0)
+                 or target.group(1) in ("a", "button", "input", "select", "textarea"))
+    assert focusable, (
+        f"<{target.group(1)} id={href.group(1)}> cannot receive focus, so the "
+        "skip link only scrolls -- a keyboard user stays in the navigation"
+    )
+
+
+def test_an_in_page_link_moves_focus_and_not_only_the_scroll():
+    """main.js intercepts every `a[href^="#"]` for smooth scrolling.
+
+    `preventDefault()` cancels the fragment navigation, and with it the focus
+    move the browser would have performed -- which is what broke the skip link
+    even once <main> was made focusable. Anything that takes over an in-page
+    link has to do the whole job, not the visible half of it.
+    """
+    js = _code_only(STATIC / "js" / "main.js")
+    start = js.index('a[href^="#"]')
+    open_brace = js.index("{", start)
+    depth, end = 0, None
+    for i in range(open_brace, len(js)):
+        depth += (js[i] == "{") - (js[i] == "}")
+        if depth == 0:
+            end = i
+            break
+    assert end, "could not find the end of the smooth-scroll handler"
+    handler = js[start:end]
+    assert "preventDefault" in handler
+    assert ".focus(" in handler, (
+        "the smooth-scroll handler scrolls sighted users to the target and "
+        "leaves keyboard focus behind"
+    )
 
 
 @pytest.mark.parametrize("path,expected", [
