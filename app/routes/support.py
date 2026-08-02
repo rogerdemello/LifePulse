@@ -240,7 +240,10 @@ def build_sleep_summary(apnea, insomnia, sleep_hours, vitals, form):
             {"label": "Nights a week with trouble sleeping", "value": str(insomnia.nights)},
             {"label": "Going on 3 months or more",
              "value": "yes" if insomnia.months_3_plus else "no"},
-            {"label": "Affects my daytime",
+            # The form asks "does it affect your daytime -- mood, concentration,
+            # or energy?"; "Affects my daytime" alone reads as a truncation on a
+            # page a doctor is meant to read.
+            {"label": "Affects mood, concentration or energy",
              "value": "yes" if insomnia.daytime_impact else "no"},
             {"label": "Hours of sleep a night", "value": f"{sleep_hours:g}"},
         ],

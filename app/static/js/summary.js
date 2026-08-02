@@ -177,6 +177,18 @@
       });
     }
 
+    // "What I entered" is a collapsed <details>, and a closed <details> does
+    // not print -- so the answers each result was based on were missing from
+    // the page, which is the half a doctor is most likely to question. CSS
+    // can't open one reliably, so open them for the print and put them back.
+    // Keeping them collapsed on screen is deliberate: the result comes first.
+    function openInputs(open) {
+      var list = document.querySelectorAll('.summary-inputs');
+      for (var i = 0; i < list.length; i++) list[i].open = open;
+    }
+    window.addEventListener('beforeprint', function () { openInputs(true); });
+    window.addEventListener('afterprint', function () { openInputs(false); });
+
     var printBtn = document.getElementById('summaryPrint');
     if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
 

@@ -168,15 +168,6 @@ def test_binary_sex_field_explains_itself(client, path):
     assert "only recorded two values" in body
 
 
-def test_print_stylesheet_exists_for_the_visit_summary():
-    css = (STATIC / "css" / "style.css").read_text(encoding="utf-8")
-    assert "@media print" in css
-    print_block = css[css.index("@media print"):]
-    # The app furniture must not end up on a page handed to a doctor.
-    for selector in ("nav", "footer", ".summary-toolbar"):
-        assert selector in print_block
-
-
 # --------------------------------------------------------------------------
 # multi-step forms
 # --------------------------------------------------------------------------
@@ -273,3 +264,70 @@ def test_the_footer_is_pinned_on_short_pages():
     css = _code_only(STATIC / "css" / "style.css")
     assert "min-height: 100vh" in css
     assert "body > main" in css
+
+
+# --------------------------------------------------------------------------
+# the printed visit summary
+# --------------------------------------------------------------------------
+
+def _print_block():
+    css = _code_only(STATIC / "css" / "style.css")
+    start = css.index("@media print")
+    depth, i = 0, start
+    while i < len(css):
+        if css[i] == "{":
+            depth += 1
+        elif css[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return css[start:i + 1]
+        i += 1
+    raise AssertionError("unterminated @media print block")
+
+
+def test_print_stylesheet_exists_for_the_visit_summary():
+    block = _print_block()
+    # The app furniture must not end up on a page handed to a doctor.
+    for selector in ("nav", "footer", ".summary-toolbar"):
+        assert selector in block
+
+
+def test_printing_does_not_inherit_the_dark_theme():
+    """The visit summary is the artifact this whole feature exists for, and it
+    printed pale grey on white for anyone whose OS was in dark mode.
+
+    `@media print` set `color` on `body` and a white background on `.card`.
+    Everything else -- headings, `.text-muted`, every question in the list --
+    reads its colour from the design tokens, which `prefers-color-scheme: dark`
+    had already switched to near-white. In light mode it printed correctly,
+    which is why it survived being looked at.
+
+    Asserting the tokens are reset covers every descendant at once.
+    """
+    block = _print_block()
+    assert ":root" in block, "print must reset the theme tokens, not one element"
+    for token in ("--ink:", "--ink-muted:", "--surface:", "--page:"):
+        assert token in block, f"{token} still inherited from the screen theme"
+
+    # And nothing may be left resolving to a light-on-light value.
+    for dark in ("#e8ecf3", "#a3adbf", "#12161f", "#1b2130"):
+        assert dark not in block
+
+
+def test_the_answers_behind_a_result_reach_the_printed_page():
+    """"What I entered" is a collapsed <details>, and a closed <details> does
+    not print -- so the inputs a doctor is most likely to question were absent.
+    CSS cannot open one, so the print event has to.
+    """
+    js = _code_only(STATIC / "js" / "summary.js")
+    assert "beforeprint" in js and "afterprint" in js
+    assert ".summary-inputs" in js
+
+
+def test_bootstrap_column_widths_do_not_squeeze_the_printed_labels():
+    """The <dl> carries `.row` and each <dt> `.col-6 .col-sm-4`. Forcing grid
+    on the parent left those percentages applying to grid items, so "high blood
+    pressure" printed as three stacked lines inside a 117pt label column.
+    """
+    block = _print_block()
+    assert "width: auto !important" in block

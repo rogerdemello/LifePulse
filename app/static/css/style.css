@@ -776,6 +776,34 @@ footer p { margin: 0; }
    -------------------------------------------------------------------------- */
 
 @media print {
+  /* Paper is white whatever the screen was.
+   *
+   * This block used to set `color` on `body` and `background` on `.card` and
+   * stop there. Everything else -- every heading, every `.text-muted` line,
+   * every question in the "Questions to ask" list -- takes its colour from
+   * these tokens, and under `prefers-color-scheme: dark` they are near-white.
+   * So a visitor whose OS is in dark mode printed the page this whole feature
+   * exists for as pale grey on white: the title, the assessment names and the
+   * entire question list were all but invisible. In light mode it printed
+   * fine, which is why looking at the page never showed it.
+   *
+   * Overriding the tokens fixes every descendant at once and keeps the print
+   * layout independent of the theme. */
+  :root {
+    --page: #fff;
+    --surface: #fff;
+    --surface-sunken: #fff;
+    --border: #999;
+    --border-strong: #000;
+    --ink: #000;
+    --ink-muted: #333;
+    --ink-faint: #555;
+    --brand: #000;
+    --brand-ink: #000;
+    --shadow: none;
+    --shadow-lifted: none;
+  }
+
   nav,
   footer,
   .scroll-to-top,
@@ -790,6 +818,24 @@ footer p { margin: 0; }
     font-size: 11pt;
     color: #000 !important;
     background: #fff !important;
+  }
+
+  h1, h2, h3, h4, h5, h6,
+  .summary-headline,
+  .summary-question,
+  .summary-questions li {
+    color: #000 !important;
+  }
+
+  .text-muted { color: #333 !important; }
+
+  /* An `alert-secondary` note is a dark navy panel in dark mode. Printed, that
+     is a full-width block of toner with pale text on it. */
+  .summary-footnote,
+  .alert {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #999 !important;
   }
 
   .container,
@@ -831,7 +877,26 @@ footer p { margin: 0; }
   }
 
   .summary-inputs > summary { font-weight: 600; color: #000; }
-  .summary-inputs > dl { display: grid !important; grid-template-columns: 1fr 1fr; }
+
+  /* The <dl> carries Bootstrap's `.row` with `.col-6 .col-sm-4` on each <dt>.
+     Forcing grid on the parent left those percentage widths applying to grid
+     items, so a 350pt column rendered its label inside 117pt and "high blood
+     pressure" printed as three stacked lines. Give the label a real column and
+     stop the column classes fighting it. */
+  .summary-inputs > dl {
+    display: grid !important;
+    grid-template-columns: 11rem 1fr;
+    gap: 0.15rem 0.75rem;
+  }
+
+  .summary-inputs > dl > dt,
+  .summary-inputs > dl > dd {
+    width: auto !important;
+    max-width: none !important;
+    flex: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
 
   a[href]::after { content: ""; }
 }
