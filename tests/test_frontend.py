@@ -734,3 +734,30 @@ def test_printing_a_result_leaves_out_the_buttons():
     selectors = " ".join(seg.split("{")[0] for seg in hidden)
     assert ".btn" in selectors
     assert "[data-summary-card]" in selectors
+
+
+def test_no_markup_relies_on_bootstraps_javascript():
+    """Bootstrap's JS bundle is no longer loaded.
+
+    `data-bs-toggle="collapse"` on the navbar was the only component using it,
+    and 24KB of parse-blocking third-party script to show nine links was a poor
+    trade for what twelve lines do. The danger now is silent: a `data-bs-*`
+    attribute added later looks like working markup and does nothing at all,
+    with no error anywhere.
+    """
+    offenders = {}
+    for path in TEMPLATES.rglob("*.html"):
+        # Comments stripped for the same reason _code_only exists: the note
+        # explaining why the bundle went necessarily names the attribute.
+        markup = re.sub(r"\{#.*?#\}", "", path.read_text(encoding="utf-8"), flags=re.S)
+        markup = re.sub(r"<!--.*?-->", "", markup, flags=re.S)
+        found = re.findall(r"data-bs-[a-z]+", markup)
+        if found:
+            offenders[path.name] = sorted(set(found))
+    assert not offenders, (
+        f"these need Bootstrap's JavaScript, which is not loaded: {offenders}"
+    )
+
+    base = (TEMPLATES / "base.html").read_text(encoding="utf-8")
+    assert "bootstrap.bundle" not in base, "the JS bundle is back"
+    assert "data-nav-toggle" in base, "the navbar has no toggle at all"

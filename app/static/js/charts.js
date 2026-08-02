@@ -1,102 +1,37 @@
-// Enhanced Result Card Components for LifePulse
-
-// ========================================
-// ANIMATED PROGRESS CIRCLE
-// ========================================
-function createProgressCircle(containerId, score, color = '#667eea', label = 'Score') {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  const size = 220;
-  const strokeWidth = 18;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const progress = (score / 100) * circumference;
-
-  container.innerHTML = `
-    <div class="progress-circle-wrapper">
-      <svg width="${size}" height="${size}" class="progress-circle-svg">
-        <!-- Background circle -->
-        <circle 
-          cx="${size/2}" 
-          cy="${size/2}" 
-          r="${radius}" 
-          fill="none" 
-          stroke="#e0e0e0" 
-          stroke-width="${strokeWidth}"
-        />
-        <!-- Progress circle -->
-        <circle 
-          class="progress-circle-fill"
-          cx="${size/2}" 
-          cy="${size/2}" 
-          r="${radius}" 
-          fill="none" 
-          stroke="${color}" 
-          stroke-width="${strokeWidth}"
-          stroke-dasharray="0 ${circumference}"
-          stroke-linecap="round"
-          transform="rotate(-90 ${size/2} ${size/2})"
-        />
-        <!-- Score text -->
-        <text 
-          x="${size/2}" 
-          y="${size/2 - 5}" 
-          text-anchor="middle" 
-          dy="10" 
-          class="progress-circle-score"
-          fill="${color}"
-        >
-          ${score}
-        </text>
-        <text 
-          x="${size/2}" 
-          y="${size/2 + 30}" 
-          text-anchor="middle" 
-          class="progress-circle-label"
-          fill="#999"
-        >
-          ${label}
-        </text>
-      </svg>
-    </div>
-  `;
-
-  // Animate on load
-  setTimeout(() => {
-    const circle = container.querySelector('.progress-circle-fill');
-    circle.style.strokeDasharray = `${progress} ${circumference}`;
-  }, 100);
-}
-
-// ========================================
-// ANIMATED GAUGE CHART
-// ========================================
-/* The gauge takes its colour from the page, not from an arbitrary split.
+/* The one chart this app draws.
  *
- * It used to decide for itself: >66% red, >33% amber, else green. Those
- * thresholds mean nothing here. Heart disease is flagged for follow-up above
- * roughly 9%, so a 39.7% risk -- four times the population rate -- drew an
- * amber arc directly above a red badge reading "39.74% estimated risk". The
- * chart was contradicting the assessment beside it.
+ * There were four builders here: a progress circle, a health-metric bar, a
+ * risk indicator and a counter. No template called any of them and no template
+ * carried their data attributes, so they had been dead for some time -- along
+ * with two `#667eea` fallbacks, a colour from a palette two designs ago. The
+ * health-score dial that looks like the progress circle is inline in
+ * result_health_score.html and never used this file.
  *
- * The template knows whether the result crossed the model's own threshold and
- * says so with data-tone; the colours come from the design tokens.
+ * **Colour is never written into the SVG.** Both surviving and deleted
+ * builders used to read the design tokens once, at draw time, and copy the
+ * resulting hex into `stroke=` and `fill=` attributes. A value copied like
+ * that stops being a token: it cannot follow a theme change, and -- the reason
+ * this was found -- it cannot follow the print block either. Printing a heart
+ * result from a machine in dark mode drew the arc and the percentage in
+ * #ff6961, a salmon meant for a black background, on white paper, while the
+ * heading two lines below it printed in the proper print red because that one
+ * came from CSS.
+ *
+ * `currentColor` defers the lookup to paint time, and the tone class on the
+ * wrapper decides which token `color` resolves to. The track and the caption
+ * take theirs from a class for the same reason.
+ *
+ * The gauge takes its tone from the page, not from an arbitrary split. It used
+ * to decide for itself: >66% red, >33% amber, else green. Those thresholds
+ * mean nothing here. Heart disease is flagged for follow-up above roughly 9%,
+ * so a 39.7% risk -- four times the population rate -- drew an amber arc
+ * directly above a red badge reading "39.74% estimated risk". The chart was
+ * contradicting the assessment beside it. The template knows whether the
+ * result crossed the model's own threshold and says so with data-tone.
  */
 function createGaugeChart(containerId, percentage, label = '', tone = 'neutral') {
   const container = document.getElementById(containerId);
   if (!container) return;
-
-  const styles = getComputedStyle(document.documentElement);
-  const token = (name, fallback) =>
-    (styles.getPropertyValue(name) || '').trim() || fallback;
-  const color = {
-    danger: token('--danger', '#c02c3c'),
-    warning: token('--warning', '#9a6200'),
-    success: token('--success', '#14724a'),
-    neutral: token('--brand', '#5b62d6'),
-  }[tone] || token('--brand', '#5b62d6');
-  const track = token('--surface-sunken', '#e0e0e0');
 
   const size = 200;
   const strokeWidth = 20;
@@ -105,42 +40,41 @@ function createGaugeChart(containerId, percentage, label = '', tone = 'neutral')
   const progress = (percentage / 100) * circumference;
 
   container.innerHTML = `
-    <div class="gauge-chart-wrapper">
-      <svg width="${size}" height="${size/2 + 40}" class="gauge-chart-svg">
+    <div class="gauge-chart-wrapper chart-tone is-${tone}">
+      <svg width="${size}" height="${size / 2 + 40}"
         <!-- Background arc -->
         <path
-          d="M ${strokeWidth/2} ${size/2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth/2} ${size/2}"
+          class="chart-track"
+          d="M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth / 2} ${size / 2}"
           fill="none"
-          stroke="${track}"
           stroke-width="${strokeWidth}"
           stroke-linecap="round"
         />
         <!-- Progress arc -->
         <path
           class="gauge-chart-fill"
-          d="M ${strokeWidth/2} ${size/2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth/2} ${size/2}"
+          d="M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth / 2} ${size / 2}"
           fill="none"
-          stroke="${color}"
+          stroke="currentColor"
           stroke-width="${strokeWidth}"
           stroke-linecap="round"
           stroke-dasharray="0 ${circumference}"
         />
         <!-- Percentage text -->
-        <text 
-          x="${size/2}" 
-          y="${size/2 + 10}" 
-          text-anchor="middle" 
+        <text
+          x="${size / 2}"
+          y="${size / 2 + 10}"
+          text-anchor="middle"
           class="gauge-chart-percentage"
-          fill="${color}"
+          fill="currentColor"
         >
           ${percentage}%
         </text>
-        <text 
-          x="${size/2}" 
-          y="${size/2 + 35}" 
-          text-anchor="middle" 
-          class="gauge-chart-label"
-          fill="#666"
+        <text
+          x="${size / 2}"
+          y="${size / 2 + 35}"
+          text-anchor="middle"
+          class="gauge-chart-label chart-caption"
         >
           ${label}
         </text>
@@ -148,118 +82,19 @@ function createGaugeChart(containerId, percentage, label = '', tone = 'neutral')
     </div>
   `;
 
-  // Animate on load
+  // Animate on load. Honoured by prefers-reduced-motion through the global
+  // transition-duration override in the stylesheet.
   setTimeout(() => {
     const arc = container.querySelector('.gauge-chart-fill');
     arc.style.strokeDasharray = `${progress} ${circumference}`;
   }, 100);
 }
 
-// ========================================
-// ANIMATED COUNTER
-// ========================================
-function animateCounter(elementId, targetValue, duration = 2000, suffix = '') {
-  const element = document.getElementById(elementId);
-  if (!element) return;
-
-  let startValue = 0;
-  const startTime = Date.now();
-  const isDecimal = targetValue % 1 !== 0;
-
-  function updateCounter() {
-    const elapsed = Date.now() - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    
-    // Easing function (ease out cubic)
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const currentValue = startValue + (targetValue - startValue) * eased;
-    
-    element.textContent = (isDecimal ? currentValue.toFixed(1) : Math.floor(currentValue)) + suffix;
-    
-    if (progress < 1) {
-      requestAnimationFrame(updateCounter);
-    } else {
-      element.textContent = targetValue + suffix;
-    }
-  }
-
-  updateCounter();
-}
-
-// ========================================
-// HEALTH METRIC BAR
-// ========================================
-function createHealthMetricBar(containerId, value, maxValue, label, color = '#667eea') {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  const percentage = (value / maxValue) * 100;
-
-  container.innerHTML = `
-    <div class="health-metric-bar">
-      <div class="health-metric-header">
-        <span class="health-metric-label">${label}</span>
-        <span class="health-metric-value">${value} / ${maxValue}</span>
-      </div>
-      <div class="health-metric-track">
-        <div class="health-metric-fill" style="background: ${color}; width: 0%;" data-width="${percentage}%"></div>
-      </div>
-    </div>
-  `;
-
-  // Animate bar
-  setTimeout(() => {
-    const fill = container.querySelector('.health-metric-fill');
-    fill.style.width = fill.getAttribute('data-width');
-  }, 100);
-}
-
-// ========================================
-// RISK LEVEL INDICATOR
-// ========================================
-function createRiskIndicator(containerId, riskLevel) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  const levels = ['Low', 'Moderate', 'High', 'Critical'];
-  const colors = ['#28a745', '#ffc107', '#fd7e14', '#dc3545'];
-  const currentIndex = levels.indexOf(riskLevel);
-
-  let html = '<div class="risk-indicator">';
-  levels.forEach((level, index) => {
-    const isActive = index <= currentIndex;
-    const color = isActive ? colors[index] : '#e0e0e0';
-    html += `
-      <div class="risk-level ${isActive ? 'active' : ''}" style="background: ${color};">
-        <div class="risk-level-label">${level}</div>
-      </div>
-    `;
-  });
-  html += '</div>';
-
-  container.innerHTML = html;
-}
-
-// Initialize all charts on page load
 document.addEventListener('DOMContentLoaded', () => {
-  // Auto-initialize any elements with data attributes
-  document.querySelectorAll('[data-progress-circle]').forEach(el => {
-    const score = parseInt(el.getAttribute('data-score'));
-    const color = el.getAttribute('data-color') || '#667eea';
-    const label = el.getAttribute('data-label') || 'out of 100';
-    createProgressCircle(el.id, score, color, label);
-  });
-
   document.querySelectorAll('[data-gauge-chart]').forEach(el => {
     const percentage = parseInt(el.getAttribute('data-percentage'));
     const label = el.getAttribute('data-label') || '';
     const tone = el.getAttribute('data-tone') || 'neutral';
     createGaugeChart(el.id, percentage, label, tone);
-  });
-
-  document.querySelectorAll('[data-counter]').forEach(el => {
-    const target = parseFloat(el.getAttribute('data-target'));
-    const suffix = el.getAttribute('data-suffix') || '';
-    animateCounter(el.id, target, 2000, suffix);
   });
 });

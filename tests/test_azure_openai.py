@@ -484,3 +484,41 @@ def test_a_question_that_is_not_a_question_falls_back(
     outcome = triage.converse([{"role": "user", "text": "I snore and I am tired"}])
     assert outcome.action == "route"
     assert outcome.method == "keywords"
+
+
+@pytest.mark.parametrize("payload", [
+    '<script>window.x=1</script>',
+    '"><script>window.x=1</script>',
+    "'><img src=x onerror=window.x=1>",
+])
+def test_what_the_person_typed_is_escaped_everywhere_it_is_shown(
+        configured, monkeypatch, client, payload):
+    """The transcript is rendered three ways: as visible text, and back into a
+    hidden input's `value` so the server can stay stateless. That second one
+    only needs a quote to break out of the attribute, and the value is built by
+    concatenating "role:text".
+    """
+    monkeypatch.setattr(azure_openai.requests, "post",
+                        lambda *a, **k: _reply(ASKS))
+
+    body = client.post("/start", data={
+        "turn": [f"user:{payload}"],
+        "concern": payload,
+    }).get_data(as_text=True)
+
+    assert payload not in body, "reflected unescaped"
+    assert "&lt;" in body or "&#34;" in body or "&#39;" in body
+
+
+def test_a_question_from_the_model_is_escaped_before_it_is_rendered(
+        configured, monkeypatch, client):
+    """The question is third-party text placed straight into a <label>."""
+    import json as _json
+    hostile = '<img src=x onerror="window.x=1">Does it hurt?'
+    monkeypatch.setattr(
+        azure_openai.requests, "post",
+        lambda *a, **k: _reply(_json.dumps({"action": "ask", "question": hostile})))
+
+    body = client.post("/start", data={"concern": "I am tired"}).get_data(as_text=True)
+    assert hostile not in body
+    assert "&lt;img" in body

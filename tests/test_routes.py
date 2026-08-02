@@ -114,3 +114,56 @@ def test_heart_risk_ordering_is_sensible(client):
         ment_health="0", phys_health="0", diff_walk="0", age="3",
     )
     assert risk(FORMS["/heart_disease/"]) > risk(low)
+
+
+# --------------------------------------------------------------------------
+# error pages
+#
+# error.html and error_page() both existed and were used for form validation,
+# rate limiting and a missing model -- but nothing was registered against
+# Flask's own handlers, so a mistyped URL got Werkzeug's bare "404 Not Found".
+# --------------------------------------------------------------------------
+
+def test_a_missing_page_is_a_lifepulse_page(client):
+    response = client.get("/no-such-page")
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 404
+    assert "Page not found" in body
+    # The things every other page carries, and a bare Werkzeug page does not.
+    assert "screening tool, not a diagnosis" in body
+    assert 'class="skip-link"' in body
+    assert "/start" in body, "a dead end should offer a way back"
+
+
+def test_the_wrong_method_is_a_lifepulse_page(client):
+    response = client.get("/health/calculate_metrics")
+    assert response.status_code == 405
+    assert "screening tool, not a diagnosis" in response.get_data(as_text=True)
+
+
+def test_a_server_error_says_nothing_was_stored_and_gives_a_reference():
+    """A fresh app rather than the shared fixture: this needs a route that
+    fails, and adding one to the session-scoped app would leak into every
+    other test.
+    """
+    from flask import abort
+
+    from app.app import create_app
+
+    application = create_app()
+    application.config.update(TESTING=True)
+
+    @application.route("/deliberate-explosion")
+    def boom():
+        abort(500)
+
+    response = application.test_client().get("/deliberate-explosion")
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 500
+    assert "Something went wrong" in body
+    # The claim the whole app rests on has to survive its own failure.
+    assert "Nothing you entered was stored" in body
+    # And there must be something to quote when reporting it.
+    assert "Reference" in body
