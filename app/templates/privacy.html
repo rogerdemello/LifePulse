@@ -10,9 +10,11 @@
 
       <h1 class="fw-bold mb-3">Privacy</h1>
       <p class="lead text-muted mb-5">
-        The short version: LifePulse has no account system, no database, and writes
-        nothing to disk. Your answers exist for the fraction of a second it takes to
-        calculate a result, and then they're gone.
+        The short version: LifePulse has no account system and no database. Nothing
+        you enter is stored on our server &mdash; your answers exist there for the
+        fraction of a second it takes to calculate a result, and then they're gone.
+        The one thing that outlives the request is the visit summary, and it is saved
+        in your own browser, never uploaded.
       </p>
 
       <div class="card border-0 shadow-sm mb-4">
@@ -43,7 +45,7 @@
                 Every model runs locally.
               {% endif %}
             </li>
-            <li class="mb-2">No health data in cookies.</li>
+            <li class="mb-2">No health data in cookies, and nothing stored on our server.</li>
             <li class="mb-0">
               No assessment answers or results sent anywhere. The wording on the
               result pages was written ahead of time and ships with the app, so
@@ -94,11 +96,32 @@
 
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
-          <h2 class="h5 fw-bold mb-3">Your results are yours to keep</h2>
+          <h2 class="h5 fw-bold mb-3">The visit summary is saved &mdash; on your device</h2>
+          <p class="mb-3">
+            If you choose <strong>Add to visit summary</strong> on a result page, that
+            result &mdash; including the answers it was based on &mdash; is written to
+            your browser's local storage so you can collect several assessments onto one
+            printable page. Being straight about what that means:
+          </p>
+          <ul class="mb-3">
+            <li class="mb-2">
+              It stays on this device, in this browser. It is never uploaded, and it is
+              not attached to requests the way a cookie would be &mdash; our server never
+              receives it.
+            </li>
+            <li class="mb-2">
+              It persists until you remove it. Use <strong>Clear</strong> on the
+              <a href="{{ url_for('summary') }}">summary page</a>, or clear your
+              browser data.
+            </li>
+            <li class="mb-0">
+              Anyone else using this browser profile could open the summary page and read
+              it. On a shared or public computer, clear it when you're done.
+            </li>
+          </ul>
           <p class="mb-0">
-            Because nothing is saved, you can't come back later and find a result &mdash;
-            that's the trade for storing nothing. Print or save the page while you have
-            it if you want to bring it to an appointment.
+            If you never use that button, nothing is saved anywhere at all &mdash; and
+            you won't be able to come back later and find a result, which is the trade.
           </p>
         </div>
       </div>

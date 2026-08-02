@@ -17,7 +17,7 @@
             bring it with you.
           </p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 d-none" id="summaryToolbar">
           <button type="button" id="summaryPrint" class="btn btn-primary">
             <i class="bi bi-printer me-1" aria-hidden="true"></i>Print / Save as PDF
           </button>
@@ -26,6 +26,19 @@
           </button>
         </div>
       </div>
+
+      <!-- This one page genuinely cannot work without JavaScript: saved results
+           live in localStorage, which only script can read. Every other page in
+           the app renders server-side and works without it. Say so rather than
+           showing a blank panel. -->
+      <noscript>
+        <div class="alert alert-warning border-0" role="alert">
+          The visit summary needs JavaScript, because saved results are stored in
+          your browser rather than on our server &mdash; only code running in the
+          page can read them. Every assessment still works without JavaScript;
+          only collecting them onto this page does not.
+        </div>
+      </noscript>
 
       <!-- Empty state -->
       <div id="summaryEmpty" class="card border-0 shadow-sm d-none">

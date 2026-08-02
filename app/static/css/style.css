@@ -108,6 +108,18 @@ body {
   /* No `opacity: 0` here. It used to hide the entire page until JavaScript
      faded it back in, so any script failure left a permanently blank health
      tool. Content must be readable without JavaScript. */
+
+  /* Pin the footer to the bottom of short pages. Without this the nutrition
+     search and the empty visit summary ended their footer band a third of the
+     way up a 1400px window, with the page background running on below it --
+     which reads as content failing to load. */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body > main {
+  flex: 1 0 auto;
 }
 
 h1, h2, h3, h4, h5, h6 {

@@ -157,7 +157,11 @@
       <span aria-hidden="true">&middot;</span>
       <a href="{{ url_for('index') }}">Home</a>
     </p>
-    <p class="mb-0">&copy; 2025 LifePulse. Nothing you enter is stored.</p>
+    <!-- Was "Nothing you enter is stored." That stopped being true the day the
+         visit summary shipped: choosing "Add to visit summary" writes the result
+         and the answers behind it to localStorage. It never leaves the device, so
+         the promise worth making is about the server -- which is still absolute. -->
+    <p class="mb-0">&copy; 2025 LifePulse. Nothing you enter is stored on our server.</p>
   </div>
 </footer>
 

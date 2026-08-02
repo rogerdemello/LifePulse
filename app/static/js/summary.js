@@ -137,10 +137,16 @@
     var content = document.getElementById('summaryContent');
     var questionsCard = document.getElementById('summaryQuestions');
 
+    // The toolbar starts hidden and is revealed here. Both of its buttons act on
+    // saved results, so with none saved "Print / Save as PDF" printed a page
+    // reading "Nothing saved yet" and "Clear" offered to delete nothing.
+    var toolbar = document.getElementById('summaryToolbar');
+
     if (!entries.length) {
       if (empty) empty.classList.remove('d-none');
       return;
     }
+    if (toolbar) toolbar.classList.remove('d-none');
     if (content) content.classList.remove('d-none');
 
     entries.forEach(function (entry) {

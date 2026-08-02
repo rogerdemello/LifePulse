@@ -221,3 +221,55 @@ def test_the_step_script_only_hides_what_it_grouped():
     assert "reportValidity" in js
     # And the change of step is announced.
     assert "aria-live" in js
+
+
+# --------------------------------------------------------------------------
+# the privacy page has to describe what the app actually does
+# --------------------------------------------------------------------------
+
+def test_privacy_page_discloses_browser_storage(client):
+    """The visit summary writes results -- and the answers behind them -- to
+    localStorage. Until this test existed, the privacy page still said
+    "Because nothing is saved, you can't come back later and find a result",
+    which the feature had made false.
+
+    A privacy page that is out of date is worse than none: it is the page
+    someone reads *instead of* checking.
+    """
+    body = " ".join(client.get("/privacy").get_data(as_text=True).split())
+
+    # It must name the mechanism, say where it lives, and say what removes it.
+    assert "local storage" in body.lower()
+    assert "never uploaded" in body
+    assert "Clear" in body
+
+    # And it must not claim the absolute that the summary feature broke.
+    assert "Because nothing is saved" not in body
+    assert "writes nothing to disk" not in body
+
+
+def test_the_storage_claim_is_scoped_to_the_server(client):
+    """"Nothing you enter is stored" appears in the footer of every page.
+
+    It is only true of the server now, and an unqualified version reads as a
+    promise about the device -- which is where the summary actually lives.
+    """
+    for path in ("/", "/privacy", "/summary", "/nutrition/"):
+        body = client.get(path).get_data(as_text=True)
+        assert "Nothing you enter is stored on our server" in body, path
+
+
+def test_summary_page_says_it_needs_javascript(client):
+    """Every other page renders server-side; this one cannot."""
+    body = client.get("/summary").get_data(as_text=True)
+    assert "<noscript>" in body
+    assert "needs JavaScript" in body
+
+
+def test_the_footer_is_pinned_on_short_pages():
+    """A footer band ending a third of the way up the window, with page
+    background below it, reads as content that failed to load.
+    """
+    css = _code_only(STATIC / "css" / "style.css")
+    assert "min-height: 100vh" in css
+    assert "body > main" in css
