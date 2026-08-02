@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template
 
 from app.ml.bundle import all_metadata
+from app.ml.triage import CONCERNS
 from app.observability import init_app as init_observability
 from app.routes.calculator_routes import calculator_bp
 from app.routes.health_score import health_score_bp
@@ -77,7 +78,14 @@ def create_app():
 
     @app.route("/")
     def index():
-        return render_template("index.html")
+        """The landing page lists the same six concerns /start routes to.
+
+        It used to hard-code its own six cards, with their own titles and
+        blurbs, next to a triage page generating its list from CONCERNS. Two
+        descriptions of one set of assessments is one more than can be kept
+        true, so the page reads the same tuple the router does.
+        """
+        return render_template("index.html", concerns=CONCERNS)
 
     @app.route("/privacy")
     def privacy():

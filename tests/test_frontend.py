@@ -7,6 +7,7 @@ un-hid it, and native form validation suppressed in favour of a toast that read
 the wrong element.
 """
 
+import html
 import re
 from html.parser import HTMLParser
 from pathlib import Path
@@ -82,6 +83,35 @@ def test_no_script_hides_the_page_until_javascript_runs():
     assert "document.body.style.opacity" not in js
 
 
+def test_no_third_party_stylesheet_hides_content_until_a_script_reveals_it():
+    """The two tests above read style.css and main.js. Both passed the whole
+    time the homepage rendered completely blank without JavaScript.
+
+    AOS was loaded from unpkg. Its stylesheet sets opacity:0 on everything
+    carrying `data-aos` and its script restores it on scroll, so all seventeen
+    elements on the homepage -- the headline, the tagline and all six
+    assessments -- were permanently invisible if the script did not run, and a
+    CDN was a single point of failure for the landing page of a health tool.
+
+    A test reading local files cannot evaluate a third party's CSS, so this
+    guards the mechanism rather than the symptom: nothing in the markup may
+    depend on a scroll-reveal library to become visible.
+    """
+    # Comments are stripped for the same reason _code_only exists: the note
+    # explaining why AOS was removed necessarily names it.
+    markup = "\n".join(p.read_text(encoding="utf-8")
+                       for p in TEMPLATES.rglob("*.html"))
+    markup = re.sub(r"\{#.*?#\}", "", markup, flags=re.S)
+    markup = re.sub(r"<!--.*?-->", "", markup, flags=re.S).lower()
+    assert "data-aos" not in markup, (
+        "elements marked for AOS are invisible until its script runs"
+    )
+    for library in ("aos@", "aos.css", "aos.js", "wow.min", "scrollreveal"):
+        assert library not in markup, (
+            f"{library} hides content until it has loaded and run"
+        )
+
+
 @pytest.mark.parametrize("path", PAGES)
 def test_content_is_present_in_the_served_html(client, path):
     """Content must be in the markup, not assembled by a script.
@@ -110,6 +140,48 @@ def test_native_form_validation_is_not_suppressed():
     assert invalid_handler
     assert "preventDefault" not in invalid_handler.group(0)
     assert "previousElementSibling" not in js
+
+
+# --------------------------------------------------------------------------
+# the homepage
+# --------------------------------------------------------------------------
+
+def test_the_homepage_offers_every_assessment(client):
+    """It advertised six checks and, for anyone whose scroll never reached
+    them, showed three.
+
+    The six cards were also hard-coded here with their own titles and blurbs,
+    beside a triage page generating its list from CONCERNS. Two descriptions of
+    one set of assessments is one more than can be kept true, so the page now
+    reads the same tuple the router does -- and this fails if one is added
+    without appearing on the landing page.
+    """
+    from app.ml.triage import CONCERNS
+
+    # Unescaped: autoescaping turns the apostrophe in "What's in the food I
+    # eat" into &#39;, so a raw substring check misses it.
+    body = html.unescape(client.get("/").get_data(as_text=True))
+    missing = [c.key for c in CONCERNS if c.title not in body]
+    assert not missing, f"assessments the homepage never mentions: {missing}"
+
+
+def test_the_homepage_symptom_box_still_goes_through_the_emergency_check(client):
+    """The box is the real field now, not a button leading to it.
+
+    That is only safe while it posts to /start, where `check_emergency` runs
+    before any routing. If it ever became a GET, or pointed at an assessment
+    directly, someone typing "chest pain" on the landing page would be handed a
+    questionnaire instead of a stop sign.
+    """
+    body = client.get("/").get_data(as_text=True)
+    form = re.search(r'<form[^>]*action="/start"[^>]*>', body)
+    assert form, "the homepage concern box no longer posts to /start"
+    assert re.search(r'method="post"', form.group(0), re.I), (
+        "the concern box must POST; a GET skips the emergency check"
+    )
+
+    urgent = client.post("/start", data={"concern": "crushing chest pain"})
+    assert "Please get medical help now" in urgent.get_data(as_text=True)
 
 
 # --------------------------------------------------------------------------

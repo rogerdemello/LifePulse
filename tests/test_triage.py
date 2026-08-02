@@ -165,6 +165,12 @@ def test_an_unmatched_description_says_so(client):
 
 
 def test_the_homepage_leads_with_it(client):
+    """The homepage used to lead with a button reading "Tell us what's
+    bothering you" that went to /start, where the actual field lived. It now
+    carries the field itself and posts to the same route, which is a stronger
+    version of the same claim -- so this asserts the input is there rather than
+    matching the wording of a button that no longer exists.
+    """
     body = client.get("/").get_data(as_text=True)
-    assert "/start" in body
-    assert "bothering you" in body
+    assert 'action="/start"' in body
+    assert 'name="concern"' in body
