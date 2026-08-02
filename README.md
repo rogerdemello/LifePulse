@@ -393,7 +393,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-**419 tests** (418 pass; one skips when the gitignored data is absent), covering:
+**424 tests** (423 pass; one skips when the gitignored data is absent), covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
@@ -464,7 +464,7 @@ LifePulse/
 │   ├── fetch_brfss.py          # CDC BRFSS -> data/brfss_heart.csv
 │   ├── fetch_nhanes.py         # CDC NHANES -> data/nhanes_sleep.csv
 │   └── train_all.py            # retrains both models
-├── tests/                      # 419 tests
+├── tests/                      # 424 tests
 ├── data/                       # training inputs (gitignored)
 ├── .github/workflows/ci.yml    # pytest + boot check + contract check
 ├── requirements.txt            # pinned runtime deps
@@ -546,9 +546,20 @@ seriously.
   knowing where it came from. Every other input can name its source.
 - **BRFSS is self-reported.** "Have you ever been told you have high blood
   pressure" is not a measurement.
-- **No keyboard or screen-reader testing.** The structural work is done —
-  landmarks, skip link, `aria-current`, focus rings, reduced-motion — but nobody
-  has driven the app with a screen reader.
+- **No screen reader has been listened to.** The app has been driven by keyboard
+  through every page and every result state, and audited against the browser's
+  accessibility tree — which is what NVDA and VoiceOver read from, and which
+  found 41 unlabelled fields, missing `<h1>`s and a skip link that did nothing.
+  So the names, roles and levels are right. Whether it *sounds* right read
+  aloud — whether the questions are phrased to be heard rather than seen — is
+  not something a tree dump can answer, and nobody has checked.
+- **The small-screen menu needs JavaScript.** Below 992px the navigation is
+  behind a toggle, and without script it cannot be opened. Everything else
+  works without JavaScript, including the whole triage conversation; the footer
+  links and the homepage's own list of assessments give a way around it. A
+  `<details>` would fix it, but a closed `<details>` cannot be forced open by
+  CSS at the desktop breakpoint, and the checkbox-and-label alternative is
+  announced as a checkbox rather than a disclosure.
 - **Single language, mixed guidance.** UK front-of-pack thresholds sit beside US
   Daily Values on the same nutrition page.
 

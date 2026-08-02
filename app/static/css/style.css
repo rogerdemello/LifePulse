@@ -276,11 +276,63 @@ summary:focus-visible,
 :target,
 #mainContent { scroll-margin-top: 5rem; }
 
+.navbar > .container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .navbar-brand {
   font-size: 1.3125rem;
   font-weight: 600;
   letter-spacing: -0.022em;
   color: var(--ink) !important;
+}
+
+/* Below 992px the menu is hidden until the toggle adds .is-open; at and above
+   it, it is always laid out in a row and the toggle is gone. Bootstrap's
+   `.collapse`/`.navbar-collapse` did this before its JavaScript was removed. */
+.navbar-toggler {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.5rem;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.navbar-toggler:hover { background: var(--surface-sunken); }
+
+.navbar-toggler-icon {
+  width: 1.25rem;
+  height: 2px;
+  background: var(--ink);
+  box-shadow: 0 -6px 0 var(--ink), 0 6px 0 var(--ink);
+}
+
+.navbar-menu { display: none; flex-basis: 100%; }
+.navbar-menu.is-open { display: block; }
+
+.navbar-nav { padding: 0.5rem 0 0; margin: 0; list-style: none; }
+
+@media (min-width: 992px) {
+  .navbar-toggler { display: none; }
+  .navbar-menu { display: block; flex-basis: auto; }
+
+  /* flex-direction is stated because Bootstrap's own `.navbar-nav` sets
+     `column` and only undoes it inside `.navbar-expand-lg`, which went with
+     the collapse. Without this the desktop bar was 334px tall. */
+  .navbar-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+  }
 }
 
 .navbar-nav .nav-link {
@@ -592,13 +644,6 @@ footer p { margin: 0; }
 .result-header.is-success { background: var(--success); }
 .result-header.is-neutral { background: var(--brand); }
 
-.result-figure {
-  font-size: clamp(2.75rem, 2rem + 3vw, 3.75rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
 .stat-card {
   padding: 1.1rem;
   text-align: center;
@@ -665,7 +710,6 @@ footer p { margin: 0; }
 .btn-outline-danger { color: var(--danger); background: transparent; border-color: var(--danger); }
 .btn-outline-danger:hover { color: #fff; background: var(--danger); }
 
-.btn-light { color: var(--brand); background: #fff; border-color: #fff; }
 .btn-link { color: var(--brand); }
 
 .form-label {
@@ -1007,7 +1051,6 @@ footer p { margin: 0; }
   .result-header h3 { color: #1c1c1e; }
   .result-header p { color: rgba(28, 28, 30, 0.78); }
 
-  .btn-light { color: var(--brand-strong); background: var(--surface); border-color: var(--surface); }
   .loading-overlay { background: rgba(0, 0, 0, 0.78); }
 
   /* The sticky bar's translucent fill is a literal white in the light theme
