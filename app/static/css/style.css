@@ -401,6 +401,18 @@ summary:focus-visible,
   color: var(--ink-muted);
 }
 
+/* The /start exchange. Two or three turns at most, so it is set as labelled
+   lines rather than chat bubbles: styling it as messaging would promise a
+   conversation the agent is not having. */
+.triage-turn {
+  padding: 0.45rem 0 0.45rem 0.9rem;
+  border-left: 2px solid var(--border);
+}
+
+.triage-turn.is-agent { border-left-color: var(--brand); }
+.triage-who { display: block; font-size: 0.8125rem; color: var(--ink-faint); }
+.triage-said { display: block; }
+
 footer {
   padding: 2.5rem 1rem;
   margin-top: 4rem;

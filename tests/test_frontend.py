@@ -217,6 +217,22 @@ def test_landmarks_and_skip_link(client, path):
     )
 
 
+def test_nothing_autofocuses_past_the_skip_link():
+    """`autofocus` starts focus inside the page, so the first Tab goes to
+    whatever follows the focused field and the skip link is never reached.
+
+    I put one on the /start box while building the conversational triage,
+    which silently undid the skip-link fix two commits earlier. The static
+    check above could not see it -- the markup was still correct, the focus
+    order was not.
+    """
+    offenders = [p.name for p in TEMPLATES.rglob("*.html")
+                 if "autofocus" in p.read_text(encoding="utf-8")]
+    assert not offenders, (
+        f"autofocus makes the skip link unreachable: {offenders}"
+    )
+
+
 def test_an_in_page_link_moves_focus_and_not_only_the_scroll():
     """main.js intercepts every `a[href^="#"]` for smooth scrolling.
 

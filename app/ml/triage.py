@@ -22,6 +22,7 @@ from __future__ import annotations
 import logging
 import re
 import unicodedata
+from collections import namedtuple
 from dataclasses import dataclass, field
 
 log = logging.getLogger(__name__)
@@ -288,76 +289,160 @@ def check_emergency(text):
     ]
 
 
-def route(text, limit=3):
-    """Route a description to assessments, using the LLM when it is available.
+# `route(text)` used to live here: a single-shot version of `converse` that
+# took one string and returned (matches, method). `converse` with one user turn
+# does exactly that and nothing else called it, so keeping both would have left
+# two routing paths free to drift apart -- which is the failure this codebase
+# keeps finding elsewhere. Its tests moved to `converse` rather than being
+# deleted with it.
 
-    Returns ``(matches, method)`` where ``method`` is "model" or "keywords", so
-    the page can describe honestly how it reached the answer.
 
-    Three rules this must never break:
+# How many clarifying questions the agent may ask before it has to commit.
+#
+# Enforced here, not in the prompt. A model told "ask at most two questions"
+# will usually comply and occasionally will not, and the failure mode is a
+# person answering questions forever on a page that never gives them anything.
+MAX_QUESTIONS = 2
 
-    1. **Emergency detection is not in this path.** ``check_emergency`` runs in
-       the route before this is called, on deterministic keyword rules, and its
-       result cannot be overridden. Whether someone is told to call an ambulance
-       must not depend on a third party being reachable.
-    2. **The LLM may only choose from the fixed concern set.** Its answer is
-       looked up in ``CONCERNS_BY_KEY`` and discarded if it is not a real key,
-       so it can route but never invent a destination.
-    3. **Any failure falls back to keywords.** Azure being unconfigured, slow,
-       rate-limited or wrong is an ordinary condition, not an error page.
+# Bounds on the transcript, which arrives from hidden form fields and is
+# therefore whatever the browser chose to send back. Nothing is stored, so
+# tampering only affects the sender -- but it is still assembled into a
+# request to Azure, so it gets a ceiling.
+MAX_TURNS = 8
+MAX_TURN_CHARS = 500
+
+Outcome = namedtuple("Outcome", "action question matches method")
+
+
+def converse(turns, limit=3):
+    """Decide whether to ask one more question or route, given the exchange.
+
+    ``turns`` is a list of ``{"role": "user"|"agent", "text": str}`` in order.
+    Returns an ``Outcome`` whose ``action`` is "ask" or "route".
+
+    The rules from ``route`` all still hold, and two more:
+
+    4. **The question budget is enforced here.** After ``MAX_QUESTIONS`` the
+       agent must route, whatever it would prefer to do, so the conversation
+       cannot continue indefinitely.
+    5. **A reply that is neither a real question nor a real destination is a
+       failure**, and failures fall back to keywords over everything said so
+       far -- not to an error, and not to an empty page.
+
+    Emergency detection is deliberately not here. It runs in the route, on
+    every turn, over everything the person has typed, before this is called.
     """
-    text = (text or "").strip()
-    if not text:
-        return [], "keywords"
+    said = " ".join(t["text"] for t in turns if t["role"] == "user").strip()
+    if not said:
+        return Outcome("route", None, [], "keywords")
+
+    asked = sum(1 for t in turns if t["role"] == "agent")
 
     try:
-        matches = _match_with_model(text, limit)
-        if matches:
-            return matches, "model"
+        decision = _decide_with_model(turns, limit, may_ask=asked < MAX_QUESTIONS)
+        if decision is not None:
+            return decision
     except Exception as exc:  # never let this break the page
         log.info("falling back to keyword routing: %s", exc)
 
-    return match_concerns(text, limit), "keywords"
+    return Outcome("route", None, match_concerns(said, limit), "keywords")
 
 
-def _match_with_model(text, limit):
-    """Ask Azure OpenAI which of the fixed concerns this describes.
+def _decide_with_model(turns, limit, may_ask):
+    """One agent step. Returns an ``Outcome``, or ``None`` to fall back.
 
-    The only thing this app ever sends to Azure: the sentence the person typed
-    into the "what's bothering you" box. No assessment answers, no results.
+    Only what the person typed is sent, plus the agent's own previous
+    questions so it does not repeat itself. No assessment answers, no results,
+    no scores -- those never reach this module.
     """
     from app.azure_openai import complete_json, is_configured
 
     if not is_configured():
-        return []
+        return None
 
     catalogue = "\n".join(f"- {c.key}: {c.title} — {c.blurb}" for c in CONCERNS)
     system = (
-        "You route a person's description of a health concern to one or more "
-        "screening tools. Reply with JSON: {\"concerns\": [\"key\", ...]} using "
-        "at most 3 keys, most relevant first, chosen only from the list given. "
-        "Return an empty list if nothing fits. Do not diagnose, do not give "
-        "advice, and do not add any other field."
+        "You help a person find which of a fixed set of health screening tools "
+        "fits what they have noticed. "
+        + (
+            "Reply with JSON, either "
+            "{\"action\": \"ask\", \"question\": \"...\"} for ONE short "
+            "clarifying question when their description could fit several "
+            "tools, or "
+            "{\"action\": \"route\", \"concerns\": [\"key\", ...]} when you "
+            "can tell. "
+            if may_ask else
+            "Reply with JSON {\"action\": \"route\", \"concerns\": [\"key\", "
+            "...]}. You may not ask a question. "
+        )
+        + "Use at most 3 keys, most relevant first, chosen only from the list "
+        "given, and an empty list if nothing fits. A question must be one "
+        "sentence about their symptoms and must not suggest a cause. "
+        "Never diagnose, never give medical advice, never tell someone "
+        "whether to seek care."
     )
-    user = f"Available tools:\n{catalogue}\n\nThe person wrote: {text!r}"
+
+    lines = [f"Available tools:\n{catalogue}\n"]
+    for turn in turns:
+        who = "The person wrote" if turn["role"] == "user" else "You asked"
+        lines.append(f"{who}: {turn['text']!r}")
 
     payload = complete_json(
         [{"role": "system", "content": system},
-         {"role": "user", "content": user}],
-        max_tokens=80,
+         {"role": "user", "content": "\n".join(lines)}],
+        max_tokens=120,
     )
 
-    # Never trust the reply to name a real destination.
-    keys, seen = [], set()
-    for key in payload.get("concerns") or []:
+    action = str(payload.get("action") or "").strip().lower()
+
+    if action == "ask" and may_ask:
+        question = " ".join(str(payload.get("question") or "").split())
+        # A blank or absurd question is a failure, not something to render.
+        if 8 <= len(question) <= 200:
+            return Outcome("ask", question, [], "model")
+        return None
+
+    # A reply carrying `concerns` and no `action` is still a usable answer, and
+    # discarding it would drop a good route over a missing label.
+    if action == "route" or (not action and payload.get("concerns") is not None):
+        matches = _resolve(payload.get("concerns"), limit)
+        if matches:
+            return Outcome("route", None, matches, "model")
+
+    return None
+
+
+def _resolve(keys, limit):
+    """Look raw model output up in the fixed set, discarding anything else."""
+    resolved, seen = [], set()
+    for key in keys or []:
         concern = CONCERNS_BY_KEY.get(str(key).strip())
         if concern and concern.key not in seen:
             seen.add(concern.key)
-            keys.append(concern)
-
+            resolved.append(concern)
     # The page shows what a match was based on. With a model there are no
     # keywords to show, so it says so rather than inventing some.
-    return [(concern, []) for concern in keys[:limit]]
+    return [(concern, []) for concern in resolved[:limit]]
+
+
+def read_turns(pairs):
+    """Rebuild the transcript from hidden form fields, defensively.
+
+    The exchange is not stored anywhere: it rides in hidden inputs and comes
+    back with the next post, which is the same trick the red-flag interstitial
+    uses to replay a submission without a session. That means every value here
+    is attacker-controlled, so this validates shape and bounds rather than
+    trusting it. It cannot leak across users -- there is nothing to leak into.
+    """
+    turns = []
+    for raw in list(pairs)[:MAX_TURNS]:
+        role, _, text = str(raw).partition(":")
+        text = text.strip()[:MAX_TURN_CHARS]
+        if role in ("user", "agent") and text:
+            turns.append({"role": role, "text": text})
+    return turns
+
+
 
 
 def match_concerns(text, limit=3):
