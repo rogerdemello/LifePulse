@@ -308,21 +308,39 @@ far outside its training distribution — sleep was receiving
 
 Optional, off by default, and scoped so that `/privacy` stays true as written.
 
-**At runtime it sees one thing: the sentence typed into the "what's bothering
-you" box on `/start`**, so it can route "my chest feels tight climbing stairs"
-where a keyword matcher misses. Nothing from any assessment form is sent — not
-the answers, not the results, not the scores.
+**At runtime it sees one thing: what is typed into the "what's bothering you"
+box on `/start`**, so it can route "my chest feels tight climbing stairs" where
+a keyword matcher misses. Nothing from any assessment form is sent — not the
+answers, not the results, not the scores.
 
-Three rules the routing never breaks:
+The routing is conversational: the agent may ask up to two clarifying
+questions before it commits, because "I'm exhausted all the time" is three of
+the six assessments and one question about snoring settles it. Answers to those
+questions are sent the same way, so it is the sentences typed into that box —
+`/privacy` says so in those words.
+
+Five rules the routing never breaks:
 
 1. **Emergency detection is not in that path.** It runs first, on local keyword
    rules. Whether someone is told to call an ambulance must not depend on a
    third party being reachable.
-2. **The model may only pick from the fixed concern set.** Its answer is looked
+2. **It runs on every turn, over everything typed so far** — not over the newest
+   message. Emergency keywords are multi-word phrases matched against the words
+   present, so "I get pain walking upstairs" then "it is in my chest" is a
+   cardiac flag that neither turn raises alone.
+3. **The model may only pick from the fixed concern set.** Its answer is looked
    up in a table and discarded if it isn't a real key, so it can route but never
    invent a destination.
-3. **Any failure falls back to keywords.** Unconfigured, slow, rate-limited or
-   wrong are ordinary conditions, not error pages.
+4. **The question budget is enforced by the server**, not by the prompt. After
+   two, the reply is read only for a destination.
+5. **Any failure falls back to keywords.** Unconfigured, slow, rate-limited or
+   wrong are ordinary conditions, not error pages. So is a blank question, a
+   400-character one, and a hallucinated key.
+
+The exchange is never stored. It rides in hidden fields and comes back with the
+next post — the same trick the red-flag interstitial uses to replay a pending
+submission without a session — so it arrives attacker-controlled and is
+validated for role, emptiness and length before anything is assembled from it.
 
 **Better result copy is generated at build time, not per request.** The shape of
 every sentence is knowable in advance — there are only so many (field,
@@ -375,7 +393,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-**398 tests** (397 pass; one skips when the gitignored data is absent), covering:
+**419 tests** (418 pass; one skips when the gitignored data is absent), covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
@@ -446,7 +464,7 @@ LifePulse/
 │   ├── fetch_brfss.py          # CDC BRFSS -> data/brfss_heart.csv
 │   ├── fetch_nhanes.py         # CDC NHANES -> data/nhanes_sleep.csv
 │   └── train_all.py            # retrains both models
-├── tests/                      # 398 tests
+├── tests/                      # 419 tests
 ├── data/                       # training inputs (gitignored)
 ├── .github/workflows/ci.yml    # pytest + boot check + contract check
 ├── requirements.txt            # pinned runtime deps

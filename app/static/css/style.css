@@ -401,6 +401,19 @@ summary:focus-visible,
   color: var(--ink-muted);
 }
 
+/* Chart colour, resolved at paint time rather than copied into the SVG when
+   it was drawn -- which is what lets it follow dark mode and the print block. */
+.chart-tone { color: var(--brand); }
+.chart-tone.is-danger { color: var(--danger); }
+.chart-tone.is-warning { color: var(--warning); }
+.chart-tone.is-success { color: var(--success); }
+/* --border, not --surface-sunken: the sunken token is white inside the print
+   block, so the unfilled part of the arc disappeared on paper and the figure
+   lost the thing that shows it as a proportion. This one is visible on the
+   page, on a dark page, and in print. */
+.chart-track { stroke: var(--border); }
+.chart-caption { fill: var(--ink-muted); }
+
 /* The /start exchange. Two or three turns at most, so it is set as labelled
    lines rather than chat bubbles: styling it as messaging would promise a
    conversation the agent is not having. */
@@ -725,40 +738,14 @@ footer p { margin: 0; }
    and main.js -- renaming any of them silently unstyles the component.
    -------------------------------------------------------------------------- */
 
-.progress-circle-wrapper,
+/* The health-metric bar, the risk indicator and the progress circle were
+   styled here for builders in charts.js that no template ever called. They
+   went with the JavaScript; the classes below are the ones something actually
+   produces. */
 .gauge-chart-wrapper { display: inline-block; }
-
-.progress-circle-score,
-.gauge-chart-percentage { font-size: 2.5rem; font-weight: 800; }
-
-.progress-circle-label,
+.gauge-chart-percentage { font-size: 2.5rem; font-weight: 700; }
 .gauge-chart-label { font-size: 0.95rem; }
-
-.progress-circle-fill,
 .gauge-chart-fill { transition: stroke-dasharray 900ms ease; }
-
-.health-metric-bar { margin-bottom: 1rem; }
-.health-metric-header { display: flex; justify-content: space-between; font-size: 0.9rem; }
-.health-metric-label { color: var(--ink-muted); }
-.health-metric-value { font-weight: 600; }
-
-.health-metric-track {
-  height: 8px;
-  overflow: hidden;
-  background: var(--surface-sunken);
-  border-radius: 4px;
-}
-
-.health-metric-fill {
-  height: 100%;
-  background: var(--brand);
-  border-radius: 4px;
-  transition: width 700ms ease;
-}
-
-.risk-indicator { display: flex; align-items: center; gap: 0.5rem; }
-.risk-level { font-weight: 700; }
-.risk-level-label { color: var(--ink-muted); font-size: 0.9rem; }
 
 /* Toasts. */
 .toast-container {
