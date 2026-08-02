@@ -426,7 +426,8 @@ footer p { margin: 0; }
   color: var(--ink-muted);
   text-align: left;
   background: var(--warning-soft);
-  border: 1px solid rgba(214, 145, 0, 0.3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--warning);
   border-radius: var(--radius-sm);
 }
 
@@ -496,18 +497,36 @@ footer p { margin: 0; }
 
 /* Alerts. Tinted, not saturated, so body text stays readable and the red ones
    read as serious rather than loud. */
+/* A tint, a hairline and a coloured edge carry the meaning; the text stays ink.
+ *
+ * These used to set `color` on the whole panel, so every sentence inside a
+ * warning rendered amber and every sentence inside a danger panel rendered
+ * red. Two problems with that. Amber body text is genuinely hard to read at
+ * paragraph length -- the sleep result has a four-line one -- and colouring
+ * all of it meant a long explanatory note shouted exactly as loudly as a
+ * one-line emergency instruction, which is the opposite of colour carrying
+ * meaning.
+ *
+ * The border colours were also stale: they were rgba literals of the previous
+ * palette, so after the tokens changed they were four hexes nothing else in
+ * the stylesheet used. Semantic colour now comes from the token, once, on the
+ * left edge, and works in both themes without restating.
+ */
 .alert {
   padding: 1rem 1.25rem;
-  border: 1px solid transparent;
+  color: var(--ink);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-strong);
   border-radius: var(--radius-sm);
 }
 
-.alert-danger    { color: var(--danger);  background: var(--danger-soft);  border-color: rgba(192, 44, 60, 0.25); }
-.alert-warning   { color: var(--warning); background: var(--warning-soft); border-color: rgba(214, 145, 0, 0.30); }
-.alert-success   { color: var(--success); background: var(--success-soft); border-color: rgba(20, 114, 74, 0.25); }
-.alert-info      { color: var(--info);    background: var(--info-soft);    border-color: rgba(27, 95, 158, 0.25); }
+.alert-danger    { background: var(--danger-soft);  border-left-color: var(--danger); }
+.alert-warning   { background: var(--warning-soft); border-left-color: var(--warning); }
+.alert-success   { background: var(--success-soft); border-left-color: var(--success); }
+.alert-info      { background: var(--info-soft);    border-left-color: var(--info); }
 .alert-secondary,
-.alert-light     { color: var(--ink-muted); background: var(--surface-sunken); border-color: var(--border); }
+.alert-light     { background: var(--surface-sunken); }
 
 .alert h1, .alert h2, .alert h3,
 .alert h4, .alert h5, .alert h6 { color: inherit; }
@@ -1043,13 +1062,18 @@ footer p { margin: 0; }
     --brand-strong: #000;
     --brand-soft: transparent;
     --brand-gradient: none;
-    --danger: #c02c3c;
+    /* The light values, restated. They have to be literals -- this block
+       exists to beat both themes -- which means they drift from the palette
+       silently. They did: these were the previous palette's reds and greens
+       for a while after the tokens changed, so a printed page used colours no
+       longer used anywhere on screen. */
+    --danger: #bf2c1f;
     --danger-soft: transparent;
-    --warning: #7a4e00;
+    --warning: #8a5300;
     --warning-soft: transparent;
-    --success: #14724a;
+    --success: #0f6b41;
     --success-soft: transparent;
-    --info: #1b5f9e;
+    --info: #115ea3;
     --info-soft: transparent;
     --shadow: none;
     --shadow-lifted: none;

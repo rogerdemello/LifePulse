@@ -37,8 +37,13 @@
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/logo.png') }}" />
   
   <!-- Theme Color -->
-  <meta name="theme-color" content="#5b62d6" />
-  <meta name="msapplication-TileColor" content="#5b62d6" />
+  {# The page colour, not the brand colour: on a phone this tints the browser's
+     own chrome, and matching the page makes the bar disappear into it rather
+     than putting an indigo band above a white page. Both were still the old
+     indigo after the palette changed. #}
+  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  <meta name="msapplication-TileColor" content="#0066cc" />
 
   <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Google Fonts - Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
