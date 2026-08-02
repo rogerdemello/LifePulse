@@ -7,7 +7,7 @@
 
 > **Health screening you can take to your doctor.** Describe what you've noticed,
 > get a result that shows its working, and print a summary for your appointment.
-> Everything runs on this server; nothing you enter is stored.
+> Every model runs on this server; nothing you enter is stored on it.
 
 🔗 **Live:** [lifepulse-9vz4.onrender.com](https://lifepulse-9vz4.onrender.com/)
 
@@ -458,13 +458,20 @@ LifePulse/
 ### A note on CSRF
 
 There is deliberately no CSRF protection. Every form is unauthenticated and
-changes no state — no account, no database, no stored result — so a forged
-cross-site submission would achieve nothing beyond making a stranger's browser
-compute a score it never displays. Adding tokens would mean a session cookie and
-a dependency to defend against nothing.
+changes no server-side state — no account, no database, nothing written to disk
+— so a forged cross-site submission would achieve nothing beyond making a
+stranger's browser compute a score it never displays. Adding tokens would mean a
+session cookie and a dependency to defend against nothing.
 
-**This stops being true the moment accounts or saved history exist.** If that
-changes, CSRF protection goes in at the same time, not after.
+The visit summary does persist, in the visitor's own `localStorage`, which is
+worth checking against this reasoning rather than waving through. It doesn't
+change the conclusion: a forged POST can render a result page, but writing to
+the summary needs a click on **Add to visit summary** on a page served from this
+origin, and an attacker's page cannot read or write another origin's
+`localStorage`. The forged request still achieves nothing.
+
+**This stops being true the moment accounts or server-side history exist.** If
+that changes, CSRF protection goes in at the same time, not after.
 
 ---
 
@@ -482,6 +489,15 @@ changes, CSRF protection goes in at the same time, not after.
 6. Point the health check at `/healthz`
 
 `runtime.txt` pins Python 3.12 to match the pinned wheels. No Git LFS needed.
+
+If you enable Sentry, note what `app/observability.py` turns off and why. Error
+monitoring is the most likely route for health answers to leave the server by
+accident, because the defaults are built for apps whose request bodies aren't
+sensitive: `max_request_body_size="never"` withholds the submitted form, and
+`include_local_variables=False` withholds it a second time from the traceback,
+where the form dict would otherwise sit in a stack frame. `tests/test_observability.py` asserts the arguments reaching `sentry_sdk.init`, so a
+future change that drops one fails rather than silently starts uploading
+answers.
 
 **Locally, production-style:**
 
