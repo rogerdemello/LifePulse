@@ -217,6 +217,22 @@ def test_landmarks_and_skip_link(client, path):
     )
 
 
+def test_nothing_autofocuses_past_the_skip_link():
+    """`autofocus` starts focus inside the page, so the first Tab goes to
+    whatever follows the focused field and the skip link is never reached.
+
+    I put one on the /start box while building the conversational triage,
+    which silently undid the skip-link fix two commits earlier. The static
+    check above could not see it -- the markup was still correct, the focus
+    order was not.
+    """
+    offenders = [p.name for p in TEMPLATES.rglob("*.html")
+                 if "autofocus" in p.read_text(encoding="utf-8")]
+    assert not offenders, (
+        f"autofocus makes the skip link unreachable: {offenders}"
+    )
+
+
 def test_an_in_page_link_moves_focus_and_not_only_the_scroll():
     """main.js intercepts every `a[href^="#"]` for smooth scrolling.
 
@@ -694,7 +710,11 @@ def test_heading_size_classes_carry_the_same_typography_as_the_tags():
     Bootstrap's 500 weight and 1.2 line-height wherever a size class was used.
     """
     css = _code_only(STATIC / "css" / "style.css")
-    block = re.search(r"([^}]*)\{[^}]*font-weight:\s*700;[^}]*letter-spacing", css)
+    # Anchored on the selector, not on a declaration inside it: the first
+    # version of this matched `font-weight: 700` and broke the moment the
+    # headings were restyled to 600, which is a change it should not have an
+    # opinion about.
+    block = re.search(r"([^}]*\bh1\s*,[^}]*?)\{", css)
     assert block, "the shared heading rule moved; check this test still applies"
     selectors = block.group(1)
     for name in (".h1", ".h2", ".h3", ".h4", ".h5", ".h6"):

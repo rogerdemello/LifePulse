@@ -33,12 +33,16 @@
               <p class="mb-0">{{ apnea.comparison }}</p>
             </div>
           {% else %}
-            <div class="text-center mb-4">
+            {# Left-aligned, like everything else in this card. The figure used
+               to be centred between a left-aligned heading above it and a
+               left-aligned list below, so the reader's eye had to find a new
+               starting edge twice inside one card. #}
+            <div class="mb-4">
               <div class="rate-figure band-{{ apnea.band }}">{{ apnea.percent }}%</div>
               <p class="text-muted mt-2 mb-3">
                 of people who answered like you reported signs of sleep apnea
               </p>
-              <div class="rate-bar mx-auto" style="max-width: 26rem;">
+              <div class="rate-bar">
                 <span style="width: {{ apnea.percent }}%;
                              background: {% if apnea.band == 'high' %}var(--danger){% elif apnea.band == 'raised' %}var(--warning){% else %}var(--success){% endif %};"></span>
               </div>

@@ -11,7 +11,11 @@
 <div class="card border-0 shadow-sm mb-4" data-summary-card>
   <div class="card-body p-4">
     <div class="row align-items-center g-3">
-      <div class="col-md-7">
+      {# 6/6 rather than 7/5: the pill button is wider than the rounded
+         rectangle it replaced, which squeezed "View summary" beside it onto
+         two lines. The two actions also stack rather than sitting inline, so
+         the link never has to share a row with the button. #}
+      <div class="col-md-6">
         <h2 class="h6 fw-bold mb-1">
           <i class="bi bi-clipboard2-pulse me-2" aria-hidden="true"></i>Taking this to a doctor?
         </h2>
@@ -21,11 +25,11 @@
           browser only; nothing is uploaded.
         </p>
       </div>
-      <div class="col-md-5 text-md-end">
+      <div class="col-md-6 text-md-end">
         <button type="button" class="btn btn-primary" data-save-summary>
           <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Add to visit summary
         </button>
-        <a href="{{ url_for('summary') }}" class="btn btn-link btn-sm d-block mt-1 d-md-inline">
+        <a href="{{ url_for('summary') }}" class="btn btn-link btn-sm d-block mt-2">
           View summary
         </a>
       </div>

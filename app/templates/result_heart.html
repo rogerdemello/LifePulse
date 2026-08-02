@@ -36,12 +36,17 @@
 
         <div class="card-body p-4 p-md-5">
           
-          <!-- Risk Gauge -->
-          <div class="text-center mb-5">
+          {# The gauge is a figure and stays centred; the prose under it does
+             not. Centred paragraphs at a 42rem measure give the eye a new
+             starting edge on every line, which is the wrong trade on the one
+             page someone reads carefully. The <details> below was already
+             marked text-start, so the tension was already noticed once. #}
+          <div class="mb-5">
+            <div class="text-center">
             <div id="riskGauge" data-gauge-chart data-percentage="{{ probability }}"
                  data-label="Estimated risk"
                  data-tone="{% if prediction == 'Yes' %}danger{% else %}success{% endif %}"></div>
-            
+
             <div class="mt-4">
               {% if prediction == "Yes" %}
                 <span class="probability-badge bg-danger text-white">
@@ -55,8 +60,9 @@
                 </span>
               {% endif %}
             </div>
+            </div>
 
-            <p class="mt-3 mb-2 mx-auto" style="max-width: 42rem;">
+            <p class="mt-4 mb-2 mx-auto" style="max-width: 42rem;">
               Out of 100 people who answered the way you did, we'd expect
               <strong>about {{ probability|float|round|int }}</strong> to have heart
               disease. Across everyone in the survey, it's about
@@ -85,10 +91,12 @@
             </details>
           </div>
 
-          <!-- Result Message -->
-          <div class="text-center mb-4 py-3">
+          {# Left-aligned, and without the 3rem icon that used to sit above the
+             heading. The card header two blocks up already carries a warning
+             triangle saying the same thing; a second one at three times the
+             size is decoration on a page that is trying to be measured. #}
+          <div class="mb-4 py-3 mx-auto" style="max-width: 42rem;">
             {% if prediction == "Yes" %}
-              <div class="mb-3"><i class="bi bi-exclamation-triangle" style="font-size:3rem" aria-hidden="true"></i></div>
               <h3 class="h4 text-danger mb-3">Elevated Heart Disease Risk</h3>
               <p class="text-muted lead">
                 Your answers put you in a group where heart disease is more common
@@ -103,7 +111,6 @@
                 </p>
               </div>
             {% else %}
-              <div class="mb-3"><i class="bi bi-circle" style="font-size:3rem" aria-hidden="true"></i></div>
               <h3 class="h4 text-success mb-3">Healthy Heart Profile</h3>
               <p class="text-muted lead">
                 Your answers put you in a group where heart disease is less common
