@@ -108,9 +108,30 @@ body {
   /* No `opacity: 0` here. It used to hide the entire page until JavaScript
      faded it back in, so any script failure left a permanently blank health
      tool. Content must be readable without JavaScript. */
+
+  /* Pin the footer to the bottom of short pages. Without this the nutrition
+     search and the empty visit summary ended their footer band a third of the
+     way up a 1400px window, with the page background running on below it --
+     which reads as content failing to load. */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-h1, h2, h3, h4, h5, h6 {
+body > main {
+  flex: 1 0 auto;
+}
+
+/* The `.h1`-`.h6` classes are listed alongside the tags deliberately.
+   Heading level is structure and belongs to the markup; size is presentation
+   and belongs to a class, so `<h2 class="h5">` is the normal way to write a
+   subsection that should not look like a page title. Bootstrap's own `.h1`-
+   `.h6` set font-weight and line-height as well as size, and a class beats an
+   element selector -- so without the classes here, every heading that used one
+   silently picked up Bootstrap's 500 weight and 1.2 line-height instead of
+   ours. */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
   color: var(--ink);
   font-weight: 700;
   line-height: 1.25;
@@ -577,7 +598,9 @@ footer p { margin: 0; }
 /* Toasts. */
 .toast-container {
   position: fixed;
-  top: 1rem;
+  /* Clear of the navbar. At `top: 1rem` a toast landed on top of the
+     navigation links, covering "Migraine" and "Nutrition" while it was up. */
+  top: 5.5rem;
   right: 1rem;
   z-index: 1080;
   display: flex;
@@ -755,75 +778,7 @@ footer p { margin: 0; }
 }
 
 /* --------------------------------------------------------------------------
-   9. PRINT
-   Strip the app furniture so what comes out of the printer is a clean clinical
-   handout: black on white, no navigation, nothing that costs ink and says
-   nothing.
-   -------------------------------------------------------------------------- */
-
-@media print {
-  nav,
-  footer,
-  .scroll-to-top,
-  .loading-overlay,
-  .summary-toolbar,
-  .toast-container,
-  #summaryEmpty {
-    display: none !important;
-  }
-
-  body {
-    font-size: 11pt;
-    color: #000 !important;
-    background: #fff !important;
-  }
-
-  .container,
-  .summary-page {
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .summary-print-header {
-    display: block !important;
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-    border-bottom: 2px solid #000;
-  }
-
-  .summary-print-header h1 { margin: 0; font-size: 16pt; }
-  .summary-print-header p { margin: 0; font-size: 9pt; color: #444; }
-
-  /* Keep an assessment and its questions from splitting across pages. */
-  .summary-entry,
-  #summaryQuestions,
-  .summary-flag,
-  .card {
-    background: #fff !important;
-    border: 1px solid #999 !important;
-    box-shadow: none !important;
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  .summary-flag,
-  .summary-flag-emergency { border-left: 4px solid #000 !important; }
-
-  .summary-caveat {
-    color: #000 !important;
-    background: #fff !important;
-    border: 1px dashed #666;
-  }
-
-  .summary-inputs > summary { font-weight: 600; color: #000; }
-  .summary-inputs > dl { display: grid !important; grid-template-columns: 1fr 1fr; }
-
-  a[href]::after { content: ""; }
-}
-
-/* --------------------------------------------------------------------------
-   10. DARK MODE
+   9. DARK MODE
    Follows the reader's system preference. Because everything above is driven
    by tokens, this is mostly a matter of restating them.
    -------------------------------------------------------------------------- */
@@ -904,3 +859,220 @@ footer p { margin: 0; }
 .card-accent-danger  { border-top: 4px solid var(--danger) !important; }
 .card-accent-warning { border-top: 4px solid var(--warning) !important; }
 .card-edge-danger    { border-left: 4px solid var(--danger) !important; }
+
+/* --------------------------------------------------------------------------
+   10. PRINT
+   Strip the app furniture so what comes out of the printer is a clean clinical
+   handout: black on white, no navigation, nothing that costs ink and says
+   nothing.
+
+   THIS BLOCK MUST STAY LAST. It used to sit before the dark-mode block, and
+   `@media print { :root {...} }` lost to
+   `@media (prefers-color-scheme: dark) { :root {...} }` purely on source order
+   -- same specificity, later wins, and both queries match when you print from
+   a machine whose OS is in dark mode. So the token reset below, which is the
+   entire strategy, was inert for exactly the readers it was written for, and
+   the page printed in near-white ink. Anything added after this block will
+   outrank it the same way.
+   -------------------------------------------------------------------------- */
+
+@media print {
+  /* Paper is white whatever the screen was. Overriding the tokens fixes every
+     descendant at once and keeps the print layout independent of the theme.
+     The semantic four are restored to their light values rather than flattened
+     to black: those values are already chosen for contrast on white, and a red
+     figure still carries meaning on paper. */
+  :root {
+    --page: #fff;
+    --surface: #fff;
+    --surface-sunken: #fff;
+    --border: #999;
+    --border-strong: #000;
+    --ink: #000;
+    --ink-muted: #333;
+    --ink-faint: #555;
+    --brand: #000;
+    --brand-strong: #000;
+    --brand-soft: transparent;
+    --brand-gradient: none;
+    --danger: #c02c3c;
+    --danger-soft: transparent;
+    --warning: #7a4e00;
+    --warning-soft: transparent;
+    --success: #14724a;
+    --success-soft: transparent;
+    --info: #1b5f9e;
+    --info-soft: transparent;
+    --shadow: none;
+    --shadow-lifted: none;
+  }
+
+  /* Furniture, and anything that is an action rather than information: on
+     paper a button is an instruction to go back to a screen. `.btn` covers
+     "Take Another Assessment", "Back to Home" and friends; the summary card is
+     an offer to save the result, which has already happened or not by the time
+     anyone is holding the page. */
+  nav,
+  footer,
+  .scroll-to-top,
+  .loading-overlay,
+  .summary-toolbar,
+  .toast-container,
+  .btn,
+  [data-summary-card],
+  #summaryEmpty {
+    display: none !important;
+  }
+
+  body {
+    font-size: 11pt;
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 { color: #000 !important; }
+
+  .text-muted { color: #333 !important; }
+
+  /* White text is invisible on paper.
+
+     A printer leaves background graphics off by default, so every pill, badge
+     and result header that spelled its number in white on a coloured fill came
+     out as blank space: the heart page's "63.58% estimated risk", the migraine
+     page's "97.5% estimated risk" and its accuracy note, the health-score
+     rating, and the calculator's BMI band. Each of those is the headline
+     figure of its page. Give them ink and an outline instead of a fill. */
+  .text-white,
+  .text-light,
+  .result-header,
+  .result-header p,
+  .badge,
+  .probability-badge,
+  .bg-primary,
+  .bg-success,
+  .bg-danger,
+  .bg-warning,
+  .bg-info {
+    color: #000 !important;
+    background: none !important;
+    opacity: 1 !important;
+  }
+
+  .badge,
+  .probability-badge { border: 1px solid #000 !important; }
+
+  .result-header { border-bottom: 2px solid #000 !important; }
+
+  /* An `alert-secondary` note is a dark navy panel in dark mode. Printed, that
+     is a full-width block of toner with pale text on it. */
+  .summary-footnote,
+  .alert {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #999 !important;
+  }
+
+  .container,
+  .summary-page {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Bootstrap's `md` breakpoint is 768px and an A4 print canvas is about
+     700px, so every `col-md-*` collapsed to full width: the four heart
+     recommendation cards printed one per row, and the calculator's three
+     metric tiles took most of a sheet between them. There is plenty of width
+     on paper -- put them back side by side.
+
+     Only the grid columns are restored. The `col-md-8`/`col-md-10`/`col-lg-*`
+     wrappers exist to centre a column on a wide screen; on paper the margin
+     already does that, and full width is what you want. */
+  .row > .col-md-6 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+    width: 50% !important;
+  }
+
+  .row > .col-md-4 {
+    flex: 0 0 33.333% !important;
+    max-width: 33.333% !important;
+    width: 33.333% !important;
+  }
+
+  .summary-print-header {
+    display: block !important;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #000;
+  }
+
+  .summary-print-header h1 { margin: 0; font-size: 16pt; }
+  .summary-print-header p { margin: 0; font-size: 9pt; color: #444; }
+
+  .summary-entry,
+  #summaryQuestions,
+  .summary-flag,
+  .card {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+    box-shadow: none !important;
+  }
+
+  /* Keep small blocks whole, but let a long card flow.
+
+     `.card` used to be in this list. The main result card on the heart page is
+     taller than a sheet, so `break-inside: avoid` could not be honoured and
+     the browser pushed the whole card to page 2 -- printing a first page that
+     was blank below the title. Avoid breaks only where one can be avoided. */
+  .summary-entry,
+  #summaryQuestions,
+  .summary-flag,
+  .stat-card,
+  .alert {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .summary-flag,
+  .summary-flag-emergency { border-left: 4px solid #000 !important; }
+
+  .summary-caveat {
+    color: #000 !important;
+    background: #fff !important;
+    border: 1px dashed #666;
+  }
+
+  /* These two encode the result, so they are content rather than decoration.
+     Force them through even when background graphics are off, or the sleep
+     page prints an empty outline where the proportion should be. */
+  .rate-bar,
+  .rate-bar > span {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .summary-inputs > summary { font-weight: 600; color: #000; }
+
+  /* The <dl> carries Bootstrap's `.row` with `.col-6 .col-sm-4` on each <dt>.
+     Forcing grid on the parent left those percentage widths applying to grid
+     items, so a 350pt column rendered its label inside 117pt and "high blood
+     pressure" printed as three stacked lines. Give the label a real column and
+     stop the column classes fighting it. */
+  .summary-inputs > dl {
+    display: grid !important;
+    grid-template-columns: 11rem 1fr;
+    gap: 0.15rem 0.75rem;
+  }
+
+  .summary-inputs > dl > dt,
+  .summary-inputs > dl > dd {
+    width: auto !important;
+    max-width: none !important;
+    flex: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  a[href]::after { content: ""; }
+}

@@ -145,7 +145,7 @@ def show_health_result():
                             "and speak to your doctor if it stays elevated.")
 
             if calories:
-                tips.append(f"Estimated daily calories: {calories}. Adjust portion "
+                tips.append(f"Estimated daily calories: {calories:.0f}. Adjust portion "
                             f"sizes for your goals.")
 
             return tips[:3]

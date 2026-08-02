@@ -3,7 +3,7 @@
 
 <div class="container py-5">
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2"><i class="bi bi-heart-pulse me-2" aria-hidden="true"></i>Heart Disease Risk Prediction</h2>
+    <h1 class="fw-bold h2 mb-2"><i class="bi bi-heart-pulse me-2" aria-hidden="true"></i>Heart Disease Risk Prediction</h1>
     <p class="text-muted">Answer these questions to assess your heart disease risk</p>
   </div>
   
@@ -17,18 +17,18 @@
                  one at a time. Without JavaScript they all render as one form,
                  which still submits correctly. -->
             <section data-step="About you">
-            <h5 class="fw-bold mb-3 text-primary">
+            <h2 class="h5 fw-bold mb-3 text-primary">
               <i class="bi bi-person-fill" aria-hidden="true"></i> Basic Information
-            </h5>
+            </h2>
             <div class="row g-3 mb-4">
               <div class="col-md-4">
                 <label for="age" class="form-label">Age</label>
-                <input type="number" class="form-control" name="age" min="18" max="120" required>
+                <input type="number" class="form-control" name="age" id="age" min="18" max="120" required>
               </div>
 
               <div class="col-md-4">
                 <label for="sex" class="form-label">Gender</label>
-                <select class="form-select" name="sex" required aria-describedby="sexNote">
+                <select class="form-select" name="sex" id="sex" required aria-describedby="sexNote">
                   <option value="" selected disabled>Select...</option>
                   <option value="0">Female</option>
                   <option value="1">Male</option>
@@ -42,20 +42,20 @@
 
               <div class="col-md-4">
                 <label for="bmi" class="form-label">BMI</label>
-                <input type="number" step="0.1" class="form-control" name="bmi" placeholder="e.g., 24.5" required>
+                <input type="number" step="0.1" class="form-control" name="bmi" id="bmi" placeholder="e.g., 24.5" required>
               </div>
             </div>
 
             </section>
 
             <section data-step="Health conditions">
-            <h5 class="fw-bold mb-3 text-danger">
+            <h2 class="h5 fw-bold mb-3 text-danger">
               <i class="bi bi-heart-pulse-fill" aria-hidden="true"></i> Health Conditions
-            </h5>
+            </h2>
             <div class="row g-3 mb-4">
               <div class="col-md-4">
                 <label for="high_bp" class="form-label">High Blood Pressure?</label>
-                <select class="form-select" name="high_bp" required>
+                <select class="form-select" name="high_bp" id="high_bp" required>
                   <option value="" selected disabled>Select...</option>
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -64,7 +64,7 @@
 
               <div class="col-md-4">
                 <label for="high_chol" class="form-label">High Cholesterol?</label>
-                <select class="form-select" name="high_chol" required>
+                <select class="form-select" name="high_chol" id="high_chol" required>
                   <option value="" selected disabled>Select...</option>
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -74,7 +74,7 @@
               <div class="col-md-4">
                 <label for="chol_check" class="form-label">Cholesterol Check?</label>
                 <small class="text-muted d-block mb-1">(Last 5 years)</small>
-                <select class="form-select" name="chol_check" required>
+                <select class="form-select" name="chol_check" id="chol_check" required>
                   <option value="" selected disabled>Select...</option>
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -83,7 +83,7 @@
 
               <div class="col-md-4">
                 <label for="stroke" class="form-label">Ever Had Stroke?</label>
-                <select class="form-select" name="stroke" required>
+                <select class="form-select" name="stroke" id="stroke" required>
                   <option value="" selected disabled>Select...</option>
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -92,7 +92,7 @@
 
               <div class="col-md-4">
                 <label for="diabetes" class="form-label">Diabetes Status</label>
-                <select class="form-select" name="diabetes" required>
+                <select class="form-select" name="diabetes" id="diabetes" required>
                   <option value="" selected disabled>Select...</option>
                   <option value="0">No</option>
                   <option value="1">Prediabetes</option>
@@ -103,7 +103,7 @@
               <div class="col-md-4">
                 <label for="diff_walk" class="form-label">Difficulty Walking?</label>
                 <small class="text-muted d-block mb-1">(Stairs/climbing)</small>
-                <select class="form-select" name="diff_walk" required>
+                <select class="form-select" name="diff_walk" id="diff_walk" required>
                   <option value="" selected disabled>Select...</option>
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -114,14 +114,14 @@
             </section>
 
             <section data-step="Lifestyle">
-            <h5 class="fw-bold mb-3 text-success">
+            <h2 class="h5 fw-bold mb-3 text-success">
               <i class="bi bi-activity" aria-hidden="true"></i> Lifestyle Habits
-            </h5>
+            </h2>
             <div class="row g-3 mb-4">
               <div class="col-md-4">
                 <label for="phys_activity" class="form-label">Physical Activity?</label>
                 <small class="text-muted d-block mb-1">(Last 30 days)</small>
-                <select class="form-select" name="phys_activity" required>
+                <select class="form-select" name="phys_activity" id="phys_activity" required>
                   <option value="" selected disabled>Select...</option>
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -131,7 +131,7 @@
               <div class="col-md-4">
                 <label for="smoker" class="form-label">Smoker?</label>
                 <small class="text-muted d-block mb-1">(100+ cigarettes lifetime)</small>
-                <select class="form-select" name="smoker" required>
+                <select class="form-select" name="smoker" id="smoker" required>
                   <option value="" selected disabled>Select...</option>
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -141,7 +141,7 @@
               <div class="col-md-4">
                 <label for="alcohol" class="form-label">Heavy Alcohol Use?</label>
                 <small class="text-muted d-block mb-1">(M: 14+/wk, F: 7+/wk)</small>
-                <select class="form-select" name="alcohol" required>
+                <select class="form-select" name="alcohol" id="alcohol" required>
                   <option value="" selected disabled>Select...</option>
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -149,7 +149,7 @@
               </div>
               <div class="col-md-4">
                 <label for="gen_health" class="form-label">General Health</label>
-                <select class="form-select" name="gen_health" required>
+                <select class="form-select" name="gen_health" id="gen_health" required>
                   <option value="" selected disabled>Select...</option>
                   <option value="1">Excellent</option>
                   <option value="2">Very Good</option>
@@ -163,20 +163,20 @@
             </section>
 
             <section data-step="How you've felt lately">
-            <h5 class="fw-bold mb-3 text-info">
+            <h2 class="h5 fw-bold mb-3 text-info">
               <i class="bi bi-clipboard2-pulse" aria-hidden="true"></i> Recent Health Status
-            </h5>
+            </h2>
             <div class="row g-3 mb-4">
               <div class="col-md-6">
                 <label for="phys_health" class="form-label">Physical Health Issues</label>
                 <small class="text-muted d-block mb-1">Days in last month feeling physically unwell</small>
-                <input type="number" min="0" max="30" class="form-control" name="phys_health" placeholder="0-30 days" required>
+                <input type="number" min="0" max="30" class="form-control" name="phys_health" id="phys_health" placeholder="0-30 days" required>
               </div>
 
               <div class="col-md-6">
                 <label for="ment_health" class="form-label">Mental Health Issues</label>
                 <small class="text-muted d-block mb-1">Days in last month feeling stressed/anxious</small>
-                <input type="number" min="0" max="30" class="form-control" name="ment_health" placeholder="0-30 days" required>
+                <input type="number" min="0" max="30" class="form-control" name="ment_health" id="ment_health" placeholder="0-30 days" required>
               </div>
             </div>
 

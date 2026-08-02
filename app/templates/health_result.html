@@ -4,7 +4,7 @@
 {% block content %}
 <div class="container py-5">
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2"><i class="bi bi-clipboard2-pulse me-2" aria-hidden="true"></i>Your Health Insights</h2>
+    <h1 class="fw-bold h2 mb-2"><i class="bi bi-clipboard2-pulse me-2" aria-hidden="true"></i>Your Health Insights</h1>
     <p class="text-muted">Comprehensive analysis of your health metrics</p>
   </div>
 
@@ -20,8 +20,8 @@
               <div class="mb-2">
                 <span style="font-size: 2rem;"><i class="bi bi-speedometer2 me-2" aria-hidden="true"></i></span>
               </div>
-              <h6 class="text-muted text-uppercase small mb-2">Body Mass Index</h6>
-              <h2 class="fw-bold mb-2">{{ bmi }}</h2>
+              <h2 class="h6 text-muted text-uppercase small mb-2">Body Mass Index</h2>
+              <div class="h2 fw-bold mb-2">{{ bmi }}</div>
               <span class="badge 
                 {% if bmi_cat == 'Normal' %}bg-success{% elif bmi_cat == 'Overweight' %}bg-warning text-dark{% else %}bg-danger{% endif %} px-3 py-2">
                 {{ bmi_cat }}
@@ -50,8 +50,8 @@
               <div class="mb-2">
                 <span style="font-size: 2rem;"><i class="bi bi-fire me-2" aria-hidden="true"></i></span>
               </div>
-              <h6 class="text-muted text-uppercase small mb-2">Basal Metabolic Rate</h6>
-              <h2 class="fw-bold mb-2">{{ bmr }}</h2>
+              <h2 class="h6 text-muted text-uppercase small mb-2">Basal Metabolic Rate</h2>
+              <div class="h2 fw-bold mb-2">{{ bmr|round|int }}</div>
               <span class="text-muted">kcal/day</span>
               <div class="mt-3">
                 <small class="text-muted">Calories burned at rest</small>
@@ -67,8 +67,8 @@
               <div class="mb-2">
                 <span style="font-size: 2rem;"><i class="bi bi-egg-fried me-2" aria-hidden="true"></i></span>
               </div>
-              <h6 class="text-muted text-uppercase small mb-2">Daily Calorie Needs</h6>
-              <h2 class="fw-bold mb-2">{{ calorie_needs }}</h2>
+              <h2 class="h6 text-muted text-uppercase small mb-2">Daily Calorie Needs</h2>
+              <div class="h2 fw-bold mb-2">{{ calorie_needs|round|int }}</div>
               <span class="text-muted">kcal/day</span>
               <div class="mt-3">
                 <small class="text-muted">Based on activity level</small>
@@ -84,8 +84,8 @@
               <div class="mb-2">
                 <span style="font-size: 2rem;"><i class="bi bi-rulers me-2" aria-hidden="true"></i></span>
               </div>
-              <h6 class="text-muted text-uppercase small mb-2">Waist-Hip Ratio</h6>
-              <h2 class="fw-bold mb-2">{{ wh_ratio }}</h2>
+              <h2 class="h6 text-muted text-uppercase small mb-2">Waist-Hip Ratio</h2>
+              <div class="h2 fw-bold mb-2">{{ wh_ratio }}</div>
               <div>
                 {% if wh_ratio > 0.9 %}
                   <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Elevated Risk</span>
@@ -110,8 +110,8 @@
               <div class="mb-2">
                 <span style="font-size: 2rem;"><i class="bi bi-clipboard2-pulse me-2" aria-hidden="true"></i></span>
               </div>
-              <h6 class="text-muted text-uppercase small mb-2">Blood Pressure</h6>
-              <h3 class="fw-bold mb-2">{{ bp_cat }}</h3>
+              <h2 class="h6 text-muted text-uppercase small mb-2">Blood Pressure</h2>
+              <div class="h3 fw-bold mb-2">{{ bp_cat }}</div>
               <div>
                 {% if bp_cat == 'Normal' %}
                   <span class="badge bg-success px-3 py-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Healthy</span>
@@ -136,7 +136,7 @@
         <div class="d-flex align-items-start">
           <div class="me-3" style="font-size: 2rem;"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i></div>
           <div class="flex-grow-1">
-            <h5 class="alert-heading mb-3">Important Health Considerations</h5>
+            <h2 class="h5 alert-heading mb-3">Important Health Considerations</h2>
             <ul class="mb-0">
               {% for warning in warnings %}
                 <li class="mb-2">{{ warning }}</li>
@@ -176,7 +176,7 @@
       <!-- Quick Stats Summary -->
       <div class="card border-0 shadow-sm mb-4 bg-primary text-white">
         <div class="card-body p-4">
-          <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart me-2" aria-hidden="true"></i>Quick Summary</h5>
+          <h2 class="h5 fw-bold mb-3"><i class="bi bi-bar-chart me-2" aria-hidden="true"></i>Quick Summary</h2>
           <div class="row g-3">
             <div class="col-md-6">
               <div class="d-flex justify-content-between align-items-center">

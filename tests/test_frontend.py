@@ -8,9 +8,12 @@ the wrong element.
 """
 
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
+
+from tests.test_routes import FORMS
 
 STATIC = Path(__file__).resolve().parent.parent / "app" / "static"
 TEMPLATES = Path(__file__).resolve().parent.parent / "app" / "templates"
@@ -115,10 +118,57 @@ def test_native_form_validation_is_not_suppressed():
 
 @pytest.mark.parametrize("path", PAGES)
 def test_landmarks_and_skip_link(client, path):
+    """The skip link has to land somewhere that can hold focus.
+
+    This test used to assert the link existed and `id="mainContent"` existed,
+    and passed on every page while the link did nothing at all: <main> was not
+    focusable, so following it moved the scroll position and left focus on the
+    link. The next Tab went to the navbar brand -- back into the navigation the
+    link exists to skip. Both halves being present was never the claim worth
+    checking; that they connect is.
+    """
     body = client.get(path).get_data(as_text=True)
-    assert 'class="skip-link"' in body
-    assert 'id="mainContent"' in body
     assert "<main" in body and "</main>" in body
+
+    link = re.search(r'<a\s[^>]*class="skip-link"[^>]*>', body)
+    assert link, "no skip link"
+    href = re.search(r'href="#([^"]+)"', link.group(0))
+    assert href, "the skip link does not point at a fragment"
+
+    target = re.search(rf'<(\w+)\s[^>]*id="{re.escape(href.group(1))}"[^>]*>', body)
+    assert target, f"the skip link points at #{href.group(1)}, which is not on the page"
+    focusable = ("tabindex" in target.group(0)
+                 or target.group(1) in ("a", "button", "input", "select", "textarea"))
+    assert focusable, (
+        f"<{target.group(1)} id={href.group(1)}> cannot receive focus, so the "
+        "skip link only scrolls -- a keyboard user stays in the navigation"
+    )
+
+
+def test_an_in_page_link_moves_focus_and_not_only_the_scroll():
+    """main.js intercepts every `a[href^="#"]` for smooth scrolling.
+
+    `preventDefault()` cancels the fragment navigation, and with it the focus
+    move the browser would have performed -- which is what broke the skip link
+    even once <main> was made focusable. Anything that takes over an in-page
+    link has to do the whole job, not the visible half of it.
+    """
+    js = _code_only(STATIC / "js" / "main.js")
+    start = js.index('a[href^="#"]')
+    open_brace = js.index("{", start)
+    depth, end = 0, None
+    for i in range(open_brace, len(js)):
+        depth += (js[i] == "{") - (js[i] == "}")
+        if depth == 0:
+            end = i
+            break
+    assert end, "could not find the end of the smooth-scroll handler"
+    handler = js[start:end]
+    assert "preventDefault" in handler
+    assert ".focus(" in handler, (
+        "the smooth-scroll handler scrolls sighted users to the target and "
+        "leaves keyboard focus behind"
+    )
 
 
 @pytest.mark.parametrize("path,expected", [
@@ -168,15 +218,6 @@ def test_binary_sex_field_explains_itself(client, path):
     assert "only recorded two values" in body
 
 
-def test_print_stylesheet_exists_for_the_visit_summary():
-    css = (STATIC / "css" / "style.css").read_text(encoding="utf-8")
-    assert "@media print" in css
-    print_block = css[css.index("@media print"):]
-    # The app furniture must not end up on a page handed to a doctor.
-    for selector in ("nav", "footer", ".summary-toolbar"):
-        assert selector in print_block
-
-
 # --------------------------------------------------------------------------
 # multi-step forms
 # --------------------------------------------------------------------------
@@ -221,3 +262,383 @@ def test_the_step_script_only_hides_what_it_grouped():
     assert "reportValidity" in js
     # And the change of step is announced.
     assert "aria-live" in js
+
+
+# --------------------------------------------------------------------------
+# the privacy page has to describe what the app actually does
+# --------------------------------------------------------------------------
+
+def test_privacy_page_discloses_browser_storage(client):
+    """The visit summary writes results -- and the answers behind them -- to
+    localStorage. Until this test existed, the privacy page still said
+    "Because nothing is saved, you can't come back later and find a result",
+    which the feature had made false.
+
+    A privacy page that is out of date is worse than none: it is the page
+    someone reads *instead of* checking.
+    """
+    body = " ".join(client.get("/privacy").get_data(as_text=True).split())
+
+    # It must name the mechanism, say where it lives, and say what removes it.
+    assert "local storage" in body.lower()
+    assert "never uploaded" in body
+    assert "Clear" in body
+
+    # And it must not claim the absolute that the summary feature broke.
+    assert "Because nothing is saved" not in body
+    assert "writes nothing to disk" not in body
+
+
+def test_the_storage_claim_is_scoped_to_the_server(client):
+    """"Nothing you enter is stored" appears in the footer of every page.
+
+    It is only true of the server now, and an unqualified version reads as a
+    promise about the device -- which is where the summary actually lives.
+    """
+    for path in ("/", "/privacy", "/summary", "/nutrition/"):
+        body = client.get(path).get_data(as_text=True)
+        assert "Nothing you enter is stored on our server" in body, path
+
+
+def test_summary_page_says_it_needs_javascript(client):
+    """Every other page renders server-side; this one cannot."""
+    body = client.get("/summary").get_data(as_text=True)
+    assert "<noscript>" in body
+    assert "needs JavaScript" in body
+
+
+def test_the_footer_is_pinned_on_short_pages():
+    """A footer band ending a third of the way up the window, with page
+    background below it, reads as content that failed to load.
+    """
+    css = _code_only(STATIC / "css" / "style.css")
+    assert "min-height: 100vh" in css
+    assert "body > main" in css
+
+
+# --------------------------------------------------------------------------
+# the printed visit summary
+# --------------------------------------------------------------------------
+
+def _print_block():
+    css = _code_only(STATIC / "css" / "style.css")
+    start = css.index("@media print")
+    depth, i = 0, start
+    while i < len(css):
+        if css[i] == "{":
+            depth += 1
+        elif css[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return css[start:i + 1]
+        i += 1
+    raise AssertionError("unterminated @media print block")
+
+
+def test_print_stylesheet_exists_for_the_visit_summary():
+    block = _print_block()
+    # The app furniture must not end up on a page handed to a doctor.
+    for selector in ("nav", "footer", ".summary-toolbar"):
+        assert selector in block
+
+
+def test_printing_does_not_inherit_the_dark_theme():
+    """The visit summary is the artifact this whole feature exists for, and it
+    printed pale grey on white for anyone whose OS was in dark mode.
+
+    `@media print` set `color` on `body` and a white background on `.card`.
+    Everything else -- headings, `.text-muted`, every question in the list --
+    reads its colour from the design tokens, which `prefers-color-scheme: dark`
+    had already switched to near-white. In light mode it printed correctly,
+    which is why it survived being looked at.
+
+    Asserting the tokens are reset covers every descendant at once.
+    """
+    block = _print_block()
+    assert ":root" in block, "print must reset the theme tokens, not one element"
+    for token in ("--ink:", "--ink-muted:", "--surface:", "--page:"):
+        assert token in block, f"{token} still inherited from the screen theme"
+
+    # And nothing may be left resolving to a light-on-light value.
+    for dark in ("#e8ecf3", "#a3adbf", "#12161f", "#1b2130"):
+        assert dark not in block
+
+
+def test_the_answers_behind_a_result_reach_the_printed_page():
+    """"What I entered" is a collapsed <details>, and a closed <details> does
+    not print -- so the inputs a doctor is most likely to question were absent.
+    CSS cannot open one, so the print event has to.
+    """
+    js = _code_only(STATIC / "js" / "summary.js")
+    assert "beforeprint" in js and "afterprint" in js
+    assert ".summary-inputs" in js
+
+
+def test_bootstrap_column_widths_do_not_squeeze_the_printed_labels():
+    """The <dl> carries `.row` and each <dt> `.col-6 .col-sm-4`. Forcing grid
+    on the parent left those percentages applying to grid items, so "high blood
+    pressure" printed as three stacked lines inside a 117pt label column.
+    """
+    block = _print_block()
+    assert "width: auto !important" in block
+
+
+def test_the_print_block_outranks_the_dark_theme():
+    """Both blocks open with `:root`, so source order decides which palette
+    wins -- and both media queries match when you print from a machine whose
+    OS is in dark mode.
+
+    `@media print` used to sit at section 9 and dark mode at section 10, so the
+    dark tokens won and the print reset was inert for exactly the readers it
+    was written for. The test above asserts the reset exists; it passed the
+    whole time, because it read the source rather than the cascade. Rendering
+    the pages showed `--ink` still resolving to #e8ecf3 under print emulation.
+
+    Order is the fix, so order is what this guards.
+    """
+    css = _code_only(STATIC / "css" / "style.css")
+    assert css.index("@media print") > css.index("@media (prefers-color-scheme: dark)"), (
+        "@media print must come after the dark-mode block or its :root reset "
+        "loses on source order"
+    )
+
+
+def test_every_selector_in_the_print_block_is_one_the_app_uses():
+    """The previous print block styled `.summary-question` and
+    `.summary-questions li`. Neither has ever existed -- the questions render as
+    `li` inside `#summaryQuestions` -- so the rule meant to make them legible
+    matched nothing, and the seven questions a patient takes to a doctor kept
+    printing in near-white.
+
+    A print rule cannot be looked at in the normal course of using the app, so
+    a selector typo there is invisible until someone prints. This is the check
+    that would have caught it.
+    """
+    block = _print_block()
+    corpus = "\n".join(
+        p.read_text(encoding="utf-8")
+        for p in list(TEMPLATES.rglob("*.html")) + list((STATIC / "js").rglob("*.js"))
+    )
+    css = _code_only(STATIC / "css" / "style.css")
+    rest = css.replace(block, "")
+
+    dead = []
+    for name in sorted(set(re.findall(r"[.#][A-Za-z][\w-]*", block))):
+        bare = re.escape(name[1:])
+        if re.search(rf"\b{bare}\b", corpus) or re.search(rf"[.#]{bare}\b", rest):
+            continue
+        dead.append(name)
+    assert not dead, f"print rules for selectors nothing uses: {dead}"
+
+
+def test_white_text_on_a_colour_fill_is_given_ink_for_print():
+    """A printer leaves background graphics off by default, so a white number
+    on a `bg-danger` pill comes out as blank paper.
+
+    Every result page put its headline figure in exactly that: "63.58%
+    estimated risk" on heart, "97.5% estimated risk" and the whole accuracy
+    note on migraine, the health-score rating, the calculator's BMI band. All
+    of them printed as nothing at all, in light mode as well as dark, and the
+    page still looked complete because the surrounding prose printed fine.
+    """
+    block = _print_block()
+    for selector in (".text-white", ".badge", ".probability-badge",
+                     ".bg-danger", ".bg-success", ".result-header"):
+        assert selector in block, f"{selector} would print white on white"
+    assert "background: none !important" in block
+
+
+def test_a_result_card_may_break_across_pages():
+    """`.card` used to carry `break-inside: avoid`, which suits a summary entry
+    and not a result card taller than a sheet of A4. The browser cannot honour
+    it, so it pushed the whole card to page 2 -- and the heart result printed a
+    first page that was blank below the title.
+    """
+    block = _print_block()
+    avoid = [seg for seg in block.split("}") if "break-inside: avoid" in seg]
+    assert avoid, "nothing is protected from splitting across pages"
+    for seg in avoid:
+        selectors = seg.split("{")[0]
+        assert not re.search(r"(^|,)\s*\.card\s*(,|$)", selectors), (
+            "a result card is taller than a page; break-inside: avoid on .card "
+            "blanks the page before it"
+        )
+
+
+# --------------------------------------------------------------------------
+# what a screen reader is handed
+# --------------------------------------------------------------------------
+
+class _Structure(HTMLParser):
+    """Collect headings, labels and controls, skipping hidden subtrees.
+
+    Content inside `d-none` is not in the accessibility tree, and /summary
+    carries a second <h1> in a print-only header that is `d-none` on screen --
+    counting raw tags would call that a duplicate heading it is not.
+    """
+
+    SELF_CLOSING = {"input", "img", "br", "hr", "meta", "link"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.headings = []          # (level, text)
+        self.labels = []            # for= values
+        self.controls = []          # (tag, name, id, has_aria_label)
+        self._stack = []
+        self._hidden_depth = 0
+        self._heading = None
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        hidden = ("d-none" in (a.get("class") or "").split()
+                  or "hidden" in a
+                  or a.get("aria-hidden") == "true")
+        if tag not in self.SELF_CLOSING:
+            self._stack.append((tag, hidden))
+            if hidden:
+                self._hidden_depth += 1
+        if self._hidden_depth:
+            return
+
+        if tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
+            self._heading = [int(tag[1]), ""]
+        elif tag == "label" and a.get("for"):
+            self.labels.append(a["for"])
+        elif tag in ("input", "select", "textarea"):
+            if a.get("type") not in ("hidden", "submit", "button"):
+                self.controls.append((tag, a.get("name"), a.get("id"),
+                                      bool(a.get("aria-label")
+                                           or a.get("aria-labelledby"))))
+
+    def handle_endtag(self, tag):
+        if tag in ("h1", "h2", "h3", "h4", "h5", "h6") and self._heading:
+            self.headings.append(tuple(self._heading))
+            self._heading = None
+        for i in range(len(self._stack) - 1, -1, -1):
+            if self._stack[i][0] == tag:
+                if self._stack[i][1]:
+                    self._hidden_depth -= 1
+                del self._stack[i:]
+                break
+
+    def handle_data(self, data):
+        if self._heading is not None and not self._hidden_depth:
+            self._heading[1] += data
+
+
+def _structure(client, path, data=None):
+    response = client.post(path, data=data) if data else client.get(path)
+    parser = _Structure()
+    parser.feed(response.get_data(as_text=True))
+    return parser
+
+
+RESULTS = sorted(FORMS)
+
+
+@pytest.mark.parametrize("path", PAGES)
+def test_every_form_field_is_labelled(client, path):
+    """`<label for="age">` against `<input name="age">` with no id at all.
+
+    Four of the five forms did this -- heart, migraine, the health score and
+    the calculator -- 41 fields between them. The label is right there in the
+    source and right there on the screen, and the association a sighted reader
+    infers from the layout does not exist for anyone who cannot see it: the
+    accessibility tree gets an unnamed control, and a screen reader announces
+    "edit, blank" forty-one times. The sleep form, rebuilt later, had ids
+    throughout, which is why this was invisible to anyone spot-checking one
+    page.
+    """
+    s = _structure(client, path)
+    ids = {c[2] for c in s.controls if c[2]}
+    unlabelled = [
+        name or "(unnamed)" for tag, name, cid, aria in s.controls
+        if not aria and (cid is None or cid not in s.labels)
+    ]
+    assert not unlabelled, f"{path}: fields with no usable label: {unlabelled}"
+
+    dangling = [f for f in s.labels if f not in ids]
+    assert not dangling, f"{path}: labels pointing at no control: {dangling}"
+
+
+@pytest.mark.parametrize("path", PAGES)
+def test_every_page_has_exactly_one_h1(client, path):
+    """Every form and result page led with an <h2>, because <h1> looked too
+    big -- so the pages a screen-reader user is most likely to navigate by
+    heading had no level-one heading to navigate to.
+    """
+    s = _structure(client, path)
+    ones = [text.strip() for level, text in s.headings if level == 1]
+    assert len(ones) == 1, f"{path}: {len(ones)} visible <h1>: {ones}"
+
+
+@pytest.mark.parametrize("path", PAGES)
+def test_heading_levels_do_not_skip(client, path):
+    """Heading level is the document outline. Picking a tag for its size --
+    <h5> for a section title because it looked right -- turned that outline
+    into h2, h5, h5, h5 on every form.
+    """
+    s = _structure(client, path)
+    levels = [lvl for lvl, _ in s.headings]
+    skips = [(levels[i - 1], levels[i], s.headings[i][1].strip()[:40])
+             for i in range(1, len(levels)) if levels[i] - levels[i - 1] > 1]
+    assert not skips, f"{path}: heading level jumps: {skips}"
+
+
+@pytest.mark.parametrize("path", RESULTS)
+def test_result_pages_are_structured_too(client, path):
+    """The result page is the one a screen-reader user actually needs to read
+    through, and it was the least structured: no <h1>, and jumps to <h6>.
+    """
+    s = _structure(client, path, data=FORMS[path])
+    ones = [t.strip() for lvl, t in s.headings if lvl == 1]
+    assert len(ones) == 1, f"{path}: {len(ones)} <h1> on the result: {ones}"
+    levels = [lvl for lvl, _ in s.headings]
+    skips = [(levels[i - 1], levels[i]) for i in range(1, len(levels))
+             if levels[i] - levels[i - 1] > 1]
+    assert not skips, f"{path}: heading level jumps on the result: {skips}"
+
+
+def test_a_toast_is_announced_and_can_be_dismissed_by_name():
+    """The toast container had no live region, so a message appended after
+    load was never spoken -- including the one every heart result fires. Its
+    close button was a tabbable control whose only content was an icon glyph,
+    so it reached the accessibility tree unnamed.
+    """
+    js = _code_only(STATIC / "js" / "toast.js")
+    assert "aria-live" in js, "toast messages are never announced"
+    assert "'role', 'status'" in js or 'role", "status' in js
+    assert "aria-label" in js, "the dismiss button has no accessible name"
+    assert 'type="button"' in js
+    # The icon repeats the message; it must not be read out as well.
+    assert js.count('aria-hidden="true"') >= 4
+
+
+def test_heading_size_classes_carry_the_same_typography_as_the_tags():
+    """Fixing the outline means writing `<h2 class="h5">`, which only looks
+    identical if `.h5` styles the same as `h5`. Bootstrap's `.h1`-`.h6` set
+    font-weight and line-height as well as size, and a class beats an element
+    selector -- so without these the app's headings silently fell back to
+    Bootstrap's 500 weight and 1.2 line-height wherever a size class was used.
+    """
+    css = _code_only(STATIC / "css" / "style.css")
+    block = re.search(r"([^}]*)\{[^}]*font-weight:\s*700;[^}]*letter-spacing", css)
+    assert block, "the shared heading rule moved; check this test still applies"
+    selectors = block.group(1)
+    for name in (".h1", ".h2", ".h3", ".h4", ".h5", ".h6"):
+        assert name in selectors, (
+            f"{name} does not inherit the app's heading typography, so "
+            f'<h2 class="{name[1:]}"> renders as Bootstrap rather than as this app'
+        )
+
+
+def test_printing_a_result_leaves_out_the_buttons():
+    """On paper a button is an instruction to go back to a screen. "Take
+    Another Assessment", "Back to Home" and the "Add to visit summary" card are
+    the app talking to itself, and they were printing on every result page.
+    """
+    block = _print_block()
+    hidden = [seg for seg in block.split("}") if "display: none" in seg]
+    selectors = " ".join(seg.split("{")[0] for seg in hidden)
+    assert ".btn" in selectors
+    assert "[data-summary-card]" in selectors

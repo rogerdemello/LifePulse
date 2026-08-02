@@ -19,9 +19,12 @@ someone down the wrong path believing they were understood.
 
 from __future__ import annotations
 
+import logging
 import re
 import unicodedata
 from dataclasses import dataclass, field
+
+log = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -285,13 +288,87 @@ def check_emergency(text):
     ]
 
 
+def route(text, limit=3):
+    """Route a description to assessments, using the LLM when it is available.
+
+    Returns ``(matches, method)`` where ``method`` is "model" or "keywords", so
+    the page can describe honestly how it reached the answer.
+
+    Three rules this must never break:
+
+    1. **Emergency detection is not in this path.** ``check_emergency`` runs in
+       the route before this is called, on deterministic keyword rules, and its
+       result cannot be overridden. Whether someone is told to call an ambulance
+       must not depend on a third party being reachable.
+    2. **The LLM may only choose from the fixed concern set.** Its answer is
+       looked up in ``CONCERNS_BY_KEY`` and discarded if it is not a real key,
+       so it can route but never invent a destination.
+    3. **Any failure falls back to keywords.** Azure being unconfigured, slow,
+       rate-limited or wrong is an ordinary condition, not an error page.
+    """
+    text = (text or "").strip()
+    if not text:
+        return [], "keywords"
+
+    try:
+        matches = _match_with_model(text, limit)
+        if matches:
+            return matches, "model"
+    except Exception as exc:  # never let this break the page
+        log.info("falling back to keyword routing: %s", exc)
+
+    return match_concerns(text, limit), "keywords"
+
+
+def _match_with_model(text, limit):
+    """Ask Azure OpenAI which of the fixed concerns this describes.
+
+    The only thing this app ever sends to Azure: the sentence the person typed
+    into the "what's bothering you" box. No assessment answers, no results.
+    """
+    from app.azure_openai import complete_json, is_configured
+
+    if not is_configured():
+        return []
+
+    catalogue = "\n".join(f"- {c.key}: {c.title} — {c.blurb}" for c in CONCERNS)
+    system = (
+        "You route a person's description of a health concern to one or more "
+        "screening tools. Reply with JSON: {\"concerns\": [\"key\", ...]} using "
+        "at most 3 keys, most relevant first, chosen only from the list given. "
+        "Return an empty list if nothing fits. Do not diagnose, do not give "
+        "advice, and do not add any other field."
+    )
+    user = f"Available tools:\n{catalogue}\n\nThe person wrote: {text!r}"
+
+    payload = complete_json(
+        [{"role": "system", "content": system},
+         {"role": "user", "content": user}],
+        max_tokens=80,
+    )
+
+    # Never trust the reply to name a real destination.
+    keys, seen = [], set()
+    for key in payload.get("concerns") or []:
+        concern = CONCERNS_BY_KEY.get(str(key).strip())
+        if concern and concern.key not in seen:
+            seen.add(concern.key)
+            keys.append(concern)
+
+    # The page shows what a match was based on. With a model there are no
+    # keywords to show, so it says so rather than inventing some.
+    return [(concern, []) for concern in keys[:limit]]
+
+
 def match_concerns(text, limit=3):
-    """Rank concerns against free text.
+    """Rank concerns against free text by keyword.
 
     Returns ``[(concern, matched_terms)]``, best first, empty when nothing
     matched. Longer keyword matches score higher so "blood pressure" beats a
     stray "pressure", and the matched terms are returned so the page can show
     what it keyed on rather than appearing to have understood a sentence.
+
+    Still the fallback, and still the only path when Azure is not configured.
     """
     stems = _stems(text)
     if not stems:

@@ -68,7 +68,12 @@ def create_app():
         those figures honest instead of frozen at whatever was true when the
         HTML was written.
         """
-        return {"model_meta": all_metadata()}
+        from app.azure_openai import is_configured as azure_configured
+
+        return {
+            "model_meta": all_metadata(),
+            "llm_enabled": azure_configured(),
+        }
 
     @app.route("/")
     def index():
@@ -93,8 +98,14 @@ def create_app():
         """Liveness probe that also reports which models loaded."""
         from app.ml.bundle import MODEL_NAMES, try_get_model
 
+        from app.azure_openai import describe_configuration
+
         models = {name: try_get_model(name) is not None for name in MODEL_NAMES}
         status = 200 if all(models.values()) else 503
-        return {"ok": status == 200, "models": models}, status
+        return {
+            "ok": status == 200,
+            "models": models,
+            "azure_openai": describe_configuration(),
+        }, status
 
     return app

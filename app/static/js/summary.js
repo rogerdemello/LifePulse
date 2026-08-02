@@ -137,10 +137,16 @@
     var content = document.getElementById('summaryContent');
     var questionsCard = document.getElementById('summaryQuestions');
 
+    // The toolbar starts hidden and is revealed here. Both of its buttons act on
+    // saved results, so with none saved "Print / Save as PDF" printed a page
+    // reading "Nothing saved yet" and "Clear" offered to delete nothing.
+    var toolbar = document.getElementById('summaryToolbar');
+
     if (!entries.length) {
       if (empty) empty.classList.remove('d-none');
       return;
     }
+    if (toolbar) toolbar.classList.remove('d-none');
     if (content) content.classList.remove('d-none');
 
     entries.forEach(function (entry) {
@@ -170,6 +176,18 @@
         list.appendChild(item);
       });
     }
+
+    // "What I entered" is a collapsed <details>, and a closed <details> does
+    // not print -- so the answers each result was based on were missing from
+    // the page, which is the half a doctor is most likely to question. CSS
+    // can't open one reliably, so open them for the print and put them back.
+    // Keeping them collapsed on screen is deliberate: the result comes first.
+    function openInputs(open) {
+      var list = document.querySelectorAll('.summary-inputs');
+      for (var i = 0; i < list.length; i++) list[i].open = open;
+    }
+    window.addEventListener('beforeprint', function () { openInputs(true); });
+    window.addEventListener('afterprint', function () { openInputs(false); });
 
     var printBtn = document.getElementById('summaryPrint');
     if (printBtn) printBtn.addEventListener('click', function () { window.print(); });

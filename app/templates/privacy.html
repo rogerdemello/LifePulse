@@ -10,9 +10,11 @@
 
       <h1 class="fw-bold mb-3">Privacy</h1>
       <p class="lead text-muted mb-5">
-        The short version: LifePulse has no account system, no database, and writes
-        nothing to disk. Your answers exist for the fraction of a second it takes to
-        calculate a result, and then they're gone.
+        The short version: LifePulse has no account system and no database. Nothing
+        you enter is stored on our server &mdash; your answers exist there for the
+        fraction of a second it takes to calculate a result, and then they're gone.
+        The one thing that outlives the request is the visit summary, and it is saved
+        in your own browser, never uploaded.
       </p>
 
       <div class="card border-0 shadow-sm mb-4">
@@ -20,7 +22,7 @@
           <h2 class="h5 fw-bold mb-3">What happens when you submit a form</h2>
           <ol class="mb-0">
             <li class="mb-2">Your answers are sent to the server over HTTPS.</li>
-            <li class="mb-2">They're held in memory, turned into numbers, and passed to a model that runs <strong>on this server</strong> &mdash; not a third-party AI service.</li>
+            <li class="mb-2">They're held in memory, turned into numbers, and scored <strong>on this server</strong> &mdash; not by a third-party AI service.</li>
             <li class="mb-2">The result page is rendered and sent back to you.</li>
             <li class="mb-0">The request ends and your answers are discarded. Nothing is written to a file, a database, or a cookie.</li>
           </ol>
@@ -34,8 +36,21 @@
             <li class="mb-2">No accounts, sign-ups, or email addresses.</li>
             <li class="mb-2">No database. There is nowhere for your answers to be stored, so there is nothing to breach, sell, or hand over.</li>
             <li class="mb-2">No analytics or advertising trackers.</li>
-            <li class="mb-2">No sending your health answers to any external service. Every model runs locally.</li>
-            <li class="mb-0">No health data in cookies.</li>
+            <li class="mb-2">
+              No sending your health answers to any external service.
+              {% if llm_enabled %}
+                Every model that scores an assessment runs on this server; the one
+                outside service is described below, and it never sees an answer.
+              {% else %}
+                Every model runs locally.
+              {% endif %}
+            </li>
+            <li class="mb-2">No health data in cookies, and nothing stored on our server.</li>
+            <li class="mb-0">
+              No assessment answers or results sent anywhere. The wording on the
+              result pages was written ahead of time and ships with the app, so
+              those pages make no outside request at all.
+            </li>
           </ul>
         </div>
       </div>
@@ -44,7 +59,9 @@
         <div class="card-body p-4">
           <h2 class="h5 fw-bold mb-3">Being precise about the exceptions</h2>
           <p class="mb-3">
-            Two things do leave this server, and you should know about both:
+            {% if llm_enabled %}Three things{% else %}Two things{% endif %}
+            do leave this server, and you should know about
+            {% if llm_enabled %}all three{% else %}both{% endif %}:
           </p>
           <ul class="mb-3">
             <li class="mb-2">
@@ -52,6 +69,16 @@
               food's name is sent to the USDA FoodData Central API. Nothing else goes
               with it &mdash; no health answers, no identifier.
             </li>
+            {% if llm_enabled %}
+            <li class="mb-2">
+              <strong>The &ldquo;what's bothering you&rdquo; box.</strong> If you type a
+              description on the <a href="{{ url_for('start.start') }}">start page</a>,
+              that sentence is sent to Azure OpenAI to work out which check fits.
+              Only the sentence &mdash; nothing you enter into an assessment goes
+              with it, and the emergency check runs here, before anything is sent.
+              Azure OpenAI does not train on customer data.
+            </li>
+            {% endif %}
             <li class="mb-0">
               <strong>Fonts, styles and icons</strong> load from public CDNs
               (jsDelivr, Google Fonts, unpkg). Those providers see your IP address and
@@ -69,11 +96,32 @@
 
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
-          <h2 class="h5 fw-bold mb-3">Your results are yours to keep</h2>
+          <h2 class="h5 fw-bold mb-3">The visit summary is saved &mdash; on your device</h2>
+          <p class="mb-3">
+            If you choose <strong>Add to visit summary</strong> on a result page, that
+            result &mdash; including the answers it was based on &mdash; is written to
+            your browser's local storage so you can collect several assessments onto one
+            printable page. Being straight about what that means:
+          </p>
+          <ul class="mb-3">
+            <li class="mb-2">
+              It stays on this device, in this browser. It is never uploaded, and it is
+              not attached to requests the way a cookie would be &mdash; our server never
+              receives it.
+            </li>
+            <li class="mb-2">
+              It persists until you remove it. Use <strong>Clear</strong> on the
+              <a href="{{ url_for('summary') }}">summary page</a>, or clear your
+              browser data.
+            </li>
+            <li class="mb-0">
+              Anyone else using this browser profile could open the summary page and read
+              it. On a shared or public computer, clear it when you're done.
+            </li>
+          </ul>
           <p class="mb-0">
-            Because nothing is saved, you can't come back later and find a result &mdash;
-            that's the trade for storing nothing. Print or save the page while you have
-            it if you want to bring it to an appointment.
+            If you never use that button, nothing is saved anywhere at all &mdash; and
+            you won't be able to come back later and find a result, which is the trade.
           </p>
         </div>
       </div>
