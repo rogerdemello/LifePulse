@@ -116,4 +116,50 @@ def create_app():
             "azure_openai": describe_configuration(),
         }, status
 
+    # error_page() has existed since the form-validation work, and rate
+    # limiting and model-unavailable both render through it -- but it was
+    # never wired to Flask's own handlers. So a mistyped URL got Werkzeug's
+    # bare "404 Not Found": no navigation, no way back to an assessment, and
+    # no medical disclaimer, on a site whose every other page carries one.
+    #
+    # A 500 mattered more. The assessment routes catch their own exceptions
+    # (see prediction_errors), so a 500 here is something genuinely unexpected
+    # -- exactly when a person needs a reference to quote rather than a white
+    # page with two words on it.
+
+    @app.errorhandler(404)
+    def not_found(_):
+        from app.routes.support import error_page
+
+        return error_page(
+            "That page doesn't exist. It may have moved, or the link may have "
+            "been mistyped. Everything LifePulse can look at is listed on the "
+            "start page.",
+            status=404,
+            title="Page not found",
+        )
+
+    @app.errorhandler(405)
+    def method_not_allowed(_):
+        from app.routes.support import error_page
+
+        return error_page(
+            "That page can't be reached that way. If you were part-way through "
+            "an assessment, start it again from the beginning.",
+            status=405,
+            title="That didn't work",
+        )
+
+    @app.errorhandler(500)
+    def server_error(_):
+        from app.routes.support import error_page
+
+        return error_page(
+            "Something went wrong at our end, and no result was produced. "
+            "Nothing you entered was stored. Please try again -- and if it "
+            "keeps happening, quote the reference below.",
+            status=500,
+            title="Something went wrong",
+        )
+
     return app

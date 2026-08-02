@@ -44,7 +44,9 @@
         <div class="card-body text-center p-4 p-md-5">
           <svg width="220" height="220" role="img" class="text-{{ color }}"
                aria-label="Score {{ score }} out of 100, rated {{ rating }}">
-            <circle cx="110" cy="110" r="90" fill="none" stroke="#e0e0e0" stroke-width="18"/>
+            {# chart-track, not a literal grey: #e0e0e0 was a bright ring on a
+               dark card, and stayed bright when the page was printed. #}
+            <circle class="chart-track" cx="110" cy="110" r="90" fill="none" stroke-width="18"/>
             <circle cx="110" cy="110" r="90" fill="none"
                     stroke="currentColor"
                     stroke-width="18"
@@ -53,7 +55,8 @@
                     transform="rotate(-90 110 110)"/>
             <text x="110" y="105" text-anchor="middle" dy="10" font-size="56" font-weight="bold"
                   fill="currentColor">{{ score }}</text>
-            <text x="110" y="140" text-anchor="middle" font-size="18" fill="#999">out of 100</text>
+            <text x="110" y="140" text-anchor="middle" font-size="18"
+                  class="chart-caption">out of 100</text>
           </svg>
 
           <h3 class="mt-3 mb-3">

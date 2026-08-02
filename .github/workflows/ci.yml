@@ -10,9 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # v4/v5 target Node 20, which the runners now force onto Node 24 with a
+      # deprecation warning on every run. v7 of each targets it properly. The
+      # breaking change in checkout v7 is a safer default for
+      # pull_request_target, which this workflow does not use.
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           # Must match .python-version, which is what the deploy reads. The
           # pinned wheels in requirements.txt are built for this version and

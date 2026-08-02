@@ -98,16 +98,35 @@
   </div>
 </div>
 
-<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark" aria-label="Main navigation">
+{# Navigation.
+
+   The toggle is ours, not Bootstrap's. `data-bs-toggle="collapse"` on this
+   one button was the only Bootstrap component used anywhere in the templates,
+   and 24KB of parse-blocking third-party JavaScript to show nine links is a
+   poor trade for something twelve lines do.
+
+   I tried a <details> first, so the menu would open with no JavaScript at all.
+   It does not work: a closed <details> cannot be forced open by CSS -- not
+   with `display` on the child, not via `::details-content` -- so the desktop
+   nav went blank, and `open` would have to be set per breakpoint, which needs
+   the script back. The remaining option was a checkbox-and-label hack, which
+   works without script but is announced as a checkbox rather than a
+   disclosure. On this app that is the wrong trade.
+
+   So the small-screen menu still needs JavaScript, exactly as it did before.
+   That is a real limitation and it is in the README: without script the nav
+   is unreachable below 992px, though every page's content, the footer links
+   and the homepage's own list of assessments all still work. #}
+<nav class="navbar navbar-dark" aria-label="Main navigation">
   <div class="container">
     <a class="navbar-brand" href="/">LifePulse</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+
+    <button class="navbar-toggler" type="button" data-nav-toggle
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Menu">
+      <span class="navbar-toggler-icon" aria-hidden="true"></span>
     </button>
-    
-    <div class="collapse navbar-collapse" id="navbarNav">
+
+    <div class="navbar-menu" id="navbarNav">
       {# aria-current marks the page you are on for screen readers, which
          otherwise hear seven identical links with no sense of position. #}
       <ul class="navbar-nav ms-auto">
@@ -146,7 +165,6 @@
   </div>
 </nav>
 
-<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Main Content -->
 {# tabindex="-1" is what makes the skip link above do anything.
 
    Without it <main> is not a focusable target, so following the link moved the
@@ -194,8 +212,22 @@
   </svg>
 </button>
 
-<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Bootstrap JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// The whole of what Bootstrap's 24KB bundle was loaded to do. aria-expanded is
+// kept in step here rather than by a library, which is also how it comes to be
+// correct: the old markup hardcoded aria-expanded="false" and Bootstrap
+// updated it, so the two were only ever consistent because the library was
+// there to do it.
+(function () {
+  var toggle = document.querySelector('[data-nav-toggle]');
+  var menu = document.getElementById('navbarNav');
+  if (!toggle || !menu) return;
+  toggle.addEventListener('click', function () {
+    var open = menu.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+})();
+</script>
 
 <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Scroll to Top Script -->
 <script>
