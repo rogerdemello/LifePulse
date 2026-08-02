@@ -375,7 +375,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-**346 tests** (345 pass; one skips when the gitignored data is absent), covering:
+**398 tests** (397 pass; one skips when the gitignored data is absent), covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
@@ -446,11 +446,11 @@ LifePulse/
 │   ├── fetch_brfss.py          # CDC BRFSS -> data/brfss_heart.csv
 │   ├── fetch_nhanes.py         # CDC NHANES -> data/nhanes_sleep.csv
 │   └── train_all.py            # retrains both models
-├── tests/                      # 346 tests
+├── tests/                      # 398 tests
 ├── data/                       # training inputs (gitignored)
 ├── .github/workflows/ci.yml    # pytest + boot check + contract check
 ├── requirements.txt            # pinned runtime deps
-├── runtime.txt                 # Python 3.12 for Render
+├── .python-version             # Python 3.12 for Render
 ├── Procfile                    # gunicorn wsgi:app
 └── wsgi.py                     # WSGI entry point
 ```
@@ -488,7 +488,14 @@ that changes, CSRF protection goes in at the same time, not after.
    variables for language-model routing on `/start`
 6. Point the health check at `/healthz`
 
-`runtime.txt` pins Python 3.12 to match the pinned wheels. No Git LFS needed.
+`.python-version` pins Python 3.12 to match the pinned wheels, and it has to be
+that file: Render reads a `PYTHON_VERSION` environment variable or
+`.python-version`, and ignores the `runtime.txt` this repository used to carry.
+Without it Render falls back to a default that depends on when the service was
+created, and numpy 1.26 and pandas 2.1 publish no wheels past 3.12 — so the
+build does not run slower, it fails compiling pandas from source. If a
+`PYTHON_VERSION` variable is set in the Render dashboard it wins over this
+file; make sure it says 3.12 or remove it. No Git LFS needed.
 
 If you enable Sentry, note what `app/observability.py` turns off and why. Error
 monitoring is the most likely route for health answers to leave the server by
