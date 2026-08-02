@@ -8,7 +8,7 @@
 <div class="container py-5">
   {% include "_caveats.html" %}
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2"><i class="bi bi-heart-pulse me-2" aria-hidden="true"></i>Heart Disease Risk Assessment</h2>
+    <h1 class="fw-bold h2 mb-2"><i class="bi bi-heart-pulse me-2" aria-hidden="true"></i>Heart Disease Risk Assessment</h1>
     <p class="text-muted">Your personalized cardiovascular health evaluation</p>
   </div>
 
@@ -23,13 +23,13 @@
           <div class="result-header is-success">
         {% endif %}
           <div class="text-center position-relative">
-            <h3 class="mb-2">
+            <h2 class="h3 mb-2">
               {% if prediction == "Yes" %}
                 <i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>High Risk Detected
               {% else %}
                 <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Low Risk Profile
               {% endif %}
-            </h3>
+            </h2>
             <p class="mb-0 opacity-90">Cardiovascular Health Assessment Complete</p>
           </div>
         </div>
@@ -89,14 +89,14 @@
           <div class="text-center mb-4 py-3">
             {% if prediction == "Yes" %}
               <div class="mb-3"><i class="bi bi-exclamation-triangle" style="font-size:3rem" aria-hidden="true"></i></div>
-              <h4 class="text-danger mb-3">Elevated Heart Disease Risk</h4>
+              <h3 class="h4 text-danger mb-3">Elevated Heart Disease Risk</h3>
               <p class="text-muted lead">
                 Your answers put you in a group where heart disease is more common
                 than average. That is worth raising with a doctor &mdash; it is not
                 a finding about you personally, and it is not urgent on its own.
               </p>
               <div class="alert alert-danger border-0 shadow-sm mt-4" role="alert">
-                <h6 class="fw-bold mb-2"><i class="bi bi-info-circle" aria-hidden="true"></i> Important Notice:</h6>
+                <h4 class="h6 fw-bold mb-2"><i class="bi bi-info-circle" aria-hidden="true"></i> Important Notice:</h4>
                 <p class="mb-0">
                   This is a screening tool, not a diagnosis. Please consult with a cardiologist 
                   or healthcare provider for a comprehensive evaluation and personalized treatment plan.
@@ -104,14 +104,14 @@
               </div>
             {% else %}
               <div class="mb-3"><i class="bi bi-circle" style="font-size:3rem" aria-hidden="true"></i></div>
-              <h4 class="text-success mb-3">Healthy Heart Profile</h4>
+              <h3 class="h4 text-success mb-3">Healthy Heart Profile</h3>
               <p class="text-muted lead">
                 Your answers put you in a group where heart disease is less common
                 than average. That is not a clean bill of health &mdash; it means
                 nothing here stood out.
               </p>
               <div class="alert alert-success border-0 shadow-sm mt-4" role="alert">
-                <h6 class="fw-bold mb-2"><i class="bi bi-heart-fill" aria-hidden="true"></i> Worth keeping up</h6>
+                <h4 class="h6 fw-bold mb-2"><i class="bi bi-heart-fill" aria-hidden="true"></i> Worth keeping up</h4>
                 <p class="mb-0">
                   Continue maintaining your healthy lifestyle choices. Regular check-ups and 
                   preventive care will help you stay on track for long-term heart health.
@@ -124,9 +124,9 @@
 
           <!-- Recommendations -->
           <div class="mb-4">
-            <h5 class="fw-bold mb-4">
+            <h3 class="h5 fw-bold mb-4">
               <i class="bi bi-clipboard-heart" aria-hidden="true"></i> Recommendations
-            </h5>
+            </h3>
             
             {% if prediction == "Yes" %}
               <div class="row g-3">

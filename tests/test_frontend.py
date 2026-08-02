@@ -8,9 +8,12 @@ the wrong element.
 """
 
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
+
+from tests.test_routes import FORMS
 
 STATIC = Path(__file__).resolve().parent.parent / "app" / "static"
 TEMPLATES = Path(__file__).resolve().parent.parent / "app" / "templates"
@@ -459,6 +462,173 @@ def test_a_result_card_may_break_across_pages():
         assert not re.search(r"(^|,)\s*\.card\s*(,|$)", selectors), (
             "a result card is taller than a page; break-inside: avoid on .card "
             "blanks the page before it"
+        )
+
+
+# --------------------------------------------------------------------------
+# what a screen reader is handed
+# --------------------------------------------------------------------------
+
+class _Structure(HTMLParser):
+    """Collect headings, labels and controls, skipping hidden subtrees.
+
+    Content inside `d-none` is not in the accessibility tree, and /summary
+    carries a second <h1> in a print-only header that is `d-none` on screen --
+    counting raw tags would call that a duplicate heading it is not.
+    """
+
+    SELF_CLOSING = {"input", "img", "br", "hr", "meta", "link"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.headings = []          # (level, text)
+        self.labels = []            # for= values
+        self.controls = []          # (tag, name, id, has_aria_label)
+        self._stack = []
+        self._hidden_depth = 0
+        self._heading = None
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        hidden = ("d-none" in (a.get("class") or "").split()
+                  or "hidden" in a
+                  or a.get("aria-hidden") == "true")
+        if tag not in self.SELF_CLOSING:
+            self._stack.append((tag, hidden))
+            if hidden:
+                self._hidden_depth += 1
+        if self._hidden_depth:
+            return
+
+        if tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
+            self._heading = [int(tag[1]), ""]
+        elif tag == "label" and a.get("for"):
+            self.labels.append(a["for"])
+        elif tag in ("input", "select", "textarea"):
+            if a.get("type") not in ("hidden", "submit", "button"):
+                self.controls.append((tag, a.get("name"), a.get("id"),
+                                      bool(a.get("aria-label")
+                                           or a.get("aria-labelledby"))))
+
+    def handle_endtag(self, tag):
+        if tag in ("h1", "h2", "h3", "h4", "h5", "h6") and self._heading:
+            self.headings.append(tuple(self._heading))
+            self._heading = None
+        for i in range(len(self._stack) - 1, -1, -1):
+            if self._stack[i][0] == tag:
+                if self._stack[i][1]:
+                    self._hidden_depth -= 1
+                del self._stack[i:]
+                break
+
+    def handle_data(self, data):
+        if self._heading is not None and not self._hidden_depth:
+            self._heading[1] += data
+
+
+def _structure(client, path, data=None):
+    response = client.post(path, data=data) if data else client.get(path)
+    parser = _Structure()
+    parser.feed(response.get_data(as_text=True))
+    return parser
+
+
+RESULTS = sorted(FORMS)
+
+
+@pytest.mark.parametrize("path", PAGES)
+def test_every_form_field_is_labelled(client, path):
+    """`<label for="age">` against `<input name="age">` with no id at all.
+
+    Four of the five forms did this -- heart, migraine, the health score and
+    the calculator -- 41 fields between them. The label is right there in the
+    source and right there on the screen, and the association a sighted reader
+    infers from the layout does not exist for anyone who cannot see it: the
+    accessibility tree gets an unnamed control, and a screen reader announces
+    "edit, blank" forty-one times. The sleep form, rebuilt later, had ids
+    throughout, which is why this was invisible to anyone spot-checking one
+    page.
+    """
+    s = _structure(client, path)
+    ids = {c[2] for c in s.controls if c[2]}
+    unlabelled = [
+        name or "(unnamed)" for tag, name, cid, aria in s.controls
+        if not aria and (cid is None or cid not in s.labels)
+    ]
+    assert not unlabelled, f"{path}: fields with no usable label: {unlabelled}"
+
+    dangling = [f for f in s.labels if f not in ids]
+    assert not dangling, f"{path}: labels pointing at no control: {dangling}"
+
+
+@pytest.mark.parametrize("path", PAGES)
+def test_every_page_has_exactly_one_h1(client, path):
+    """Every form and result page led with an <h2>, because <h1> looked too
+    big -- so the pages a screen-reader user is most likely to navigate by
+    heading had no level-one heading to navigate to.
+    """
+    s = _structure(client, path)
+    ones = [text.strip() for level, text in s.headings if level == 1]
+    assert len(ones) == 1, f"{path}: {len(ones)} visible <h1>: {ones}"
+
+
+@pytest.mark.parametrize("path", PAGES)
+def test_heading_levels_do_not_skip(client, path):
+    """Heading level is the document outline. Picking a tag for its size --
+    <h5> for a section title because it looked right -- turned that outline
+    into h2, h5, h5, h5 on every form.
+    """
+    s = _structure(client, path)
+    levels = [lvl for lvl, _ in s.headings]
+    skips = [(levels[i - 1], levels[i], s.headings[i][1].strip()[:40])
+             for i in range(1, len(levels)) if levels[i] - levels[i - 1] > 1]
+    assert not skips, f"{path}: heading level jumps: {skips}"
+
+
+@pytest.mark.parametrize("path", RESULTS)
+def test_result_pages_are_structured_too(client, path):
+    """The result page is the one a screen-reader user actually needs to read
+    through, and it was the least structured: no <h1>, and jumps to <h6>.
+    """
+    s = _structure(client, path, data=FORMS[path])
+    ones = [t.strip() for lvl, t in s.headings if lvl == 1]
+    assert len(ones) == 1, f"{path}: {len(ones)} <h1> on the result: {ones}"
+    levels = [lvl for lvl, _ in s.headings]
+    skips = [(levels[i - 1], levels[i]) for i in range(1, len(levels))
+             if levels[i] - levels[i - 1] > 1]
+    assert not skips, f"{path}: heading level jumps on the result: {skips}"
+
+
+def test_a_toast_is_announced_and_can_be_dismissed_by_name():
+    """The toast container had no live region, so a message appended after
+    load was never spoken -- including the one every heart result fires. Its
+    close button was a tabbable control whose only content was an icon glyph,
+    so it reached the accessibility tree unnamed.
+    """
+    js = _code_only(STATIC / "js" / "toast.js")
+    assert "aria-live" in js, "toast messages are never announced"
+    assert "'role', 'status'" in js or 'role", "status' in js
+    assert "aria-label" in js, "the dismiss button has no accessible name"
+    assert 'type="button"' in js
+    # The icon repeats the message; it must not be read out as well.
+    assert js.count('aria-hidden="true"') >= 4
+
+
+def test_heading_size_classes_carry_the_same_typography_as_the_tags():
+    """Fixing the outline means writing `<h2 class="h5">`, which only looks
+    identical if `.h5` styles the same as `h5`. Bootstrap's `.h1`-`.h6` set
+    font-weight and line-height as well as size, and a class beats an element
+    selector -- so without these the app's headings silently fell back to
+    Bootstrap's 500 weight and 1.2 line-height wherever a size class was used.
+    """
+    css = _code_only(STATIC / "css" / "style.css")
+    block = re.search(r"([^}]*)\{[^}]*font-weight:\s*700;[^}]*letter-spacing", css)
+    assert block, "the shared heading rule moved; check this test still applies"
+    selectors = block.group(1)
+    for name in (".h1", ".h2", ".h3", ".h4", ".h5", ".h6"):
+        assert name in selectors, (
+            f"{name} does not inherit the app's heading typography, so "
+            f'<h2 class="{name[1:]}"> renders as Bootstrap rather than as this app'
         )
 
 

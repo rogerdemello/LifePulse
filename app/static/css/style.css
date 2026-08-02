@@ -122,7 +122,16 @@ body > main {
   flex: 1 0 auto;
 }
 
-h1, h2, h3, h4, h5, h6 {
+/* The `.h1`-`.h6` classes are listed alongside the tags deliberately.
+   Heading level is structure and belongs to the markup; size is presentation
+   and belongs to a class, so `<h2 class="h5">` is the normal way to write a
+   subsection that should not look like a page title. Bootstrap's own `.h1`-
+   `.h6` set font-weight and line-height as well as size, and a class beats an
+   element selector -- so without the classes here, every heading that used one
+   silently picked up Bootstrap's 500 weight and 1.2 line-height instead of
+   ours. */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
   color: var(--ink);
   font-weight: 700;
   line-height: 1.25;
