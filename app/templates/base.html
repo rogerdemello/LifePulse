@@ -51,8 +51,13 @@
   <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>AOS Animation Library -->
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  {# AOS was removed. It set opacity:0 on every [data-aos] element from a CDN
+     stylesheet and restored it on scroll, so with JavaScript unavailable the
+     homepage rendered completely blank -- headline, tagline and all six
+     assessments -- and unpkg.com was a single point of failure for the landing
+     page of a health tool. The suite already had a test against a page hidden
+     until JavaScript runs; it passed throughout, because it reads style.css
+     and the rule lived in a third party's. #}
 
   <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Custom CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -101,13 +106,18 @@
       {# aria-current marks the page you are on for screen readers, which
          otherwise hear seven identical links with no sense of position. #}
       <ul class="navbar-nav ms-auto">
+        {# Short labels. These were "Where do I start?", "Health Calculator",
+           "Heart Disease", "Sleep Disorder" -- nine items whose text wrapped
+           mid-phrase at laptop widths, so the top of every page read "Where do
+           I / start?" and "Sleep / Disorder". A nav label orients; the page it
+           leads to does the explaining. #}
         {% set nav_items = [
           ('/', 'Home'),
-          ('/start', 'Where do I start?'),
-          ('/health', 'Health Calculator'),
-          ('/health-score', 'Health Score'),
-          ('/heart_disease', 'Heart Disease'),
-          ('/sleep', 'Sleep Disorder'),
+          ('/start', 'Start here'),
+          ('/health', 'Calculator'),
+          ('/health-score', 'Health score'),
+          ('/heart_disease', 'Heart'),
+          ('/sleep', 'Sleep'),
           ('/migraine', 'Migraine'),
           ('/nutrition', 'Nutrition'),
         ] %}
@@ -203,17 +213,6 @@ scrollToTopBtn.addEventListener('click', function() {
     behavior: 'smooth'
   });
 });
-</script>
-
-<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>AOS Animation JS -->
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>
-  AOS.init({
-    duration: 800,
-    offset: 100,
-    once: true,
-    easing: 'ease-in-out'
-  });
 </script>
 
 </body>
