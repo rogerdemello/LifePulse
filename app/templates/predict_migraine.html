@@ -4,7 +4,7 @@
 {% block content %}
 <div class="container py-5">
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2"><i class="bi bi-bandaid me-2" aria-hidden="true"></i>Migraine Risk Assessment</h2>
+    <h1 class="fw-bold h2 mb-2"><i class="bi bi-bandaid me-2" aria-hidden="true"></i>Migraine Risk Assessment</h1>
     <p class="text-muted">Evaluate your migraine risk based on lifestyle and health factors</p>
   </div>
   
@@ -16,11 +16,11 @@
             
             <!-- Personal Information Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-person me-2" aria-hidden="true"></i>Personal Information</h5>
+              <h2 class="h5 fw-bold mb-3 text-primary"><i class="bi bi-person me-2" aria-hidden="true"></i>Personal Information</h2>
               <div class="row g-3">
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold">Gender</label>
-                  <select name="Gender" class="form-select" required
+                  <label for="Gender" class="form-label fw-semibold">Gender</label>
+                  <select name="Gender" id="Gender" class="form-select" required
                           aria-describedby="genderNote">
                     <option value="">Select...</option>
                     <option value="Female">Female</option>
@@ -35,14 +35,14 @@
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold">Age</label>
-                  <input type="number" name="Age" class="form-control" min="18" max="100" placeholder="e.g., 35" required>
+                  <label for="Age" class="form-label fw-semibold">Age</label>
+                  <input type="number" name="Age" id="Age" class="form-control" min="18" max="100" placeholder="e.g., 35" required>
                   <small class="text-muted">Peak age: 35-45 years</small>
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold">Menstrual Status</label>
-                  <select name="Menstruating" class="form-select" required>
+                  <label for="Menstruating" class="form-label fw-semibold">Menstrual Status</label>
+                  <select name="Menstruating" id="Menstruating" class="form-select" required>
                     <option value="">Select status...</option>
                     <option value="1">Currently Menstruating</option>
                     <option value="0">Not Menstruating</option>
@@ -55,17 +55,17 @@
 
             <!-- Sleep & Rest Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-moon-stars me-2" aria-hidden="true"></i>Sleep & Rest</h5>
+              <h2 class="h5 fw-bold mb-3 text-primary"><i class="bi bi-moon-stars me-2" aria-hidden="true"></i>Sleep & Rest</h2>
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Sleep Duration</label>
-                  <input type="number" name="SleepHours" step="0.5" class="form-control" min="3" max="12" placeholder="e.g., 7.5" required>
+                  <label for="SleepHours" class="form-label fw-semibold">Sleep Duration</label>
+                  <input type="number" name="SleepHours" id="SleepHours" step="0.5" class="form-control" min="3" max="12" placeholder="e.g., 7.5" required>
                   <small class="text-muted">Hours per night (Optimal: 7-9 hours)</small>
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Stress Level</label>
-                  <input type="number" name="Stress" class="form-control" min="1" max="10" placeholder="Rate 1-10" required>
+                  <label for="Stress" class="form-label fw-semibold">Stress Level</label>
+                  <input type="number" name="Stress" id="Stress" class="form-control" min="1" max="10" placeholder="Rate 1-10" required>
                   <small class="text-muted">1 = Very low, 10 = Extremely high stress</small>
                 </div>
               </div>
@@ -73,23 +73,23 @@
 
             <!-- Nutrition & Hydration Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-egg-fried me-2" aria-hidden="true"></i>Nutrition & Hydration</h5>
+              <h2 class="h5 fw-bold mb-3 text-primary"><i class="bi bi-egg-fried me-2" aria-hidden="true"></i>Nutrition & Hydration</h2>
               <div class="row g-3">
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold">Water Intake</label>
-                  <input type="number" name="WaterIntake" step="0.1" class="form-control" min="0" max="5" placeholder="e.g., 2.5" required>
+                  <label for="WaterIntake" class="form-label fw-semibold">Water Intake</label>
+                  <input type="number" name="WaterIntake" id="WaterIntake" step="0.1" class="form-control" min="0" max="5" placeholder="e.g., 2.5" required>
                   <small class="text-muted">Liters per day (Target: 2-3L)</small>
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold">Caffeine Intake</label>
-                  <input type="number" name="Caffeine" class="form-control" min="0" max="10" placeholder="e.g., 2" required>
+                  <label for="Caffeine" class="form-label fw-semibold">Caffeine Intake</label>
+                  <input type="number" name="Caffeine" id="Caffeine" class="form-control" min="0" max="10" placeholder="e.g., 2" required>
                   <small class="text-muted">Cups per day (Limit: 3-4 max)</small>
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold">Meal Pattern</label>
-                  <select name="SkippedMeals" class="form-select" required>
+                  <label for="SkippedMeals" class="form-label fw-semibold">Meal Pattern</label>
+                  <select name="SkippedMeals" id="SkippedMeals" class="form-select" required>
                     <option value="">Select pattern...</option>
                     <option value="No">Regular Meals (No Skipping)</option>
                     <option value="Yes">Skip Meals Often</option>
@@ -101,11 +101,11 @@
 
             <!-- Activity & Screen Time Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-activity me-2" aria-hidden="true"></i>Activity & Screen Exposure</h5>
+              <h2 class="h5 fw-bold mb-3 text-primary"><i class="bi bi-activity me-2" aria-hidden="true"></i>Activity & Screen Exposure</h2>
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Physical Activity Frequency</label>
-                  <select name="PhysicalActivity" class="form-select" required>
+                  <label for="PhysicalActivity" class="form-label fw-semibold">Physical Activity Frequency</label>
+                  <select name="PhysicalActivity" id="PhysicalActivity" class="form-select" required>
                     <option value="">Select frequency...</option>
                     <option value="0">None (Sedentary)</option>
                     <option value="1">1-2 days per week (Light)</option>
@@ -116,8 +116,8 @@
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Screen Time</label>
-                  <input type="number" name="ScreenTime" step="0.5" class="form-control" min="0" max="24" placeholder="e.g., 8" required>
+                  <label for="ScreenTime" class="form-label fw-semibold">Screen Time</label>
+                  <input type="number" name="ScreenTime" id="ScreenTime" step="0.5" class="form-control" min="0" max="24" placeholder="e.g., 8" required>
                   <small class="text-muted">Hours per day (including work, phone, TV)</small>
                 </div>
               </div>
@@ -142,7 +142,7 @@
         <div class="col-md-6">
           <div class="card border-0 shadow-sm h-100 bg-primary text-white">
             <div class="card-body text-white p-4">
-              <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb me-2" aria-hidden="true"></i>Common Migraine Triggers</h6>
+              <h2 class="h6 fw-bold mb-2"><i class="bi bi-lightbulb me-2" aria-hidden="true"></i>Common Migraine Triggers</h2>
               <ul class="mb-0 small">
                 <li>Dehydration & skipped meals</li>
                 <li>Poor sleep or irregular sleep patterns</li>
@@ -158,7 +158,7 @@
         <div class="col-md-6">
           <div class="card border-0 shadow-sm h-100 bg-danger text-white">
             <div class="card-body text-white p-4">
-              <h6 class="fw-bold mb-2"><i class="bi bi-cpu me-2" aria-hidden="true"></i>About This Assessment</h6>
+              <h2 class="h6 fw-bold mb-2"><i class="bi bi-cpu me-2" aria-hidden="true"></i>About This Assessment</h2>
               <p class="mb-0 small">
                 Ten questions about your habits. Tested on people it had never seen, it
                 gets the answer right about

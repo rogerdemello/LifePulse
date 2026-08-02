@@ -113,10 +113,61 @@ def test_sentry_is_not_a_hard_dependency():
     assert "sentry" not in requirements.read_text(encoding="utf-8").lower()
 
 
-def test_sentry_config_never_sends_request_bodies():
-    """Health answers live in request bodies."""
-    from pathlib import Path
+def _capture_sentry_init(monkeypatch):
+    """Stand in for the uninstalled sentry-sdk and record how it's configured.
 
-    source = Path(observability.__file__).read_text(encoding="utf-8")
-    assert "send_default_pii=False" in source
-    assert 'max_request_body_size="never"' in source
+    This used to grep observability.py for the strings. That passes whether or
+    not the keyword reaches `init` -- and it can't notice a setting that should
+    be there but isn't, which is exactly how the frame-locals leak below
+    survived. Assert on the call.
+    """
+    import sys
+    import types
+
+    calls = {}
+    fake = types.ModuleType("sentry_sdk")
+    fake.init = lambda **kwargs: calls.update(kwargs)
+    integrations = types.ModuleType("sentry_sdk.integrations")
+    flask_integration = types.ModuleType("sentry_sdk.integrations.flask")
+    flask_integration.FlaskIntegration = lambda *a, **k: object()
+
+    monkeypatch.setitem(sys.modules, "sentry_sdk", fake)
+    monkeypatch.setitem(sys.modules, "sentry_sdk.integrations", integrations)
+    monkeypatch.setitem(
+        sys.modules, "sentry_sdk.integrations.flask", flask_integration
+    )
+
+    from app.app import create_app
+
+    monkeypatch.setenv("SENTRY_DSN", "https://public@example.ingest.sentry.io/1")
+    monkeypatch.setenv("SECRET_KEY", "x" * 32)
+    create_app()
+    return calls
+
+
+def test_sentry_config_never_sends_request_bodies(monkeypatch):
+    """Health answers live in request bodies."""
+    calls = _capture_sentry_init(monkeypatch)
+
+    assert calls, "Sentry was configured but init() was never called"
+    assert calls["send_default_pii"] is False
+    assert calls["max_request_body_size"] == "never"
+
+
+def test_sentry_config_never_sends_stack_frame_locals(monkeypatch):
+    """Withholding the body is not enough on its own.
+
+    Sentry attaches each frame's local variables to an exception by default. On
+    any 500 inside an assessment route, `collect()` has the raw form dict in
+    locals and `ModelBundle._matrix()` has the feature vector -- so every answer
+    would reach Sentry through the traceback while the request body was being
+    correctly withheld.
+    """
+    calls = _capture_sentry_init(monkeypatch)
+    assert calls["include_local_variables"] is False
+
+
+def test_sentry_sends_no_performance_traces(monkeypatch):
+    """Traces carry URLs and timings for every request, not just failures."""
+    calls = _capture_sentry_init(monkeypatch)
+    assert calls["traces_sample_rate"] == 0.0

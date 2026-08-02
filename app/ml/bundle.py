@@ -61,6 +61,18 @@ class Factor:
     def magnitude(self):
         return abs(self.delta)
 
+    @property
+    def note(self):
+        """A pre-written sentence for this factor, if one was generated.
+
+        Comes from app/ml/phrasings.json, built offline. Returns None when the
+        file is absent, which is the default -- the page then shows only the
+        measured contribution, exactly as before.
+        """
+        from app.ml.phrasings import explanation_for
+
+        return explanation_for(self.field, self.direction)
+
 
 
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"

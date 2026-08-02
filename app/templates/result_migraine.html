@@ -7,7 +7,7 @@
 <div class="container py-5">
   {% include "_caveats.html" %}
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2"><i class="bi bi-bandaid me-2" aria-hidden="true"></i>Migraine Risk Assessment Results</h2>
+    <h1 class="fw-bold h2 mb-2"><i class="bi bi-bandaid me-2" aria-hidden="true"></i>Migraine Risk Assessment Results</h1>
     <p class="text-muted">Your personalized migraine risk evaluation</p>
   </div>
 
@@ -22,13 +22,13 @@
           <div class="result-header is-danger">
         {% endif %}
           <div class="text-center">
-            <h3 class="mb-2">
+            <h2 class="h3 mb-2">
               {% if 'No Migraine' in prediction %}
                 <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Low Migraine Risk
               {% else %}
                 <i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Elevated Migraine Risk
               {% endif %}
-            </h3>
+            </h2>
             <p class="mb-0 opacity-90">Assessment: <strong>{{ prediction }}</strong></p>
           </div>
         </div>
@@ -38,10 +38,10 @@
           <div class="text-center mb-4 py-3">
             {% if 'No Migraine' in prediction %}
               <div class="mb-3"><i class="bi bi-emoji-smile" style="font-size:3rem" aria-hidden="true"></i></div>
-              <h4 class="text-success mb-3">Low Risk Profile</h4>
+              <h3 class="h4 text-success mb-3">Low Risk Profile</h3>
               <div class="mb-3">
                 <div class="d-inline-block px-4 py-2 rounded-pill bg-success text-white">
-                  <span class="text-white fw-bold fs-5">Confidence: {{ confidence }}%</span>
+                  <span class="text-white fw-bold fs-5">{{ confidence }}% estimated risk</span>
                 </div>
               </div>
               <p class="text-muted lead">
@@ -50,10 +50,10 @@
               </p>
             {% else %}
               <div class="mb-3"><i class="bi bi-bandaid" style="font-size:3rem" aria-hidden="true"></i></div>
-              <h4 class="text-warning mb-3">Elevated Risk Profile</h4>
+              <h3 class="h4 text-warning mb-3">Elevated Risk Profile</h3>
               <div class="mb-3">
                 <div class="d-inline-block px-4 py-2 rounded-pill bg-danger text-white">
-                  <span class="text-white fw-bold fs-5">Confidence: {{ confidence }}%</span>
+                  <span class="text-white fw-bold fs-5">{{ confidence }}% estimated risk</span>
                 </div>
               </div>
               <p class="text-muted lead">
@@ -67,29 +67,31 @@
 
           <!-- Understanding Your Result -->
           <div class="mb-4">
-            <h5 class="fw-bold mb-3"><i class="bi bi-book me-2" aria-hidden="true"></i>Understanding Your Result</h5>
+            <h3 class="h5 fw-bold mb-3"><i class="bi bi-book me-2" aria-hidden="true"></i>Understanding Your Result</h3>
             {% if 'No Migraine' in prediction %}
               <div class="alert alert-success border-0 shadow-sm">
-                <h6 class="fw-bold mb-2">What This Means:</h6>
+                <h4 class="h6 fw-bold mb-2">What This Means:</h4>
                 <p class="mb-2">
                   A low-risk profile indicates that your current lifestyle habits—including sleep, hydration, stress management, 
                   and dietary patterns—are aligned with migraine prevention best practices.
                 </p>
                 <p class="mb-0">
-                  <strong>Continue:</strong> Maintaining these healthy habits is key to keeping your risk low. Stay consistent 
-                  with sleep schedules, hydration, and stress management techniques.
+                  Nothing in your answers stood out as a common trigger. That is not
+                  a guarantee against migraines &mdash; many have causes this
+                  questionnaire does not ask about.
                 </p>
               </div>
             {% else %}
               <div class="alert alert-warning border-0 shadow-sm">
-                <h6 class="fw-bold mb-2">What This Means:</h6>
+                <h4 class="h6 fw-bold mb-2">What This Means:</h4>
                 <p class="mb-2">
                   An elevated risk profile suggests that certain lifestyle factors—such as inadequate sleep, dehydration, 
                   high stress, irregular meals, or excessive screen time—may be creating conditions that trigger migraines.
                 </p>
                 <p class="mb-0">
-                  <strong>Good News:</strong> Most migraine triggers are modifiable! By addressing the recommendations below, 
-                  you can significantly reduce your migraine frequency and severity.
+                  Many common migraine triggers are things you can change. The
+                  suggestions below are the usual starting points; whether they help
+                  varies a great deal between people.
                 </p>
               </div>
             {% endif %}
@@ -104,13 +106,13 @@
       <!-- Recommendations Card -->
       <div class="card border-0 shadow-sm mb-4">
         <div class="result-header is-neutral">
-          <h5 class="mb-0"><i class="bi bi-lightbulb me-2" aria-hidden="true"></i>Personalized Recommendations</h5>
+          <h3 class="h5 mb-0"><i class="bi bi-lightbulb me-2" aria-hidden="true"></i>Personalized Recommendations</h3>
         </div>
         <div class="card-body p-4">
           {% if 'No Migraine' in prediction %}
             <div class="row">
               <div class="col-md-6 mb-3">
-                <h6 class="fw-bold text-success mb-3"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Keep Doing</h6>
+                <h4 class="h6 fw-bold text-success mb-3"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Keep Doing</h4>
                 <ul class="list-unstyled">
                   <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Maintain your consistent sleep schedule (7-9 hours)</li>
                   <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Continue staying well-hydrated throughout the day</li>
@@ -120,7 +122,7 @@
                 </ul>
               </div>
               <div class="col-md-6 mb-3">
-                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-bullseye me-2" aria-hidden="true"></i>Prevention Tips</h6>
+                <h4 class="h6 fw-bold text-primary mb-3"><i class="bi bi-bullseye me-2" aria-hidden="true"></i>Prevention Tips</h4>
                 <ul class="list-unstyled">
                   <li class="mb-2"><i class="bi bi-journal-text me-2" aria-hidden="true"></i>Keep a wellness journal to track patterns</li>
                   <li class="mb-2"><i class="bi bi-cloud-sun me-2" aria-hidden="true"></i>Monitor weather changes (barometric pressure)</li>
@@ -133,7 +135,7 @@
           {% else %}
             <div class="row">
               <div class="col-md-6 mb-3">
-                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-moon me-2" aria-hidden="true"></i>Sleep & Rest</h6>
+                <h4 class="h6 fw-bold text-primary mb-3"><i class="bi bi-moon me-2" aria-hidden="true"></i>Sleep & Rest</h4>
                 <ul class="list-unstyled">
                   <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Consistent schedule:</strong> Go to bed and wake at same time daily</li>
                   <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>7-9 hours:</strong> Aim for optimal sleep duration</li>
@@ -144,7 +146,7 @@
               </div>
 
               <div class="col-md-6 mb-3">
-                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-droplet me-2" aria-hidden="true"></i>Nutrition & Hydration</h6>
+                <h4 class="h6 fw-bold text-primary mb-3"><i class="bi bi-droplet me-2" aria-hidden="true"></i>Nutrition & Hydration</h4>
                 <ul class="list-unstyled">
                   <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Hydration goal:</strong> Drink 2-3 liters of water daily</li>
                   <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Regular meals:</strong> Don't skip meals, especially breakfast</li>
@@ -155,7 +157,7 @@
               </div>
 
               <div class="col-md-6 mb-3">
-                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-activity me-2" aria-hidden="true"></i>Physical Activity</h6>
+                <h4 class="h6 fw-bold text-primary mb-3"><i class="bi bi-activity me-2" aria-hidden="true"></i>Physical Activity</h4>
                 <ul class="list-unstyled">
                   <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Regular exercise:</strong> 30 min moderate activity, 5 days/week</li>
                   <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Low-impact options:</strong> Walking, swimming, cycling, yoga</li>
@@ -166,7 +168,7 @@
               </div>
 
               <div class="col-md-6 mb-3">
-                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-laptop me-2" aria-hidden="true"></i>Screen & Environment</h6>
+                <h4 class="h6 fw-bold text-primary mb-3"><i class="bi bi-laptop me-2" aria-hidden="true"></i>Screen & Environment</h4>
                 <ul class="list-unstyled">
                   <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>20-20-20 rule:</strong> Every 20 min, look 20 ft away for 20 sec</li>
                   <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Blue light filter:</strong> Use on all devices, especially evening</li>
@@ -179,7 +181,7 @@
 
             <!-- Track Your Triggers -->
             <div class="alert alert-warning mt-4 mb-0">
-              <h6 class="fw-bold mb-2"><i class="bi bi-journal-text me-2" aria-hidden="true"></i>Track Your Triggers</h6>
+              <h4 class="h6 fw-bold mb-2"><i class="bi bi-journal-text me-2" aria-hidden="true"></i>Track Your Triggers</h4>
               <p class="mb-2 small">
                 Keep a migraine diary for at least 3 months. Record:
               </p>
@@ -199,7 +201,7 @@
       <!-- When to Seek Medical Help -->
       <div class="card mb-4 card-edge-danger">
         <div class="card-body p-4">
-          <h5 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>When to See a Doctor</h5>
+          <h3 class="h5 fw-bold text-danger mb-3"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>When to See a Doctor</h3>
           <p class="mb-2">Consult a neurologist or headache specialist if you experience:</p>
           <div class="row">
             <div class="col-md-6">
@@ -234,7 +236,7 @@
         <div class="card-body p-4">
           <div class="row align-items-center">
             <div class="col-md-8">
-              <h6 class="fw-bold mb-2">How reliable is this?</h6>
+              <h3 class="h6 fw-bold mb-2">How reliable is this?</h3>
               <p class="mb-2 small">
                 Tested on people it had never seen, it got the answer right
                 <strong>{{ '%.0f'|format(model_meta.migraine.metrics.accuracy * 100) }} times out of 100</strong>.

@@ -92,7 +92,7 @@ def predict_heart_disease():
         caveats=caveats,
         factors=factors,
         factor_noun="your estimate",
-        factor_unit="in 100",
+        factor_unit="points in 100",
         summary=build_summary(
             title="Heart disease risk",
             headline=f"{probability * 100:.1f}% estimated risk",

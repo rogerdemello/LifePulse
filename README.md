@@ -7,7 +7,7 @@
 
 > **Health screening you can take to your doctor.** Describe what you've noticed,
 > get a result that shows its working, and print a summary for your appointment.
-> Everything runs on this server; nothing you enter is stored.
+> Every model runs on this server; nothing you enter is stored on it.
 
 🔗 **Live:** [lifepulse-9vz4.onrender.com](https://lifepulse-9vz4.onrender.com/)
 
@@ -27,6 +27,7 @@
 - [The safety net](#the-safety-net)
 - [Explaining a result](#explaining-a-result)
 - [How the ML layer is organised](#how-the-ml-layer-is-organised)
+- [Azure OpenAI](#azure-openai)
 - [Design system](#design-system)
 - [Testing](#testing)
 - [Endpoints](#endpoints)
@@ -303,6 +304,54 @@ far outside its training distribution — sleep was receiving
 
 ---
 
+## Azure OpenAI
+
+Optional, off by default, and scoped so that `/privacy` stays true as written.
+
+**At runtime it sees one thing: the sentence typed into the "what's bothering
+you" box on `/start`**, so it can route "my chest feels tight climbing stairs"
+where a keyword matcher misses. Nothing from any assessment form is sent — not
+the answers, not the results, not the scores.
+
+Three rules the routing never breaks:
+
+1. **Emergency detection is not in that path.** It runs first, on local keyword
+   rules. Whether someone is told to call an ambulance must not depend on a
+   third party being reachable.
+2. **The model may only pick from the fixed concern set.** Its answer is looked
+   up in a table and discarded if it isn't a real key, so it can route but never
+   invent a destination.
+3. **Any failure falls back to keywords.** Unconfigured, slow, rate-limited or
+   wrong are ordinary conditions, not error pages.
+
+**Better result copy is generated at build time, not per request.** The shape of
+every sentence is knowable in advance — there are only so many (field,
+direction) pairs and result bands — so `ml_model/generate_phrasings.py` walks
+that space once on a developer's machine, screens the output for anything that
+instructs or falsely reassures, and commits it as `app/ml/phrasings.json`. At
+runtime the app picks a sentence and fills in the person's numbers locally.
+
+That's the trade: the copy can't react to an individual, and in exchange no
+assessment data ever leaves the server. `phrasings.json` is optional — without
+it every page keeps its built-in wording.
+
+```bash
+python ml_model/generate_phrasings.py --dry-run   # show exactly what would be sent
+python ml_model/generate_phrasings.py             # regenerate the copy
+python ml_model/generate_phrasings.py --check     # verify the committed file
+```
+
+The client is a thin wrapper over the REST API using `requests` — already a
+dependency — rather than the SDK, so every outbound byte is assembled in one
+function that a test can assert on. `tests/test_azure_openai.py` checks the
+request body is entirely determined by fixed app text plus the typed sentence,
+and that the assessment routes never reach the network at all.
+
+Set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY` and
+`AZURE_OPENAI_DEPLOYMENT` to enable it; `/healthz` reports whether it's on.
+
+---
+
 ## Design system
 
 Colour carries meaning: red means seek care, amber means worth raising, green
@@ -326,7 +375,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-**325 tests** (324 pass; one skips when the gitignored data is absent), covering:
+**398 tests** (397 pass; one skips when the gitignored data is absent), covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
@@ -340,6 +389,7 @@ pytest
 - **Front end** — every referenced asset exists, pages render without JavaScript, landmarks and skip links are present, contrast clears WCAG AA in both themes
 - **Rate limiting** — bursts are throttled per client, GETs never are
 - **Observability** — every request carries an id reaching the logs and the error page, and request logs never contain the answers
+- **Azure OpenAI** — the outbound body contains only fixed app text plus the typed sentence; assessment routes never reach the network; emergencies are detected before any call; every failure mode falls back to keywords; the privacy page changes when it's switched on
 
 Tests needing the gitignored CSVs skip cleanly when the data isn't present.
 
@@ -372,6 +422,7 @@ LifePulse/
 ├── app/
 │   ├── app.py                  # application factory
 │   ├── observability.py        # request ids, timing, optional Sentry
+│   ├── azure_openai.py         # optional LLM client; only /start uses it
 │   ├── ratelimit.py            # per-client throttle on the model endpoints
 │   ├── ml/
 │   │   ├── features.py         # THE feature contract — training and serving
@@ -395,11 +446,11 @@ LifePulse/
 │   ├── fetch_brfss.py          # CDC BRFSS -> data/brfss_heart.csv
 │   ├── fetch_nhanes.py         # CDC NHANES -> data/nhanes_sleep.csv
 │   └── train_all.py            # retrains both models
-├── tests/                      # 325 tests
+├── tests/                      # 398 tests
 ├── data/                       # training inputs (gitignored)
 ├── .github/workflows/ci.yml    # pytest + boot check + contract check
 ├── requirements.txt            # pinned runtime deps
-├── runtime.txt                 # Python 3.12 for Render
+├── .python-version             # Python 3.12 for Render
 ├── Procfile                    # gunicorn wsgi:app
 └── wsgi.py                     # WSGI entry point
 ```
@@ -407,13 +458,20 @@ LifePulse/
 ### A note on CSRF
 
 There is deliberately no CSRF protection. Every form is unauthenticated and
-changes no state — no account, no database, no stored result — so a forged
-cross-site submission would achieve nothing beyond making a stranger's browser
-compute a score it never displays. Adding tokens would mean a session cookie and
-a dependency to defend against nothing.
+changes no server-side state — no account, no database, nothing written to disk
+— so a forged cross-site submission would achieve nothing beyond making a
+stranger's browser compute a score it never displays. Adding tokens would mean a
+session cookie and a dependency to defend against nothing.
 
-**This stops being true the moment accounts or saved history exist.** If that
-changes, CSRF protection goes in at the same time, not after.
+The visit summary does persist, in the visitor's own `localStorage`, which is
+worth checking against this reasoning rather than waving through. It doesn't
+change the conclusion: a forged POST can render a result page, but writing to
+the summary needs a click on **Add to visit summary** on a page served from this
+origin, and an attacker's page cannot read or write another origin's
+`localStorage`. The forged request still achieves nothing.
+
+**This stops being true the moment accounts or server-side history exist.** If
+that changes, CSRF protection goes in at the same time, not after.
 
 ---
 
@@ -425,11 +483,28 @@ changes, CSRF protection goes in at the same time, not after.
 2. Build: `pip install -r requirements.txt`
 3. Start: `gunicorn wsgi:app`
 4. Set `SECRET_KEY` — the app refuses to start in production without it
-5. Optionally set `USDA_API_KEY` to enable `/nutrition/`, and `SENTRY_DSN` (plus
-   `pip install sentry-sdk`) for error monitoring
+5. Optionally set `USDA_API_KEY` for `/nutrition/`, `SENTRY_DSN` (plus
+   `pip install sentry-sdk`) for error monitoring, and the `AZURE_OPENAI_*`
+   variables for language-model routing on `/start`
 6. Point the health check at `/healthz`
 
-`runtime.txt` pins Python 3.12 to match the pinned wheels. No Git LFS needed.
+`.python-version` pins Python 3.12 to match the pinned wheels, and it has to be
+that file: Render reads a `PYTHON_VERSION` environment variable or
+`.python-version`, and ignores the `runtime.txt` this repository used to carry.
+Without it Render falls back to a default that depends on when the service was
+created, and numpy 1.26 and pandas 2.1 publish no wheels past 3.12 — so the
+build does not run slower, it fails compiling pandas from source. If a
+`PYTHON_VERSION` variable is set in the Render dashboard it wins over this
+file; make sure it says 3.12 or remove it. No Git LFS needed.
+
+If you enable Sentry, note what `app/observability.py` turns off and why. Error
+monitoring is the most likely route for health answers to leave the server by
+accident, because the defaults are built for apps whose request bodies aren't
+sensitive: `max_request_body_size="never"` withholds the submitted form, and
+`include_local_variables=False` withholds it a second time from the traceback,
+where the form dict would otherwise sit in a stack frame. `tests/test_observability.py` asserts the arguments reaching `sentry_sdk.init`, so a
+future change that drops one fails rather than silently starts uploading
+answers.
 
 **Locally, production-style:**
 

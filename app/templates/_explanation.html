@@ -33,6 +33,9 @@
           <span class="text-muted small d-block">
             compared with a typical {{ factor.label }} of {{ factor.typical }}
           </span>
+          {% if factor.note %}
+          <span class="text-muted small d-block mt-1">{{ factor.note }}</span>
+          {% endif %}
         </span>
       </li>
       {% endfor %}

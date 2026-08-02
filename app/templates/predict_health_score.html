@@ -4,7 +4,7 @@
 {% block content %}
 <div class="container py-5">
   <div class="text-center mb-4">
-    <h2 class="fw-bold mb-2"><i class="bi bi-bullseye me-2" aria-hidden="true"></i>Overall Health Score Assessment</h2>
+    <h1 class="fw-bold h2 mb-2"><i class="bi bi-bullseye me-2" aria-hidden="true"></i>Overall Health Score Assessment</h1>
     <p class="text-muted">Get a comprehensive evaluation of your health based on lifestyle factors</p>
   </div>
   
@@ -16,23 +16,23 @@
             
             <!-- Basic Information Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-person me-2" aria-hidden="true"></i>Basic Information</h5>
+              <h2 class="h5 fw-bold mb-3 text-primary"><i class="bi bi-person me-2" aria-hidden="true"></i>Basic Information</h2>
               <div class="row g-3">
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold">Age</label>
-                  <input type="number" name="Age" class="form-control" min="18" max="100" placeholder="e.g., 35" required>
+                  <label for="Age" class="form-label fw-semibold">Age</label>
+                  <input type="number" name="Age" id="Age" class="form-control" min="18" max="100" placeholder="e.g., 35" required>
                   <small class="text-muted">18-100 years</small>
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold">Body Mass Index (BMI)</label>
-                  <input type="number" name="BMI" step="0.1" class="form-control" min="15" max="50" placeholder="e.g., 24.5" required>
+                  <label for="BMI" class="form-label fw-semibold">Body Mass Index (BMI)</label>
+                  <input type="number" name="BMI" id="BMI" step="0.1" class="form-control" min="15" max="50" placeholder="e.g., 24.5" required>
                   <small class="text-muted">Healthy range: 18.5-24.9</small>
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold">Sleep Duration</label>
-                  <input type="number" name="SleepHours" step="0.5" class="form-control" min="3" max="12" placeholder="e.g., 7.5" required>
+                  <label for="SleepHours" class="form-label fw-semibold">Sleep Duration</label>
+                  <input type="number" name="SleepHours" id="SleepHours" step="0.5" class="form-control" min="3" max="12" placeholder="e.g., 7.5" required>
                   <small class="text-muted">Hours per night (Target: 7-9)</small>
                 </div>
               </div>
@@ -40,11 +40,11 @@
 
             <!-- Lifestyle Habits Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-activity me-2" aria-hidden="true"></i>Lifestyle & Activity</h5>
+              <h2 class="h5 fw-bold mb-3 text-primary"><i class="bi bi-activity me-2" aria-hidden="true"></i>Lifestyle & Activity</h2>
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Exercise Frequency</label>
-                  <select name="ExerciseFrequency" class="form-select" required>
+                  <label for="ExerciseFrequency" class="form-label fw-semibold">Exercise Frequency</label>
+                  <select name="ExerciseFrequency" id="ExerciseFrequency" class="form-select" required>
                     <option value="">Select activity level...</option>
                     <option value="0">Never (0 days/week) - Sedentary</option>
                     <option value="1">Rarely (1 day/week)</option>
@@ -59,8 +59,8 @@
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Diet Quality</label>
-                  <select name="DietQuality" class="form-select" required>
+                  <label for="DietQuality" class="form-label fw-semibold">Diet Quality</label>
+                  <select name="DietQuality" id="DietQuality" class="form-select" required>
                     <option value="">Rate your diet...</option>
                     <option value="1">1 - Very Poor (fast food, processed)</option>
                     <option value="2">2 - Poor</option>
@@ -80,11 +80,11 @@
 
             <!-- Health Risk Factors Section -->
             <div class="mb-4">
-              <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Health Risk Factors</h5>
+              <h2 class="h5 fw-bold mb-3 text-primary"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Health Risk Factors</h2>
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Smoking Status</label>
-                  <select name="SmokingStatus" class="form-select" required>
+                  <label for="SmokingStatus" class="form-label fw-semibold">Smoking Status</label>
+                  <select name="SmokingStatus" id="SmokingStatus" class="form-select" required>
                     <option value="">Select smoking status...</option>
                     <option value="0">Non-smoker (Never smoked)</option>
                     <option value="1">Former smoker (Quit)</option>
@@ -96,8 +96,8 @@
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Alcohol Consumption</label>
-                  <select name="AlcoholConsumption" class="form-select" required>
+                  <label for="AlcoholConsumption" class="form-label fw-semibold">Alcohol Consumption</label>
+                  <select name="AlcoholConsumption" id="AlcoholConsumption" class="form-select" required>
                     <option value="">Select drinking pattern...</option>
                     <option value="0">None (0 drinks/week)</option>
                     <option value="1">Rare (1-2 drinks/week)</option>
@@ -130,7 +130,7 @@
         <div class="col-md-6">
           <div class="card border-0 shadow-sm h-100 bg-primary text-white">
             <div class="card-body text-white p-4">
-              <h6 class="fw-bold mb-2"><i class="bi bi-bar-chart me-2" aria-hidden="true"></i>What We Measure</h6>
+              <h2 class="h6 fw-bold mb-2"><i class="bi bi-bar-chart me-2" aria-hidden="true"></i>What We Measure</h2>
               <ul class="mb-0 small">
                 <li>Body composition (BMI)</li>
                 <li>Sleep quality and duration</li>
@@ -146,7 +146,7 @@
         <div class="col-md-6">
           <div class="card border-0 shadow-sm h-100 bg-warning text-white">
             <div class="card-body text-white p-4">
-              <h6 class="fw-bold mb-2"><i class="bi bi-cpu me-2" aria-hidden="true"></i>About This Assessment</h6>
+              <h2 class="h6 fw-bold mb-2"><i class="bi bi-cpu me-2" aria-hidden="true"></i>About This Assessment</h2>
               <p class="mb-0 small">
                 This one isn't a model. Your answers are scored against a published
                 checklist &mdash; WHO activity and BMI guidance, sleep-medicine consensus,

@@ -132,7 +132,13 @@
 </nav>
 
 <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Main Content -->
-<main id="mainContent" class="container my-4">
+{# tabindex="-1" is what makes the skip link above do anything.
+
+   Without it <main> is not a focusable target, so following the link moved the
+   scroll position and left focus on the link itself -- the next Tab went to the
+   navbar brand, i.e. straight back into the navigation the user had just asked
+   to skip. The link was decorative on every page. #}
+<main id="mainContent" class="container my-4" tabindex="-1">
   {% block content %}
   {% endblock %}
 </main>
@@ -157,7 +163,11 @@
       <span aria-hidden="true">&middot;</span>
       <a href="{{ url_for('index') }}">Home</a>
     </p>
-    <p class="mb-0">&copy; 2025 LifePulse. Nothing you enter is stored.</p>
+    <!-- Was "Nothing you enter is stored." That stopped being true the day the
+         visit summary shipped: choosing "Add to visit summary" writes the result
+         and the answers behind it to localStorage. It never leaves the device, so
+         the promise worth making is about the server -- which is still absolute. -->
+    <p class="mb-0">&copy; 2025 LifePulse. Nothing you enter is stored on our server.</p>
   </div>
 </footer>
 

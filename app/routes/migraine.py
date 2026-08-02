@@ -63,7 +63,7 @@ def predict_migraine():
         caveats=caveats,
         factors=factors,
         factor_noun="your estimate",
-        factor_unit="in 100",
+        factor_unit="points in 100",
         summary=build_summary(
             title="Migraine risk",
             headline=f"{label} ({risk:.0f}% estimated risk)",

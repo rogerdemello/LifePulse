@@ -82,9 +82,17 @@ def _install_sentry(app):
         # Health answers are submitted in request bodies. Never send them.
         send_default_pii=False,
         max_request_body_size="never",
+        # Nor in stack frames. This one is easy to miss: blocking the request
+        # body is not enough, because Sentry attaches every frame's local
+        # variables to an exception by default. A 500 anywhere in an assessment
+        # route has the form dict sitting in `collect()`'s locals and the
+        # feature vector in `ModelBundle._matrix()`'s -- so the answers would
+        # have reached Sentry through the traceback with the body still
+        # correctly withheld.
+        include_local_variables=False,
         traces_sample_rate=0.0,
     )
-    log.info("Sentry enabled (request bodies are never sent)")
+    log.info("Sentry enabled (request bodies and frame locals are never sent)")
     return True
 
 

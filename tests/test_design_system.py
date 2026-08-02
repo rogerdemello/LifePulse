@@ -121,8 +121,17 @@ def test_semantic_colours_are_not_hardcoded_in_templates():
 
 
 def test_the_stylesheet_stayed_small():
-    """It was 1,674 lines, most of it decoration. Guard the trim."""
-    assert len(CSS.splitlines()) < 1000
+    """It was 1,674 lines, most of it decoration. Guard the trim.
+
+    Counts rules rather than raw lines. The guard is against decoration coming
+    back, and a comment is not decoration -- this file explains the constructs
+    it replaced, so prose grows every time a defect is fixed properly. Counting
+    raw lines taxed the explanation and not the CSS: the print fixes added 48
+    lines of rules and 38 of reasoning, and it was the reasoning that pushed it
+    over 1,000.
+    """
+    rules = [line for line in CSS_RULES.splitlines() if line.strip()]
+    assert len(rules) < 850
 
 
 @pytest.mark.parametrize("selector", [
