@@ -73,9 +73,15 @@
             <li class="mb-2">
               <strong>The &ldquo;what's bothering you&rdquo; box.</strong> If you type a
               description on the <a href="{{ url_for('start.start') }}">start page</a>,
-              that sentence is sent to Azure OpenAI to work out which check fits.
-              Only the sentence &mdash; nothing you enter into an assessment goes
-              with it, and the emergency check runs here, before anything is sent.
+              what you type is sent to Azure OpenAI to work out which check fits.
+              It may ask you up to two follow-up questions, and your answers to
+              those are sent the same way &mdash; so it is the sentences you type
+              into that box, not just the first one.
+              Nothing you enter into an assessment goes with it: not the answers,
+              not the results, not the scores. The emergency check runs here
+              first, on this server, before anything is sent, and its result
+              cannot be changed by the model. The exchange is not stored &mdash;
+              it travels in the page and is gone when you leave.
               Azure OpenAI does not train on customer data.
             </li>
             {% endif %}

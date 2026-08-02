@@ -91,7 +91,9 @@
         <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
         Saved results live in this browser's local storage. They are never uploaded,
         and clearing your browser data removes them.
-        <a href="{{ url_for('privacy') }}">More about privacy</a>.
+        {# inline-block + py-1 so the link clears the 24px minimum target; in
+           small print inside a paragraph it measured 17px. #}
+        <a class="d-inline-block py-1" href="{{ url_for('privacy') }}">More about privacy</a>.
       </p>
 
     </div>

@@ -48,26 +48,55 @@
       </div>
       {% endif %}
 
+      {# What has been said so far, once there is actually an exchange to show.
+         With a single turn the field below still holds the same words, and
+         printing them twice reads as a bug.
+
+         Rendered as plain labelled lines rather than chat bubbles: this is two
+         or three turns, and dressing it as messaging oversells what it does. #}
+      {% if turns|length > 1 %}
+      <ol class="triage-thread list-unstyled mb-4">
+        {% for turn in turns %}
+        <li class="triage-turn is-{{ turn.role }}">
+          <span class="triage-who">{% if turn.role == 'user' %}You said{% else %}LifePulse asked{% endif %}</span>
+          <span class="triage-said">{{ turn.text }}</span>
+        </li>
+        {% endfor %}
+      </ol>
+      {% endif %}
+
       <!-- Search -->
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
           <form method="POST" action="{{ url_for('start.start') }}">
+            {# The exchange rides here and comes back with the next post, so
+               the server keeps nothing between turns. A plain form, so this
+               works with JavaScript off like the rest of the app. #}
+            {% for turn in turns %}
+            <input type="hidden" name="turn" value="{{ turn.role }}:{{ turn.text }}">
+            {% endfor %}
+
             <label for="concern" class="form-label fw-semibold">
-              In a few words, what have you noticed?
+              {% if asking %}{{ asking }}{% else %}In a few words, what have you noticed?{% endif %}
             </label>
             <div class="input-group input-group-lg">
               <input type="text" id="concern" name="concern" class="form-control"
-                     placeholder="e.g. I snore and I'm tired all day"
-                     value="{{ described or '' }}"
+                     placeholder="{% if asking %}Your answer{% else %}e.g. I snore and I'm tired all day{% endif %}"
+                     {# Only refill on the single-turn case, where it lets
+                        someone edit what they wrote. After an exchange
+                        `described` is everything joined together, and putting
+                        that back in the box would be nonsense. #}
+                     {% if not asking and turns|length <= 1 %}value="{{ described or '' }}"{% endif %}
                      aria-describedby="concernHelp">
               <button class="btn btn-primary" type="submit">
-                <i class="bi bi-arrow-right me-1" aria-hidden="true"></i>Find
+                <i class="bi bi-arrow-right me-1" aria-hidden="true"></i>{% if asking %}Answer{% else %}Find{% endif %}
               </button>
             </div>
             <small class="text-muted" id="concernHelp">
               {% if llm_enabled %}
-                Your sentence is sent to a language model to work out which check
-                fits. Nothing from any assessment is &mdash;
+                What you type here is sent to a language model to work out which
+                check fits, and it may ask a follow-up. Nothing from any
+                assessment is &mdash;
                 <a href="{{ url_for('privacy') }}">see what leaves this server</a>.
               {% else %}
                 This matches keywords &mdash; it doesn't read sentences, and it will
