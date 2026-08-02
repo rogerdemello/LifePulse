@@ -331,3 +331,97 @@ def test_bootstrap_column_widths_do_not_squeeze_the_printed_labels():
     """
     block = _print_block()
     assert "width: auto !important" in block
+
+
+def test_the_print_block_outranks_the_dark_theme():
+    """Both blocks open with `:root`, so source order decides which palette
+    wins -- and both media queries match when you print from a machine whose
+    OS is in dark mode.
+
+    `@media print` used to sit at section 9 and dark mode at section 10, so the
+    dark tokens won and the print reset was inert for exactly the readers it
+    was written for. The test above asserts the reset exists; it passed the
+    whole time, because it read the source rather than the cascade. Rendering
+    the pages showed `--ink` still resolving to #e8ecf3 under print emulation.
+
+    Order is the fix, so order is what this guards.
+    """
+    css = _code_only(STATIC / "css" / "style.css")
+    assert css.index("@media print") > css.index("@media (prefers-color-scheme: dark)"), (
+        "@media print must come after the dark-mode block or its :root reset "
+        "loses on source order"
+    )
+
+
+def test_every_selector_in_the_print_block_is_one_the_app_uses():
+    """The previous print block styled `.summary-question` and
+    `.summary-questions li`. Neither has ever existed -- the questions render as
+    `li` inside `#summaryQuestions` -- so the rule meant to make them legible
+    matched nothing, and the seven questions a patient takes to a doctor kept
+    printing in near-white.
+
+    A print rule cannot be looked at in the normal course of using the app, so
+    a selector typo there is invisible until someone prints. This is the check
+    that would have caught it.
+    """
+    block = _print_block()
+    corpus = "\n".join(
+        p.read_text(encoding="utf-8")
+        for p in list(TEMPLATES.rglob("*.html")) + list((STATIC / "js").rglob("*.js"))
+    )
+    css = _code_only(STATIC / "css" / "style.css")
+    rest = css.replace(block, "")
+
+    dead = []
+    for name in sorted(set(re.findall(r"[.#][A-Za-z][\w-]*", block))):
+        bare = re.escape(name[1:])
+        if re.search(rf"\b{bare}\b", corpus) or re.search(rf"[.#]{bare}\b", rest):
+            continue
+        dead.append(name)
+    assert not dead, f"print rules for selectors nothing uses: {dead}"
+
+
+def test_white_text_on_a_colour_fill_is_given_ink_for_print():
+    """A printer leaves background graphics off by default, so a white number
+    on a `bg-danger` pill comes out as blank paper.
+
+    Every result page put its headline figure in exactly that: "63.58%
+    estimated risk" on heart, "97.5% estimated risk" and the whole accuracy
+    note on migraine, the health-score rating, the calculator's BMI band. All
+    of them printed as nothing at all, in light mode as well as dark, and the
+    page still looked complete because the surrounding prose printed fine.
+    """
+    block = _print_block()
+    for selector in (".text-white", ".badge", ".probability-badge",
+                     ".bg-danger", ".bg-success", ".result-header"):
+        assert selector in block, f"{selector} would print white on white"
+    assert "background: none !important" in block
+
+
+def test_a_result_card_may_break_across_pages():
+    """`.card` used to carry `break-inside: avoid`, which suits a summary entry
+    and not a result card taller than a sheet of A4. The browser cannot honour
+    it, so it pushed the whole card to page 2 -- and the heart result printed a
+    first page that was blank below the title.
+    """
+    block = _print_block()
+    avoid = [seg for seg in block.split("}") if "break-inside: avoid" in seg]
+    assert avoid, "nothing is protected from splitting across pages"
+    for seg in avoid:
+        selectors = seg.split("{")[0]
+        assert not re.search(r"(^|,)\s*\.card\s*(,|$)", selectors), (
+            "a result card is taller than a page; break-inside: avoid on .card "
+            "blanks the page before it"
+        )
+
+
+def test_printing_a_result_leaves_out_the_buttons():
+    """On paper a button is an instruction to go back to a screen. "Take
+    Another Assessment", "Back to Home" and the "Add to visit summary" card are
+    the app talking to itself, and they were printing on every result page.
+    """
+    block = _print_block()
+    hidden = [seg for seg in block.split("}") if "display: none" in seg]
+    selectors = " ".join(seg.split("{")[0] for seg in hidden)
+    assert ".btn" in selectors
+    assert "[data-summary-card]" in selectors
