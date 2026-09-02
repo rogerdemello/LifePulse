@@ -56,7 +56,7 @@
       var confirmation = document.querySelector('[data-save-confirmation]');
       if (write(entries)) {
         if (confirmation) confirmation.classList.remove('d-none');
-        button.innerHTML = '<i class="bi bi-check-lg me-1"></i>Saved';
+        button.innerHTML = '<svg class="bi me-1" aria-hidden="true"><use href="#i-check-lg"></use></svg>Saved';
         button.classList.replace('btn-primary', 'btn-success');
         if (window.toast) window.toast.success('Added to your visit summary', 3000);
       } else if (window.toast) {

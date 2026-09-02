@@ -45,16 +45,33 @@
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
   <meta name="msapplication-TileColor" content="#0066cc" />
 
-  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Google Fonts - Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  {# ------------------------------------------------------------------------
+     Every asset below is served from this origin. Nothing here reaches a CDN.
 
-  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+     Until now this block loaded Inter from Google Fonts and both Bootstrap's
+     CSS and its icon font from jsDelivr. Two things were wrong with that.
 
-  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+     The layout was load-bearing on a third party. style.css restyles .card and
+     .btn but never defined .container, .row or .col-md-6, which the templates
+     use 145 times between them -- so a blocked jsDelivr did not degrade the
+     styling, it collapsed every page into one unstyled column. The comment a
+     few lines down, about AOS blanking the homepage, is the same failure. It
+     was fixed for the animation library and left in place for the grid.
+
+     And every page view of a health tool announced the visitor to Google and
+     jsDelivr. /privacy disclosed it honestly, but disclosure is not
+     mitigation on a site whose first promise is that nothing you enter is
+     stored.
+
+     What replaced them: layout.css (the ~145 utility classes actually used,
+     16 kB), the system font stack style.css already asked for, and an inline
+     sprite of the 60 icons actually used. Together they are smaller than the
+     Bootstrap stylesheet alone.
+     ------------------------------------------------------------------------ #}
+
+  {# Layout and utilities first, so style.css's components win on conflict. #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
   {# AOS was removed. It set opacity:0 on every [data-aos] element from a CDN
      stylesheet and restored it on scroll, so with JavaScript unavailable the
@@ -64,30 +81,26 @@
      until JavaScript runs; it passed throughout, because it reads style.css
      and the rule lived in a third party's. #}
 
-  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Custom CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Toast Notifications JS -->
   <script src="{{ url_for('static', filename='js/toast.js') }}" defer></script>
-
-  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Charts & Visualizations JS -->
   <script src="{{ url_for('static', filename='js/charts.js') }}" defer></script>
-
-  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Optional Custom Scripts -->
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
-
-  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Visit summary (localStorage only, never uploaded) -->
+  {# Visit summary: localStorage only, never uploaded. #}
   <script src="{{ url_for('static', filename='js/summary.js') }}" defer></script>
 
-  <!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Multi-step forms (enhancement only; forms work without it) -->
+  <!-- Multi-step forms (enhancement only; forms work without it) -->
   <script src="{{ url_for('static', filename='js/steps.js') }}" defer></script>
 </head>
 
 <body>
 
+{# The icon sprite. Inline rather than a static file because Safari
+   will not resolve <use> into an external document, and hidden so it
+   occupies no space and is never announced. #}
+{% include "_icons.html" %}
+
 <a href="#mainContent" class="skip-link">Skip to main content</a>
 
-<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Loading Overlay -->
+<!-- Loading Overlay -->
 <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
   <div class="loading-content">
     <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
@@ -117,7 +130,7 @@
    That is a real limitation and it is in the README: without script the nav
    is unreachable below 992px, though every page's content, the footer links
    and the homepage's own list of assessments all still work. #}
-<nav class="navbar navbar-dark" aria-label="Main navigation">
+<nav class="navbar" aria-label="Main navigation">
   <div class="container">
     <a class="navbar-brand" href="/">LifePulse</a>
 
@@ -157,7 +170,7 @@
           <a class="nav-link fw-semibold{% if request.path == url_for('summary') %} active{% endif %}"
              href="{{ url_for('summary') }}"
              {% if request.path == url_for('summary') %}aria-current="page"{% endif %}>
-            <i class="bi bi-clipboard2-pulse me-1" aria-hidden="true"></i>My Summary
+            <svg class="bi me-1" aria-hidden="true"><use href="#i-clipboard2-pulse"></use></svg>My Summary
           </a>
         </li>
       </ul>
@@ -176,14 +189,14 @@
   {% endblock %}
 </main>
 
-<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Footer -->
+<!-- Footer -->
 <footer>
   <div class="container">
 
     <!-- One disclaimer, on every page. Result pages used to each word their own
          differently, and the homepage and forms carried none at all. -->
     <div class="footer-disclaimer" role="note">
-      <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
+      <svg class="bi me-2" aria-hidden="true"><use href="#i-info-circle"></use></svg>
       <strong>LifePulse is a screening tool, not a diagnosis.</strong>
       It estimates risk from patterns in public health data and cannot examine you,
       know your history, or be right about any individual. Use it to decide whether
@@ -204,7 +217,7 @@
   </div>
 </footer>
 
-<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Scroll to Top Button -->
+<!-- Scroll to Top Button -->
 <button id="scrollToTop" class="scroll-to-top" type="button"
         title="Go to top" aria-label="Scroll back to top">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
@@ -212,7 +225,7 @@
   </svg>
 </button>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 // The whole of what Bootstrap's 24KB bundle was loaded to do. aria-expanded is
 // kept in step here rather than by a library, which is also how it comes to be
 // correct: the old markup hardcoded aria-expanded="false" and Bootstrap
@@ -229,8 +242,8 @@
 })();
 </script>
 
-<!-- <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Scroll to Top Script -->
-<script>
+<!-- Scroll to Top Script -->
+<script nonce="{{ csp_nonce }}">
 // Get the button
 const scrollToTopBtn = document.getElementById('scrollToTop');
 

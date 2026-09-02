@@ -34,6 +34,11 @@ class Concern:
     title: str
     blurb: str
     endpoint: str
+    # A Bootstrap Icons name with no prefix -- "heart-pulse", not
+    # "bi-heart-pulse". The templates build a sprite reference from it as
+    # ``#i-{{ concern.icon }}``, and tools/build_icon_sprite.py reads these
+    # names when deciding which glyphs to embed, so a name that is not a real
+    # icon becomes a blank space rather than an error.
     icon: str
     keywords: tuple = field(default=())
 
@@ -140,7 +145,7 @@ CONCERNS = (
         blurb="Worried about cardiovascular risk, or you've been told your blood "
               "pressure or cholesterol is high.",
         endpoint="heart_disease.predict_heart_disease",
-        icon="bi-heart-pulse",
+        icon="heart-pulse",
         keywords=(
             "heart", "cardiac", "cardiovascular", "blood pressure", "bp",
             "hypertension", "cholesterol", "palpitations", "circulation",
@@ -153,7 +158,7 @@ CONCERNS = (
         blurb="Snoring, waking unrested, trouble falling or staying asleep, or "
               "feeling sleepy all day.",
         endpoint="sleep.predict_sleep",
-        icon="bi-moon-stars",
+        icon="moon-stars",
         keywords=(
             "sleep", "sleeping", "snore", "snoring", "insomnia", "tired",
             "tiredness", "exhausted", "fatigue", "cant sleep", "can't sleep",
@@ -166,7 +171,7 @@ CONCERNS = (
         title="Headaches or migraines",
         blurb="Recurring headaches, and what might be triggering them.",
         endpoint="migraine.predict_migraine",
-        icon="bi-lightning",
+        icon="lightning",
         keywords=(
             "headache", "migraine", "head pain", "head hurts", "head hurting",
             "sore head", "pounding head", "throbbing head", "aura",
@@ -179,7 +184,7 @@ CONCERNS = (
         blurb="Where your diet, exercise, sleep, smoking and drinking are helping "
               "or hurting, and which to change first.",
         endpoint="health_score.predict_health_score",
-        icon="bi-clipboard2-pulse",
+        icon="clipboard2-pulse",
         keywords=(
             "lifestyle", "general health", "overall health", "healthy",
             "unhealthy", "exercise", "fitness", "diet", "eating", "smoking",
@@ -193,7 +198,7 @@ CONCERNS = (
         blurb="Work out BMI, daily calorie needs, waist-hip ratio and blood "
               "pressure category.",
         endpoint="calculator.show_health_form",
-        icon="bi-calculator",
+        icon="calculator",
         keywords=(
             "bmi", "body mass", "calories", "calorie", "bmr", "metabolism",
             "waist", "hip ratio", "how much should i weigh", "ideal weight",
@@ -205,7 +210,7 @@ CONCERNS = (
         title="What's in the food I eat",
         blurb="Look up any food's nutrients, and what its numbers mean.",
         endpoint="nutrition.nutrition_lookup",
-        icon="bi-egg-fried",
+        icon="egg-fried",
         keywords=(
             "food", "nutrition", "nutrients", "calories in", "sugar", "salt",
             "sodium", "fat", "protein", "fibre", "fiber", "vitamin", "vitamins",

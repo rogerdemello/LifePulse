@@ -7,6 +7,7 @@ from flask import Flask, render_template
 from app.ml.bundle import all_metadata
 from app.ml.triage import CONCERNS
 from app.observability import init_app as init_observability
+from app.security import init_app as init_security
 from app.routes.calculator_routes import calculator_bp
 from app.routes.health_score import health_score_bp
 from app.routes.heart import heart_disease_bp
@@ -60,6 +61,7 @@ def create_app():
     app.register_blueprint(start_bp)
 
     init_observability(app)
+    init_security(app)
 
     @app.context_processor
     def inject_model_metadata():

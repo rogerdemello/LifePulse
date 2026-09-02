@@ -129,6 +129,13 @@ def test_the_stylesheet_stayed_small():
     raw lines taxed the explanation and not the CSS: the print fixes added 48
     lines of rules and 38 of reasoning, and it was the reasoning that pushed it
     over 1,000.
+
+    Dropping Bootstrap made this file *smaller*, which was not the expectation.
+    It absorbed .btn-secondary -- the one component the CDN had been providing
+    that this file had no rule for, so the "Back to Home" button had been left
+    unstyled -- and lost twenty lines of --bs-* variable mappings that existed
+    only to keep Bootstrap's palette in step with ours. There is no second
+    palette now, so there is nothing to map.
     """
     rules = [line for line in CSS_RULES.splitlines() if line.strip()]
     assert len(rules) < 850
@@ -186,28 +193,133 @@ def test_icons_used_in_templates_are_marked_decorative():
 
 
 # --------------------------------------------------------------------------
-# Bootstrap interoperability
+# The app styles itself
 #
-# Every test above passed while the app was unreadable in dark mode: card
-# titles and form labels rendered near-black on a near-black surface, because
-# Bootstrap's components read its own --bs-* variables and we were only
-# overriding ours. Static assertions cannot see that. These can.
+# base.html used to load Bootstrap's CSS, its icon font and Inter from two
+# CDNs, and style.css restyled .card and .btn on top of that -- but it never
+# defined .container, .row or .col-md-6, which the templates use 145 times
+# between them. So a blocked CDN did not degrade the page, it collapsed it into
+# one unstyled column, and nothing here could see that: every test in this file
+# passed with the CDN and passes without it.
+#
+# These are the tests that would have caught it.
 # --------------------------------------------------------------------------
 
-BOOTSTRAP_VARS = [
-    "--bs-body-color", "--bs-body-bg", "--bs-emphasis-color",
-    "--bs-secondary-color", "--bs-border-color", "--bs-heading-color",
-    "--bs-link-color",
-]
+def _stylesheets():
+    """Every rule the app serves: both CSS files and the per-page <style> blocks.
+
+    Several pages carry their own <style> for classes only they use -- the
+    nutrition traffic-light pills, the lifestyle score bars -- so a check that
+    read only css/ would report a page's own styling as missing.
+    """
+    sheets = [p.read_text(encoding="utf-8") for p in (STATIC / "css").glob("*.css")]
+    for path in TEMPLATES.rglob("*.html"):
+        sheets += re.findall(r"<style[^>]*>(.*?)</style>",
+                             path.read_text(encoding="utf-8"), re.S)
+    return "\n".join(sheets)
 
 
-@pytest.mark.parametrize("variable", BOOTSTRAP_VARS)
-def test_bootstrap_variables_are_mapped_onto_our_tokens(variable):
-    """Otherwise .text-body, .form-label and .card-title keep Bootstrap's own
-    light palette and vanish against a dark surface."""
-    assert CSS.count(variable) >= 2, (
-        f"{variable} must be set in both :root and the dark-mode block"
+def _classes_used():
+    """``{class name: {templates using it}}``, ignoring Jinja expressions."""
+    used = {}
+    for path in TEMPLATES.rglob("*.html"):
+        for attribute in re.findall(r'class="([^"]*)"',
+                                    path.read_text(encoding="utf-8")):
+            # `class="badge bg-{{ flag.urgency }}"` contributes "badge" only:
+            # the rest is decided at render time and is covered by the tests
+            # that exercise the routes.
+            attribute = re.sub(r"\{[{%].*?[%}]\}", " ", attribute, flags=re.S)
+            for name in attribute.split():
+                if re.fullmatch(r"[a-z][a-z0-9]+(-[a-z0-9]+)*", name):
+                    used.setdefault(name, set()).add(path.name)
+    return used
+
+
+def test_every_class_the_templates_use_is_defined_somewhere():
+    """No class may depend on a stylesheet this app does not serve.
+
+    This is the check that was missing. .container, .row, .col-md-6 and every
+    spacing utility were coming from jsDelivr, so the layout of a health tool
+    was contingent on a third party being reachable -- from a corporate proxy,
+    from behind a national firewall, from a clinic having a bad morning.
+    """
+    defined = set(re.findall(r"\.(-?[A-Za-z_][A-Za-z0-9_-]*)", _stylesheets()))
+    missing = {name: sorted(where)
+               for name, where in _classes_used().items() if name not in defined}
+    assert not missing, (
+        "classes with no rule anywhere in this repository:\n  "
+        + "\n  ".join(f"{name} -- used in {', '.join(where)}"
+                      for name, where in sorted(missing.items()))
     )
+
+
+def test_no_template_loads_anything_from_a_third_party():
+    """Every byte a visitor's browser fetches comes from this origin.
+
+    Beyond availability, this is the privacy claim: /privacy opens by saying
+    nothing you enter is stored, and a health page that announces its visitor
+    to Google Fonts and jsDelivr on every load undercuts that before a single
+    question is answered.
+    """
+    offenders = []
+    for path in TEMPLATES.rglob("*.html"):
+        text = path.read_text(encoding="utf-8")
+        # Comments explain what was removed and why; they are prose, not requests.
+        text = re.sub(r"\{#.*?#\}|<!--.*?-->", "", text, flags=re.S)
+        for match in re.findall(r'(?:src|href)="(https?://[^"]+)"', text):
+            offenders.append(f"{path.name}: {match}")
+    assert not offenders, (
+        "templates fetching from another origin:\n  " + "\n  ".join(offenders)
+    )
+
+
+def test_the_icon_sprite_covers_every_icon_referenced():
+    """A missing symbol is an invisible icon, not an error.
+
+    The sprite is generated by tools/build_icon_sprite.py from whatever the
+    templates, the JavaScript and app/ml/triage.py reference, so this fails
+    when an icon has been added to a page and the sprite not rebuilt.
+    """
+    sprite = (TEMPLATES / "_icons.html").read_text(encoding="utf-8")
+    available = set(re.findall(r'<symbol id="i-([a-z0-9-]+)"', sprite))
+
+    referenced = set()
+    for path in list(TEMPLATES.rglob("*.html")) + list((STATIC / "js").glob("*.js")):
+        text = path.read_text(encoding="utf-8")
+        referenced.update(re.findall(r'href="#i-([a-z0-9-]+)"', text))
+
+    from app.ml.triage import CONCERNS
+    referenced.update(concern.icon for concern in CONCERNS)
+
+    assert not referenced - available, (
+        f"referenced but not in the sprite: {sorted(referenced - available)}. "
+        f"Run: python tools/build_icon_sprite.py"
+    )
+    # The other direction, so the sprite does not quietly accumulate weight it
+    # is inlined into every page.
+    assert not available - referenced, (
+        f"in the sprite but unused: {sorted(available - referenced)}"
+    )
+
+
+def test_the_layout_layer_stayed_a_layer():
+    """layout.css provides what the templates use, not a Bootstrap clone.
+
+    The whole reason it is small enough to own is that it is a subset. If it
+    ever approaches the thing it replaced, the trade stops being worth it.
+    """
+    layout = (STATIC / "css" / "layout.css").read_text(encoding="utf-8")
+    assert len(layout) < 30_000, f"layout.css is {len(layout) / 1000:.1f} kB"
+
+    # Read the rules, not the prose explaining them -- the same trap this
+    # file's header warns about, which this test fell into first time out: the
+    # comment describing what was replaced says ".card and .btn", and the
+    # assertion matched its own explanation.
+    rules = re.sub(r"/\*.*?\*/", "", layout, flags=re.S)
+    for component in (".card", ".btn", ".alert", ".navbar"):
+        assert not re.search(rf"^\s*\{re.escape(component)}[\s{{,:]", rules, re.M), (
+            f"{component} belongs in style.css, not layout.css"
+        )
 
 
 def test_hidden_beats_bootstrap_display_utilities():
