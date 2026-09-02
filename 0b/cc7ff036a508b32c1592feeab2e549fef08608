@@ -1,0 +1,125 @@
+tests/test_explanations.py
+  s_8455530e9fb213::t_dc654f987ec497 188-196,199-201
+ml_model/train_all.py
+  s_8455530e9fb213::t_bc4751692a898a 160-182
+  s_8455530e9fb213::t_c1a7a21811ef3f 217-222,261-268,271-273,278-281
+  s_8455530e9fb213::t_e9ea8edc4bfde2 364-365
+  s_8455530e9fb213::t_a033b2d3603ade 304
+  s_8455530e9fb213::t_e9e523153577dd 307-310,312,319-334,343-344,346-347,355-357,361-363,366-374,381-383,385
+  s_8455530e9fb213::t_b28361eb9ba692 99-105,107-108,110-126,130-134,136,141-142,147-151,154-155,223
+  s_8455530e9fb213::t_27e75b9b2029e1 224-260
+  s_8455530e9fb213::t_1227988a27f261 375-380
+app/models/heart/metadata.json
+  s_8455530e9fb213::t_d9d13d535d6cc7 10,14-16,27-32,62,150,164-169,179-180
+  s_8455530e9fb213::t_c143cce0d3a930 9,17-26,156-163,172-175,182
+app/routes/heart.py
+  s_8455530e9fb213::t_3179aa2a381493 103,112
+  s_8455530e9fb213::t_0ecdeab62bdda5 87-89
+  s_8455530e9fb213::t_a229a67562b1ab 86,90-96
+README.md
+  s_8455530e9fb213::t_e86f7972c1ea66 115-119
+  s_8455530e9fb213::t_6fb7dd2f525d35 127
+  s_8455530e9fb213::t_c4d1bbd2dc8f90 192-196,201-207
+  s_8455530e9fb213::t_daaef00d6c19ef 121-126,128-166,175-176,178-183
+  s_8455530e9fb213::t_ff276d0f63faff 108,120
+  s_8455530e9fb213::t_8d2cc8d7eddac2 451,456-457,523
+ml_model/fetch_brfss.py
+  s_8455530e9fb213::t_95aea4814be90f 267-272
+  s_8455530e9fb213::t_6b26fa94b72887 191-197
+  s_8455530e9fb213::t_d8829c76d1f2cb 181-187
+  s_8455530e9fb213::t_2ce4412833ccb1 208-227
+  s_8455530e9fb213::t_42c41484230565 54-55,58-86
+tests/test_model_quality.py
+  s_8455530e9fb213::t_3ac6d505bfe80d 41-86
+app/templates/result_heart.html
+  s_8455530e9fb213::t_425ce537875d51 68
+  s_8455530e9fb213::t_2caa13704cc538 90-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "autter_version": "1.6.9",
+  "base_commit_sha": "0bcc7ff036a508b32c1592feeab2e549fef08608",
+  "branch": "fix/model-pipeline-and-safety-net",
+  "prompts": {
+    "s_8455530e9fb213": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "051482fc-31f9-4023-a93b-f01ed1db67b1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:71089b9bf90ac158ddee4c114bade3400abce556e7fab8c416ec49c669b8ad9a",
+      "total_additions": 494,
+      "total_deletions": 132,
+      "accepted_lines": 1706,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_8455530e9fb213": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "051482fc-31f9-4023-a93b-f01ed1db67b1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:71089b9bf90ac158ddee4c114bade3400abce556e7fab8c416ec49c669b8ad9a",
+      "stats": {
+        "total_additions": 494,
+        "total_deletions": 132,
+        "accepted_lines": 1706,
+        "overriden_lines": 0,
+        "files": {
+          "README.md": {
+            "total_additions": 83,
+            "total_deletions": 27,
+            "accepted_lines": 637,
+            "overriden_lines": 0
+          },
+          "app/models/heart/metadata.json": {
+            "total_additions": 66,
+            "total_deletions": 34,
+            "accepted_lines": 189,
+            "overriden_lines": 0
+          },
+          "app/routes/heart.py": {
+            "total_additions": 15,
+            "total_deletions": 3,
+            "accepted_lines": 13,
+            "overriden_lines": 0
+          },
+          "app/templates/result_heart.html": {
+            "total_additions": 4,
+            "total_deletions": 1,
+            "accepted_lines": 4,
+            "overriden_lines": 0
+          },
+          "ml_model/fetch_brfss.py": {
+            "total_additions": 72,
+            "total_deletions": 1,
+            "accepted_lines": 72,
+            "overriden_lines": 0
+          },
+          "ml_model/train_all.py": {
+            "total_additions": 194,
+            "total_deletions": 62,
+            "accepted_lines": 481,
+            "overriden_lines": 0
+          },
+          "tests/test_explanations.py": {
+            "total_additions": 14,
+            "total_deletions": 4,
+            "accepted_lines": 264,
+            "overriden_lines": 0
+          },
+          "tests/test_model_quality.py": {
+            "total_additions": 46,
+            "total_deletions": 0,
+            "accepted_lines": 46,
+            "overriden_lines": 0
+          }
+        }
+      }
+    }
+  }
+}
