@@ -165,6 +165,68 @@ def test_explanation_costs_one_extra_prediction(client):
 # visit summary
 # --------------------------------------------------------------------------
 
+SUBGROUP_LINE = re.compile(
+    r"How well this works for ([^<]+):</strong>\s*"
+    r"across ([\d,]+) people in that group, the estimate\s*"
+    r"(.*?) &mdash; it predicted\s*([\d.]+)% on average where ([\d.]+)%",
+    re.S,
+)
+
+
+@pytest.mark.parametrize("sex", ["0", "1"])
+@pytest.mark.parametrize("age", ["22", "40", "58", "70", "84"])
+def test_the_subgroup_line_never_contradicts_its_own_numbers(client, sex, age):
+    """The result page tells the reader how the model does for their own group.
+
+    That claim sits directly beside the two percentages it is drawn from, so it
+    has to agree with them *as printed*. It briefly did not: in the youngest
+    band the model is out by 6% of a 0.8% risk, which is a real ratio and an
+    invisible difference, so the page said "tends to run high" next to
+    "predicted 0.8% where 0.8% had it". A reader is right to trust the figures
+    over the sentence, which makes the sentence the bug.
+    """
+    body = client.post(
+        "/heart_disease/", data={**HIGH_RISK_HEART, "sex": sex, "age": age}
+    ).get_data(as_text=True)
+
+    match = SUBGROUP_LINE.search(body)
+    assert match, f"no subgroup line for sex={sex} age={age}"
+    _, _, direction, predicted, observed = match.groups()
+    direction = re.sub(r"\s+", " ", direction).strip()
+    predicted, observed = float(predicted), float(observed)
+
+    expected = (
+        "tends to run low" if observed > predicted
+        else "tends to run high" if observed < predicted
+        else "has been accurate on average"
+    )
+    assert direction == expected, (
+        f"page says the estimate {direction!r} while printing "
+        f"predicted {predicted}% against observed {observed}%"
+    )
+
+
+def test_the_subgroup_line_reads_the_right_cell(client):
+    """A page quoting another group's numbers at somebody would be worse than
+    quoting none, and the sex/age lookup is exactly where that goes wrong."""
+    from app.ml.bundle import get_model
+
+    cells = get_model("heart").metadata["subgroups"]["sex_age"]
+    body = client.post(
+        "/heart_disease/", data={**HIGH_RISK_HEART, "sex": "1", "age": "58"}
+    ).get_data(as_text=True)
+
+    match = SUBGROUP_LINE.search(body)
+    assert match, "no subgroup line rendered"
+    group, n, _, predicted, observed = match.groups()
+    expected = cells["Male 50-64"]
+
+    assert group == "men aged 50–64"
+    assert n == f"{expected['n']:,}"
+    assert float(observed) == round(expected["observed"] * 100, 1)
+    assert float(predicted) == round(expected["predicted"] * 100, 1)
+
+
 def _summary(client, path, form):
     body = client.post(path, data=form).get_data(as_text=True)
     match = re.search(

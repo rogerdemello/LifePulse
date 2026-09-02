@@ -7,6 +7,7 @@ Every check here is against the relevant baseline, not an absolute number.
 
 import json
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -82,6 +83,126 @@ def test_the_brfss_fetcher_carries_the_design_variables():
     assert "_LLCPWT" in source
     assert "SurveyWeight" in source
     assert "weighted_prevalence" in source
+
+
+# --------------------------------------------------------------------------
+# subgroup performance
+#
+# One ROC-AUC over 62,000 test rows is an average, and averages hide their
+# tails. These assert that the split exists, that it is reported whether or not
+# it flatters the model, and that no group has drifted into being actively
+# misleading.
+# --------------------------------------------------------------------------
+
+STRATA = ("sex", "age_band", "sex_age", "race_ethnicity", "income_band", "education")
+
+# Cells smaller than this move too much on a handful of cases to assert against.
+MIN_CELL = 500
+
+
+def _cells(stratum=None, min_n=MIN_CELL):
+    """Every reported subgroup cell at or above ``min_n``, as (name, stats)."""
+    subgroups = load_metadata("heart")["subgroups"]
+    chosen = [stratum] if stratum else list(subgroups)
+    return [
+        (f"{s}={level}", row)
+        for s in chosen
+        for level, row in subgroups[s].items()
+        if row["n"] >= min_n
+    ]
+
+
+@pytest.mark.parametrize("stratum", STRATA)
+def test_heart_reports_performance_for_every_stratum(stratum):
+    subgroups = load_metadata("heart")["subgroups"]
+    assert stratum in subgroups, f"no subgroup audit for {stratum}"
+    assert len(subgroups[stratum]) >= 2, f"{stratum} has nothing to compare"
+    for level, row in subgroups[stratum].items():
+        for field in ("n", "n_positive", "observed", "predicted", "brier_score"):
+            assert field in row, f"{stratum}={level} is missing {field}"
+        # Reported beside every figure, so a reader can see which cells are too
+        # small to lean on rather than having to guess.
+        assert row["n"] > 0
+
+
+def test_no_subgroup_is_wildly_miscalibrated():
+    """The guard. A group the model is badly wrong about must fail the build.
+
+    Bounds are deliberately loose -- this is "something has broken", not "this
+    is good". The tighter reality is in the README, which names the two groups
+    the model currently serves worst.
+    """
+    bad = [
+        (name, row["observed_over_predicted"])
+        for name, row in _cells()
+        if not 0.6 <= row["observed_over_predicted"] <= 1.4
+    ]
+    assert not bad, f"observed/predicted outside 0.6-1.4: {bad}"
+
+
+def test_no_subgroup_has_collapsed_to_chance():
+    """A group the model cannot rank at all is worse than no answer for it."""
+    weak = [
+        (name, round(row["roc_auc"], 3))
+        for name, row in _cells()
+        if "roc_auc" in row and row["roc_auc"] < 0.65
+    ]
+    assert not weak, f"ROC-AUC below 0.65: {weak}"
+
+
+def test_the_oldest_band_is_the_weakest_and_stays_declared():
+    """Known and named rather than averaged away.
+
+    Discrimination falls off with age -- 0.86 at 35-49 against 0.69 past 80 --
+    and past 80 is where the reader is most likely to act on the answer. If a
+    retrain ever fixes this, this test fails and the README claim gets updated
+    with it.
+    """
+    bands = load_metadata("heart")["subgroups"]["age_band"]
+    assert bands["80+"]["roc_auc"] < bands["35-49"]["roc_auc"]
+    assert bands["80+"]["roc_auc"] == min(
+        row["roc_auc"] for row in bands.values() if "roc_auc" in row
+    )
+
+
+def test_reporting_strata_never_became_model_features():
+    """Race, income and education are audited against, never predicted from.
+
+    Feeding race into a clinical risk score is the mistake behind a generation
+    of race-adjusted equations now being withdrawn. They are carried in the CSV
+    for the subgroup split and nothing else, and this fails if one ever leaks
+    into the contract.
+    """
+    from app.ml.features import HEART_FEATURES, HEART_RAW
+
+    for name in ("RaceEthnicity", "IncomeBand", "EducationLevel",
+                 "SurveyWeight", "Stratum"):
+        assert name not in HEART_RAW, f"{name} became a raw input"
+        assert name not in HEART_FEATURES, f"{name} became a feature"
+
+
+def test_calibration_slope_recovers_a_known_miscalibration():
+    """The slope is hand-rolled arithmetic, so it gets checked against truth.
+
+    Simulate models whose true log-odds are half and one-and-a-half times what
+    they claim, and confirm the slope reports 0.5 and 1.5.
+    """
+    import numpy as np
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "ml_model"))
+    from train_all import _calibration_slope
+
+    rng = np.random.default_rng(0)
+    claimed_logit = rng.normal(-2.5, 1.5, 200_000)
+    claimed = 1 / (1 + np.exp(-claimed_logit))
+
+    def outcomes(true_slope, intercept):
+        true_p = 1 / (1 + np.exp(-(claimed_logit * true_slope + intercept)))
+        return (rng.random(len(true_p)) < true_p).astype(float)
+
+    assert _calibration_slope(outcomes(1.0, 0.0), claimed) == pytest.approx(1.0, abs=0.02)
+    assert _calibration_slope(outcomes(0.5, -1.25), claimed) == pytest.approx(0.5, abs=0.02)
+    assert _calibration_slope(outcomes(1.5, 1.25), claimed) == pytest.approx(1.5, abs=0.02)
 
 
 def test_heart_threshold_is_tuned_not_hardcoded():

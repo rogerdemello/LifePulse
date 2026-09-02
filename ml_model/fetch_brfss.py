@@ -53,7 +53,27 @@ COLUMNS = [
     "PHYSHLTH", "DIFFWALK", "_SEX", "_AGEG5YR",
     # --- survey design, not features ---
     "_LLCPWT", "_STSTR",
+    # --- reporting strata, not features (see the note below) ---
+    "_IMPRACE", "_INCOMG1", "_EDUCAG",
 ]
+
+# Race, income and education are carried to be *audited against*, never to be
+# predicted from.
+#
+# They are not in the feature contract and must never be. Feeding race into a
+# clinical risk score is the mistake that produced a generation of race-adjusted
+# equations now being withdrawn; the model does not see any of these columns,
+# and tests/test_feature_contract.py fails if one ever appears there.
+#
+# What they are for is the opposite question. A single ROC-AUC over 312,166
+# people can hide a model that works for the majority and fails for a subgroup,
+# and until you split the metrics you cannot know which you have. So these three
+# exist to split the *evaluation*, and they are reported in metadata.json
+# whether the answer is flattering or not.
+#
+# Missing answers become "Not reported" rather than NaN. Income is refused by
+# about a fifth of respondents, and letting that drop them would both shrink the
+# training set and quietly delete the subgroup most likely to be underserved.
 
 # Why the design variables are here at all.
 #
@@ -185,6 +205,22 @@ def tidy(raw):
     df["SurveyWeight"] = raw["_LLCPWT"]
     df["Stratum"] = raw["_STSTR"]
 
+    # Reporting strata. Labelled here rather than as codes so metadata.json and
+    # the README read as English, and defaulted rather than blanked so a refused
+    # answer never removes a respondent from training.
+    df["RaceEthnicity"] = raw["_IMPRACE"].map({
+        1: "White", 2: "Black", 3: "Asian",
+        4: "American Indian or Alaska Native", 5: "Hispanic", 6: "Other",
+    }).fillna("Not reported")
+    df["IncomeBand"] = raw["_INCOMG1"].map({
+        1: "Under $15k", 2: "$15k-25k", 3: "$25k-35k", 4: "$35k-50k",
+        5: "$50k-100k", 6: "$100k-200k", 7: "$200k or more",
+    }).fillna("Not reported")
+    df["EducationLevel"] = raw["_EDUCAG"].map({
+        1: "Did not finish high school", 2: "High school graduate",
+        3: "Some college", 4: "College graduate",
+    }).fillna("Not reported")
+
     return df.dropna()
 
 
@@ -240,6 +276,16 @@ def verify(df):
             problems.append(f"{column} is not binary")
     if not df.Diabetes.isin([0, 1, 2]).all():
         problems.append("Diabetes outside 0-2")
+
+    # A reporting stratum that silently became all-"Not reported" would turn the
+    # subgroup audit into a single row saying nothing, and would look like a
+    # passing check rather than a broken mapping.
+    for column in ["RaceEthnicity", "IncomeBand", "EducationLevel"]:
+        if df[column].nunique() < 3:
+            problems.append(
+                f"{column} has only {df[column].nunique()} distinct values -- "
+                f"check the codes for this cycle"
+            )
 
     if problems:
         raise SystemExit("BRFSS mapping looks wrong:\n  " + "\n  ".join(problems))

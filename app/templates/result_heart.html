@@ -73,6 +73,20 @@
               common heart disease is among people who gave your answers.
             </p>
 
+            {# How the model does for the reader's own group, not just on average.
+               An aggregate score is an average over 62,000 people, and this model
+               is measurably weaker at the older end -- which is exactly where a
+               reader is most likely to be acting on the answer. #}
+            {% if subgroup %}
+              <p class="text-muted small mt-3 mb-0 mx-auto" style="max-width: 42rem;">
+                <strong>How well this works for {{ subgroup.group }}:</strong>
+                across {{ subgroup.n }} people in that group, the estimate
+                {{ subgroup.direction }} &mdash; it predicted
+                {{ subgroup.predicted }}% on average where {{ subgroup.observed }}%
+                actually had heart disease.
+              </p>
+            {% endif %}
+
             <details class="mt-3 mx-auto text-start" style="max-width: 42rem;">
               <summary class="small text-muted">The technical version</summary>
               <p class="small text-muted mt-2 mb-0">
@@ -90,6 +104,12 @@
                 Every figure here is weighted by the survey's own sampling weights,
                 so it describes {{ population }} rather than the people BRFSS
                 happened to reach.
+                {% if subgroup and subgroup.roc_auc %}
+                  For {{ subgroup.group }} specifically, ROC-AUC is
+                  {{ subgroup.roc_auc }} against {{ '%.3f'|format(metrics.roc_auc) }}
+                  overall; per-group figures for sex, age, race, income and
+                  education are all in <code>metadata.json</code>.
+                {% endif %}
               </p>
             </details>
           </div>
