@@ -185,10 +185,20 @@ def test_summary_payload_is_complete(client):
 
 
 def test_summary_headline_carries_population_context(client):
-    """A number without a baseline is not interpretable."""
+    """A number without a baseline is not interpretable.
+
+    Checks that the detail names *which* population it is comparing against,
+    reading the name from the model's own metadata rather than a literal. This
+    used to assert the word "population" appeared, which broke the moment the
+    comparator became specific -- "among US adults" is the improvement, and the
+    test was measuring the wrong thing.
+    """
+    population = get_model("heart").metadata["weighting"]["population"]
     summary = _summary(client, "/heart_disease/", HIGH_RISK_HEART)
     assert "%" in summary["headline"]
-    assert "population" in summary["detail"]
+    assert population in summary["detail"]
+    # A comparison needs both numbers: the person's, and the group's.
+    assert re.search(r"\d+(\.\d+)?%", summary["detail"])
 
 
 def test_questions_are_questions_not_instructions():

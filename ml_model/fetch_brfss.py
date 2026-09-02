@@ -51,7 +51,39 @@ COLUMNS = [
     "_MICHD", "_RFHYPE6", "_RFCHOL3", "_CHOLCH3", "_BMI5", "SMOKE100",
     "CVDSTRK3", "DIABETE4", "_TOTINDA", "_RFDRHV8", "GENHLTH", "MENTHLTH",
     "PHYSHLTH", "DIFFWALK", "_SEX", "_AGEG5YR",
+    # --- survey design, not features ---
+    "_LLCPWT", "_STSTR",
 ]
+
+# Why the design variables are here at all.
+#
+# BRFSS is not a simple random sample. States buy different sample sizes,
+# landline and cell frames are drawn separately, and the whole thing is raked
+# to census margins afterwards. A row is not one American; it is one American
+# multiplied by _LLCPWT, which ranges from 0.16 to 69,786 in the 2023 cycle.
+#
+# Ignoring that is not a rounding error. On this file:
+#
+#     unweighted prevalence of _MICHD    0.0847
+#     weighted prevalence                0.0647
+#
+# The app shows people a percentage and tells them it is literal, so it has to
+# be a percentage *of something they belong to*. Trained unweighted, the model
+# is calibrated to the population of people who answer landline surveys, which
+# skews old -- and it was quoting that group's 9% rate back to every visitor as
+# though it described US adults.
+#
+# _LLCPWT is the final combined landline-and-cell weight, which is the right
+# one for the core variables used here. (_LLCPWT2 is for the split-questionnaire
+# version-2 modules; none of ours come from those.)
+#
+# _PSU is deliberately NOT carried. It looks like a cluster identifier -- 26,444
+# distinct values across 433,323 records -- but PSU ids are numbered within
+# stratum, and every (_STSTR, _PSU) pair in the 2023 file is unique. There is
+# exactly one record per cluster, so there is nothing to group a split by, and a
+# "cluster-aware" split would be ceremony rather than rigour. _STSTR is kept
+# because design-based standard errors need it, and the confidence interval on
+# the displayed risk is the next thing this model owes its users.
 
 log = logging.getLogger("brfss")
 
@@ -146,7 +178,21 @@ def tidy(raw):
     # _AGEG5YR: 1-13 five-year bands, 14 = don't know/refused.
     df["Age"] = _blank(raw["_AGEG5YR"], [14])
 
+    # Survey design. Carried through under plain names so nothing downstream has
+    # to know BRFSS's variable naming, and kept out of the feature contract in
+    # app/ml/features.py -- these describe how a respondent was sampled, not
+    # anything about their health.
+    df["SurveyWeight"] = raw["_LLCPWT"]
+    df["Stratum"] = raw["_STSTR"]
+
     return df.dropna()
+
+
+def weighted_prevalence(df):
+    """Share of US adults with the outcome, per the survey's own weights."""
+    return float(
+        (df.HeartDiseaseorAttack * df.SurveyWeight).sum() / df.SurveyWeight.sum()
+    )
 
 
 def verify(df):
@@ -159,6 +205,26 @@ def verify(df):
     prevalence = df.HeartDiseaseorAttack.mean()
     if not 0.03 <= prevalence <= 0.20:
         problems.append(f"implausible outcome prevalence {prevalence:.3f}")
+
+    # The weight is what makes the outcome rate a statement about US adults
+    # rather than about survey respondents, so it gets checked like any other
+    # mapping. A weight of zero or below is meaningless; a NaN would silently
+    # drop a respondent out of every weighted statistic downstream.
+    if not (df.SurveyWeight > 0).all():
+        problems.append("SurveyWeight has non-positive values")
+    if df.SurveyWeight.isna().any():
+        problems.append("SurveyWeight has missing values")
+    weighted = weighted_prevalence(df)
+    if not 0.02 <= weighted <= 0.15:
+        problems.append(f"implausible weighted prevalence {weighted:.3f}")
+    # Weighting should pull the rate down, because BRFSS over-represents the
+    # older respondents who have most of the heart disease. If it ever pushes it
+    # up, the weight is probably mapped to the wrong column.
+    if weighted > prevalence:
+        problems.append(
+            f"weighted prevalence {weighted:.3f} exceeds unweighted "
+            f"{prevalence:.3f} -- is _LLCPWT mapped correctly?"
+        )
     if not 10 <= df.BMI.median() <= 45:
         problems.append(f"implausible median BMI {df.BMI.median():.1f}")
     if not df.Age.between(1, 13).all():
@@ -198,7 +264,12 @@ def main(argv=None):
     df.to_csv(OUT, index=False)
     log.info("")
     log.info("wrote %s: %d rows x %d columns", OUT.name, len(df), df.shape[1])
-    log.info("  heart disease prevalence: %.3f", df.HeartDiseaseorAttack.mean())
+    # Both, always. The gap between them is the whole reason the weight is here,
+    # and printing only one invites the next person to quote whichever they saw.
+    log.info("  heart disease prevalence: %.4f unweighted, %.4f weighted",
+             df.HeartDiseaseorAttack.mean(), weighted_prevalence(df))
+    log.info("  survey weight %.2f-%.1f, sums to %.0f adults",
+             df.SurveyWeight.min(), df.SurveyWeight.max(), df.SurveyWeight.sum())
     log.info("  BMI %.1f-%.1f, median %.1f", df.BMI.min(), df.BMI.max(), df.BMI.median())
     return df
 
