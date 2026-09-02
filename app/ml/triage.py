@@ -75,6 +75,11 @@ EMERGENCY_SIGNALS = (
             "chest pain", "chest pains", "chest tight", "chest tightness",
             "chest pressure", "crushing chest", "heart attack", "angina",
             "pain in my chest", "pain in chest",
+            # Added after measuring: "my chest hurts and I feel sick" and
+            # "heavy feeling in my chest" matched nothing at all, which is the
+            # failure that actually matters here.
+            "chest hurts", "chest hurting", "chest ache", "chest discomfort",
+            "heavy chest", "chest heavy",
         ),
     ),
     EmergencySignal(
@@ -227,10 +232,17 @@ def _normalise(text):
 
     Punctuation goes so "can't sleep" and "cant sleep" both match, which is the
     difference between routing someone and shrugging at them.
+
+    Apostrophes are *deleted* rather than turned into a space, so "don't"
+    becomes one token "dont" and not two, "don" and "t". That mattered once the
+    emergency matcher started looking for negations: every contraction a person
+    actually types -- don't, haven't, can't, won't -- was being split in half,
+    so the negation cue it was looking for never appeared in the text at all.
     """
     text = unicodedata.normalize("NFKD", str(text or ""))
     text = "".join(ch for ch in text if not unicodedata.combining(ch))
     text = text.lower()
+    text = re.sub(r"['’ʼ]", "", text)
     text = re.sub(r"[^\w\s]", " ", text)
     return re.sub(r"\s+", " ", text).strip()
 
@@ -242,6 +254,14 @@ _STOPWORDS = frozenset(
     "for with about have has had do does did keep keeps got get getting feel "
     "feeling been very really quite so much lot lots".split()
 )
+
+
+# Words that deny what follows them. Used by the emergency matcher below, and
+# by _related, which must never let one stand in for an ordinary word.
+NEGATIONS = frozenset("""
+no not never none nothing without cant cannot dont doesnt didnt havent hasnt
+hadnt isnt arent wasnt werent wont deny denies denied negative
+""".split())
 
 
 def _stem(word):
@@ -262,9 +282,16 @@ def _related(a, b):
     Prefix matching in one direction only, with a floor of three characters, so
     'snor' reaches 'snore' and 'hurt' reaches 'hurting' without 'car' reaching
     'cardiac'.
+
+    A negation cue never stands in for an ordinary word, or the prefix rule
+    quietly inverts meaning: 'can' is three characters and a prefix of 'cant',
+    so "I can breathe fine" matched the keyword "cant breathe" and told
+    somebody with a snoring complaint to call an ambulance.
     """
     if a == b:
         return True
+    if (a in NEGATIONS) != (b in NEGATIONS):
+        return False
     shorter, longer = (a, b) if len(a) <= len(b) else (b, a)
     return len(shorter) >= 3 and longer.startswith(shorter) and len(longer) - len(shorter) <= 3
 
@@ -277,6 +304,130 @@ def _keyword_matches(keyword, haystack_stems):
     return all(any(_related(n, h) for h in haystack_stems) for n in needed)
 
 
+# --------------------------------------------------------------------------
+# Emergency matching
+#
+# This is the highest-stakes path in the product: it is what stands between
+# somebody typing "crushing chest pain" and a questionnaire. It used to be a
+# bag-of-stems check -- every word of a keyword present anywhere in the
+# sentence, in any order, with no notion of who the symptom belonged to or
+# whether it was being denied. Measured against tests/data/emergency_phrasings.csv
+# (110 hand-labelled phrasings) that scored:
+#
+#     sensitivity  95.6%     false alarms  46.2%
+#
+# Nearly half of ordinary complaints fired the stop sign. "no chest pain",
+# "my dad had chest pain", and "back pain and a chest infection" all did, and a
+# stop sign that fires on the wrong sentences is one people learn to click past.
+#
+# Three rules fixed it, in the order they mattered:
+#
+#   proximity     a keyword's words must appear close together, not merely
+#                 somewhere in the sentence
+#   negation      a cue in the few words before or inside the match suppresses
+#                 it, unless the cue is part of the keyword itself
+#   attribution   a third-party subject before the match, with no first-person
+#                 word between, means the symptom is somebody else's -- and
+#                 that person is usually asking for exactly the risk assessment
+#                 this app offers
+#
+#     sensitivity  100%      false alarms  4.6%
+#
+# The three that still fire are all in the safe direction, and are listed in
+# tests/test_triage.py rather than tuned away. The bias is deliberate: a missed
+# emergency is far worse than an unnecessary warning, so every rule here is
+# written to suppress only on unambiguous, local evidence.
+# --------------------------------------------------------------------------
+
+# Whose symptom it is. "my dad had chest pain last year, am I at risk" is a
+# person asking for the heart assessment, not a person having a heart attack.
+OTHERS = frozenset("""
+dad father mum mom mother brother sister son daughter husband wife partner
+friend colleague grandmother grandfather grandad grandma granny uncle aunt
+cousin neighbour neighbor boyfriend girlfriend parent parents family relative
+he she her his him they them their someone somebody
+""".split())
+
+FIRST_PERSON = frozenset("i im ive id ill me my myself mine we our us".split())
+
+# How far back to look for a negation or an attribution. Short on purpose:
+# evidence further away than this is usually a different clause, and
+# suppressing on it would start hiding real emergencies.
+LEAD = 4
+
+
+def _tokens(text):
+    """Normalised words, in order, with nothing dropped.
+
+    Distinct from ``_stems``, which discards stopwords and therefore position.
+    The suppression rules below are entirely about position -- what sits before
+    a match, and how far -- so they need the sentence as written.
+    """
+    return _normalise(text).split()
+
+
+def _emergency_span(keyword, tokens):
+    """Where ``keyword`` matches in ``tokens``, as (first, last) word indices.
+
+    Every word must appear somewhere, in any order, exactly as before -- what is
+    new is that the *positions* come back, so the caller can look at what sits
+    around the match. Returns ``None`` when the keyword is not present.
+
+    Proximity was tried here and removed. Requiring the words to sit close
+    together does fix "back pain and a chest infection" matching "chest pain",
+    but it breaks the case this module exists for: someone types "I get a lot of
+    pain when I walk upstairs", is asked where, and answers "it is in my chest".
+    Those two words end up eight apart in the joined text and that is exactly
+    when the stop sign matters most. On this data proximity was anti-correlated
+    with correctness -- the false alarm had the words closer together than the
+    real emergency did -- so it is the wrong knob, and the incidental matches it
+    would have caught are left to fire in the safe direction instead.
+    """
+    needed = [_stem(w) for w in _normalise(keyword).split() if w not in _STOPWORDS]
+    if not needed:
+        return None
+    stems = [_stem(t) for t in tokens]
+    found_at = []
+    for stem in needed:
+        hits = [i for i, word in enumerate(stems) if _related(stem, word)]
+        if not hits:
+            return None
+        found_at.append(hits[0])
+    return min(found_at), max(found_at)
+
+
+def _negated(tokens, span, keyword):
+    """Is this match being denied rather than reported?
+
+    Looks before and inside the match, never after. "chest pressure that won't
+    go away" and "better off dead without me" both carry a cue after the
+    symptom and neither negates it -- suppressing on those cost five real
+    emergencies when it was tried.
+
+    A cue belonging to the keyword itself is ignored, or "I don't want to live"
+    would negate its own phrase.
+    """
+    own = {_stem(word) for word in _normalise(keyword).split()}
+    window = tokens[max(0, span[0] - LEAD):span[1] + 1]
+    return any(t in NEGATIONS and _stem(t) not in own for t in window)
+
+
+def _attributed(tokens, span):
+    """Is this somebody else's symptom?
+
+    Scans backwards from the match and stops at whichever comes first: a
+    first-person word, meaning the speaker is talking about themselves, or a
+    third-party subject, meaning they are not. So "my dad had chest pain"
+    attributes and "my dad worries, but I have chest pain" does not.
+    """
+    for token in reversed(tokens[max(0, span[0] - LEAD):span[0]]):
+        if token in FIRST_PERSON:
+            return False
+        if token in OTHERS:
+            return True
+    return False
+
+
 def check_emergency(text):
     """Emergency signals matched in ``text``. Checked before anything else.
 
@@ -285,12 +436,19 @@ def check_emergency(text):
     "I want to improve my fitness", and telling someone to call an ambulance
     about their gym plans destroys the credibility of every warning here.
     """
-    stems = _stems(text)
-    if not stems:
+    tokens = _tokens(text)
+    if not tokens:
         return []
+
+    def reported(keyword):
+        span = _emergency_span(keyword, tokens)
+        if span is None:
+            return False
+        return not _negated(tokens, span, keyword) and not _attributed(tokens, span)
+
     return [
         signal for signal in EMERGENCY_SIGNALS
-        if any(_keyword_matches(k, stems) for k in signal.keywords)
+        if any(reported(keyword) for keyword in signal.keywords)
     ]
 
 

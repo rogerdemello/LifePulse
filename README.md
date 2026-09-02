@@ -24,6 +24,7 @@
 - [Models, rules and lookups](#models-rules-and-lookups)
 - [Why three of six aren't models](#why-three-of-six-arent-models)
 - [Datasets checked and rejected](#datasets-checked-and-rejected)
+- [The emergency check, measured](#the-emergency-check-measured)
 - [The safety net](#the-safety-net)
 - [Explaining a result](#explaining-a-result)
 - [How the ML layer is organised](#how-the-ml-layer-is-organised)
@@ -323,6 +324,63 @@ Three unused CSVs sit in `data/`. None survived:
 
 ---
 
+## The emergency check, measured
+
+`check_emergency` in `app/ml/triage.py` is the highest-stakes path in the
+product — it's what stands between somebody typing "crushing chest pain" and a
+questionnaire. For its whole life it was validated by fifteen hand-picked
+examples, all of them cases somebody had already thought of.
+
+`tests/data/emergency_phrasings.csv` is 110 labelled phrasings built to include
+the ones nobody had: negations, third-person reports, and ordinary complaints
+that happen to contain an emergency phrase's words.
+
+| | Sensitivity | False alarms |
+|---|---|---|
+| Bag-of-stems (before) | 95.6% | **46.2%** |
+| **Now** | **100%** | **10.8%** |
+
+Nearly half of ordinary complaints used to fire the stop sign. "no chest pain",
+"my dad had chest pain last year, am I at risk", and "back pain and a chest
+infection" all did. That isn't cosmetic: a warning that goes off on the wrong
+sentences is one people learn to click past, and it blocks the person asking
+about their father's heart attack from the heart assessment they came for.
+
+Two rules fixed it, both suppressing only on unambiguous, local evidence:
+
+- **Negation** — a cue in the few words before or inside the match, unless the
+  cue belongs to the keyword itself, or "I don't want to live" would negate its
+  own phrase. It looks *backwards only*: "chest pressure that won't go away" and
+  "better off dead without me" both carry a cue after the symptom, and
+  suppressing on those cost five real emergencies when it was tried.
+- **Attribution** — a third-party subject before the match with no first-person
+  word in between. "my dad had chest pain" attributes; "my dad worries, but I
+  have chest pain" doesn't.
+
+**Proximity was tried and removed**, which is the interesting one. Requiring a
+keyword's words to sit close together fixes the remaining false alarms — and
+breaks the case this module exists for. Someone types "I get a lot of pain when
+I walk upstairs", is asked where, and answers "it is in my chest"; those two
+words land eight apart in the joined text, and that is precisely when the stop
+sign matters most. On this data proximity was *anti-correlated* with
+correctness: the false alarm had the words closer together than the real
+emergency did. So the incidental matches are left to fire, in the safe
+direction.
+
+Two bugs surfaced on the way, both invisible without the measurement:
+
+- `_normalise` replaced apostrophes with a space, so "don't" became `don` + `t`.
+  Every negation cue a person actually types — don't, haven't, can't, won't —
+  was split in half, so the cue the matcher looked for never appeared.
+- "can" is a three-letter prefix of "cant", so prefix matching had "I can
+  breathe fine" matching the keyword "cant breathe" — telling somebody with a
+  snoring complaint to call an ambulance.
+
+The two floors are asymmetric on purpose. Sensitivity must be 100%; the
+false-alarm bound is a ceiling on drift, not a target.
+
+---
+
 ## The safety net
 
 Three tiers, in `app/ml/safety.py`, applied before anything is shown:
@@ -561,7 +619,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-**467 tests** (466 pass; one skips when the gitignored data is absent), covering:
+**477 tests** (476 pass; one skips when the gitignored data is absent), covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
@@ -571,7 +629,9 @@ pytest
   no subgroup drifts outside its calibration or discrimination floor, and race, income
   and education never reach the feature contract
 - **Safety** — each tier fires correctly, including the BP 190/125 and HR 0 cases that once returned a calm "No Sleep Disorder"
-- **Triage** — emergency phrasings are caught, including inflections like "ending my life"; ordinary ones like "improve my fitness" never trigger a false alarm
+- **Triage** — measured against 110 labelled phrasings, not sampled: every labelled
+  emergency is caught, and negated ("no chest pain") and third-person ("my dad had
+  chest pain") reports no longer fire the stop sign
 - **Sleep & lifestyle** — the lookup table is monotonic and the rubric's components sum to its total
 - **Explanations** — directions aren't inverted below 50% risk; age actually moves the heart prediction
 - **Nutrition** — derived facts match published thresholds; search ranks relevance above brevity (the USDA API is mocked, so CI stays hermetic)
@@ -645,7 +705,7 @@ LifePulse/
 │   └── train_all.py            # retrains both models
 ├── tools/
 │   └── build_icon_sprite.py    # rebuilds app/templates/_icons.html
-├── tests/                      # 466 tests
+├── tests/                      # 476 tests
 ├── data/                       # training inputs (gitignored)
 ├── .github/
 │   ├── workflows/ci.yml        # lint, tests + coverage floor, boot check,
