@@ -68,6 +68,18 @@
               disease. Across {{ population }}, it's about
               {{ '%.0f'|format(metrics.observed_prevalence * 100) }} in 100.
             </p>
+            {# The estimate's width, from what actually happened to people the
+               model scored the same way -- not a modelled confidence interval.
+               A percentage printed without one reads as a measurement. #}
+            {% if band %}
+              <p class="text-muted small mb-0 mx-auto" style="max-width: 42rem;">
+                Read that as <strong>about {{ band.estimate }}%</strong>, or roughly
+                {{ band.low }}&ndash;{{ band.high }}%. For people this model scores
+                the way it scored you, the real rate is pinned down to about
+                {{ band.give_or_take }} points either way &mdash; measured against
+                {{ band.n }} survey respondents, not assumed.
+              </p>
+            {% endif %}
             <p class="text-muted small mb-0 mx-auto" style="max-width: 42rem;">
               This is not a score out of 100, and it is not a diagnosis &mdash; it's how
               common heart disease is among people who gave your answers.

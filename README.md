@@ -219,6 +219,40 @@ decimal place and nothing anywhere said whether that number was literal. It is �
 mean predicted 0.409 against observed 0.400, slope 1.08 — but that wasn't
 knowable until it was measured.
 
+### How precise is the number on the page?
+
+It was being printed to two decimal places — *12.34%* — from a model whose Brier
+score is 0.057. Four significant figures of a quantity good to about one, and a
+number that precise reads as a measurement rather than an estimate.
+
+Rather than model the uncertainty, `risk_bins` in the metadata **reports** it:
+bin the held-out test set by predicted risk and record what share of respondents
+in each band actually had the outcome, with a 95% interval.
+
+| Predicted | n | Effective n | Predicted | Observed | 95% interval |
+|---|---|---|---|---|---|
+| 0–2% | 22,854 | 5,424 | 0.8% | 0.7% | 0.5–0.9% |
+| 2–5% | 11,056 | 2,040 | 3.2% | 3.6% | 2.9–4.5% |
+| 5–10% | 9,207 | 1,930 | 7.3% | 8.3% | 7.1–9.6% |
+| 10–20% | 9,720 | 1,385 | 14.3% | 14.6% | 12.8–16.5% |
+| 20–35% | 6,692 | 1,348 | 26.1% | 25.2% | 23.0–27.6% |
+| 35%+ | 2,905 | 493 | 43.8% | 43.6% | 39.3–48.0% |
+
+The page now reads *"about 10%, or roughly 8–12%"*. Two details that took a
+correction each:
+
+- **The interval is weighted too.** Computing the width from raw counts while the
+  rate is survey-weighted put the point estimate *outside its own interval* — the
+  2–5% band read "3.6% (2.9–3.5)". The width comes from Kish's effective sample
+  size, (Σw)²/Σw², which is what a weighted sample is worth in independent
+  observations. That's always smaller than the raw count, so these intervals are
+  wider than a naive one — correctly, because a respondent standing in for 60,000
+  adults carries less information than 60,000 respondents would.
+- **The band's own rate is not shown as the reader's.** Bands are wide; somebody
+  scored 10.3% sits in the 10–20% band whose average is 14.6%, and telling them
+  "people like you: 15%" overstates their risk by half. What transfers is the
+  *width*, applied to their own estimate.
+
 ### Calibration and the decision threshold
 
 The heart model is deliberately trained **without** class weighting. On the
@@ -633,7 +667,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-**482 tests** (481 pass; one skips when the gitignored data is absent), covering:
+**487 tests** (486 pass; one skips when the gitignored data is absent), covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
@@ -719,7 +753,7 @@ LifePulse/
 │   └── train_all.py            # retrains both models
 ├── tools/
 │   └── build_icon_sprite.py    # rebuilds app/templates/_icons.html
-├── tests/                      # 481 tests
+├── tests/                      # 486 tests
 ├── data/                       # training inputs (gitignored)
 ├── .github/
 │   ├── workflows/ci.yml        # lint, tests + coverage floor, boot check,

@@ -176,6 +176,77 @@ def _binary_metrics(y, proba, pred, sample_weight=None):
     }
 
 
+def _wilson(successes, total):
+    """A 95% interval for a proportion, which behaves near 0 and 1.
+
+    The textbook normal interval does not: at the low end it produces bounds
+    below zero, and this model's whole left tail sits under 2%. Wilson is the
+    standard fix and needs no extra dependency.
+    """
+    if total <= 0:
+        return None
+    z = 1.959964
+    p = successes / total
+    denominator = 1 + z * z / total
+    centre = (p + z * z / (2 * total)) / denominator
+    spread = z * np.sqrt(p * (1 - p) / total + z * z / (4 * total * total)) / denominator
+    return max(0.0, centre - spread), min(1.0, centre + spread)
+
+
+def _risk_bins(y, proba, weights, edges=(0.0, 0.02, 0.05, 0.10, 0.20, 0.35, 1.01)):
+    """What actually happened to people the model scored the way it scored you.
+
+    The result page prints a percentage. A percentage with no sense of its own
+    width invites being read as a measurement, and this one was being printed to
+    two decimal places from a model whose Brier score is 0.057 -- four
+    significant figures of a quantity good to about one.
+
+    Rather than model the uncertainty, this reports it: bin the held-out test
+    set by predicted risk, and record the observed rate in each bin with a
+    Wilson interval around it. Someone scored 12% can then be told what share of
+    similarly-scored people in the survey actually had the outcome, and how
+    tightly that is pinned down. It is the same move as app/ml/sleep_risk.py --
+    an observed rate from real data, checkable against the published file,
+    rather than a number that has to be trusted.
+
+    The rate is survey-weighted, so the interval has to be too, or the point
+    estimate lands outside its own interval -- which it did on the first run:
+    the 2-5% band read "3.6% (2.9-3.5)". The width therefore comes from Kish's
+    effective sample size, (sum w)^2 / sum(w^2), which is what a weighted sample
+    is worth in independent observations. Unequal weights always make that
+    smaller than the raw count, so these intervals are wider than a naive one --
+    correctly, because a respondent standing in for 60,000 adults carries less
+    information about the population than 60,000 respondents would.
+    """
+    proba = np.asarray(proba, dtype="float64")
+    y = np.asarray(y, dtype="float64")
+    weights = np.asarray(weights, dtype="float64")
+
+    bins = []
+    # edges[:-1] rather than edges, so the two really are the same length and
+    # strict= is a check rather than a decoration.
+    for low, high in zip(edges[:-1], edges[1:], strict=True):
+        in_bin = (proba >= low) & (proba < high)
+        n = int(in_bin.sum())
+        if n == 0:
+            continue
+        w = weights[in_bin]
+        observed = float(np.average(y[in_bin], weights=w))
+        effective_n = float(w.sum() ** 2 / np.square(w).sum())
+        interval = _wilson(observed * effective_n, effective_n)
+        bins.append({
+            "low": float(low),
+            "high": float(min(high, 1.0)),
+            "n": n,
+            "effective_n": round(effective_n, 1),
+            "mean_predicted": float(np.average(proba[in_bin], weights=w)),
+            "observed": observed,
+            "observed_low": interval[0],
+            "observed_high": interval[1],
+        })
+    return bins
+
+
 def _calibration_slope(y, proba, sample_weight=None):
     """Regress the outcome on the model's own log-odds.
 
@@ -502,6 +573,14 @@ def train_heart():
         "raw_profile": _profile(df, F.HEART_RAW, weights=df["SurveyWeight"]),
         "metrics": metrics,
         "metrics_unweighted": unweighted,
+        "risk_bins": _risk_bins(y_test, proba, w_test),
+        "risk_bins_note": (
+            "Observed outcome rate among held-out test respondents whose "
+            "predicted risk fell in each band, with a 95% Wilson interval. The "
+            "result page quotes the reader's own band so the percentage arrives "
+            "with a width rather than four significant figures. Rates are "
+            "survey-weighted; the counts the interval is computed from are not."
+        ),
         "subgroups": subgroups,
         "subgroup_note": (
             "Weighted metrics on the held-out test split, by group. Race, "

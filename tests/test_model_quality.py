@@ -332,3 +332,48 @@ def test_migraine_records_whether_its_percentage_means_anything():
                 "calibration_slope"):
         assert key in m, f"migraine metrics missing {key}"
     assert abs(m["mean_predicted_risk"] - m["observed_prevalence"]) < 0.05
+
+
+# --------------------------------------------------------------------------
+# how precise the number on the page actually is
+# --------------------------------------------------------------------------
+
+def test_heart_records_what_happened_in_each_risk_band():
+    """The page prints a percentage, and a percentage with no width reads as a
+    measurement. It was being printed to two decimal places from a model whose
+    Brier score is 0.057."""
+    bins = load_metadata("heart").get("risk_bins")
+    assert bins, "heart metadata records no risk bands"
+    for band in bins:
+        for field in ("low", "high", "n", "effective_n", "mean_predicted",
+                      "observed", "observed_low", "observed_high"):
+            assert field in band, f"band {band.get('low')} is missing {field}"
+        assert band["observed_low"] <= band["observed"] <= band["observed_high"], (
+            f"band {band['low']}-{band['high']} has its own rate outside its "
+            f"interval: {band['observed']:.3f} vs "
+            f"({band['observed_low']:.3f}, {band['observed_high']:.3f})"
+        )
+
+
+def test_the_bands_cover_every_possible_prediction():
+    """A reader whose risk falls in no band silently gets no interval."""
+    bins = sorted(load_metadata("heart")["risk_bins"], key=lambda b: b["low"])
+    assert bins[0]["low"] == 0.0
+    assert bins[-1]["high"] >= 1.0
+    for lower, upper in zip(bins[:-1], bins[1:], strict=True):
+        assert lower["high"] == upper["low"], "the bands leave a gap"
+
+
+def test_the_intervals_use_the_effective_sample_size():
+    """Weighted rates need weighted intervals. Computing the width from raw
+    counts put the point estimate outside its own interval on the first run --
+    the 2-5% band read "3.6% (2.9-3.5)".
+
+    Unequal weights always make Kish's effective n smaller than the raw count,
+    so this also asserts the correction is actually being applied.
+    """
+    for band in load_metadata("heart")["risk_bins"]:
+        assert band["effective_n"] < band["n"], (
+            f"band {band['low']}-{band['high']} has effective n "
+            f"{band['effective_n']} >= raw n {band['n']}"
+        )
