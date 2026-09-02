@@ -275,6 +275,34 @@ def test_the_80plus_band_reads_a_wider_interval_than_the_general_one(client):
     )
 
 
+COMPARATOR_LINE = re.compile(
+    r"Across [^,]+,\s*it's about\s*\d+\s*in 100\s*&mdash;\s*"
+    r"among (?P<group>[^,]+),\s*it's about\s*(?P<group_pct>\d+)\s*in 100,\s*"
+    r"from\s*(?P<n>[\d,]+)\s*survey respondents"
+)
+
+
+def test_the_headline_comparator_reads_the_peer_groups_rate(client):
+    """"Compared with 7.2% among US adults" tells a 28-year-old almost
+    nothing. The comparator beside the headline should be the reader's own
+    sex and age band -- the same subgroups.sex_age cell the calibration line
+    below it already reads, just quoted as a base rate instead."""
+    from app.ml.bundle import get_model
+
+    cells = get_model("heart").metadata["subgroups"]["sex_age"]
+    body = client.post(
+        "/heart_disease/", data={**HIGH_RISK_HEART, "sex": "1", "age": "58"}
+    ).get_data(as_text=True)
+
+    match = COMPARATOR_LINE.search(body)
+    assert match, "no peer-group comparator rendered beside the headline"
+    expected = cells["Male 50-64"]
+
+    assert match["group"] == "men aged 50–64"
+    assert match["n"] == f"{expected['n']:,}"
+    assert int(match["group_pct"]) == round(expected["observed"] * 100)
+
+
 def _summary(client, path, form):
     body = client.post(path, data=form).get_data(as_text=True)
     match = re.search(
