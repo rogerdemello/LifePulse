@@ -3,7 +3,7 @@
 from flask import Blueprint, render_template, request
 
 from app.ml.bundle import try_get_model
-from app.ml.features import brfss_age_bucket
+from app.ml.features import brfss_age_band, brfss_age_bucket
 from app.ratelimit import rate_limit
 from app.routes.support import (
     build_summary,
@@ -51,6 +51,61 @@ def _to_model_units(values):
     80-year-old received the same 15.73% risk. Age was inert.
     """
     return {**values, "Age": brfss_age_bucket(values["Age"])}
+
+
+def _how_it_does_for_people_like_you(model, raw):
+    """The model's measured accuracy for the reader's own sex and age band.
+
+    An aggregate ROC-AUC of 0.855 is an average over 62,000 people, and averages
+    hide their tails: this model separates cases well at 35-49 (0.86) and poorly
+    past 80 (0.67), and it under-states risk by about a tenth in the 50-64 band.
+    Somebody reading their own number deserves to be told which of those they
+    are, in the same breath as the number.
+
+    Returns ``None`` when the model carries no subgroup audit, or when the
+    reader's cell is too small to say anything honest about -- silence is better
+    than a confidence interval nobody can see.
+    """
+    subgroups = model.metadata.get("subgroups", {}).get("sex_age", {})
+    if not subgroups:
+        return None
+
+    male = int(float(raw["Sex"])) == 1
+    band = brfss_age_band(raw["Age"])
+    stats = subgroups.get(f"{'Male' if male else 'Female'} {band}")
+    if not stats or stats["n"] < 500:
+        return None
+
+    if stats.get("observed_over_predicted") is None:
+        return None
+
+    # Decide the direction from the numbers the page will actually print, not
+    # from the full-precision ratio. In the youngest band the model is out by 6%
+    # of a 0.8% risk, which is a real ratio and an invisible difference: saying
+    # "tends to run high" next to "predicted 0.8% where 0.8% had it" reads as a
+    # contradiction, and a reader is right to trust the figures over the claim.
+    observed = round(stats["observed"] * 100, 1)
+    predicted = round(stats["predicted"] * 100, 1)
+
+    # Observed above predicted means the model under-states this group's risk,
+    # so the estimate on the page "runs low". Getting this backwards would tell
+    # someone to worry less precisely where they should worry more.
+    if observed > predicted:
+        direction = "tends to run low"
+    elif observed < predicted:
+        direction = "tends to run high"
+    else:
+        direction = "has been accurate on average"
+
+    return {
+        "group": f"{'men' if male else 'women'} aged "
+                 f"{band.replace('80+', '80 and over').replace('-', '–')}",
+        "direction": direction,
+        "n": f"{stats['n']:,}",
+        "observed": f"{observed:.1f}",
+        "predicted": f"{predicted:.1f}",
+        "roc_auc": f"{stats['roc_auc']:.3f}" if "roc_auc" in stats else None,
+    }
 
 
 @heart_disease_bp.route("/", methods=["GET", "POST"])
@@ -101,6 +156,7 @@ def predict_heart_disease():
         threshold=f"{threshold * 100:.1f}",
         metrics=metrics,
         population=population,
+        subgroup=_how_it_does_for_people_like_you(model, raw),
         caveats=caveats,
         factors=factors,
         factor_noun="your estimate",

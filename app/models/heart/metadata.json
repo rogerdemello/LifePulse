@@ -164,6 +164,7 @@
     "observed_prevalence": 0.07298638961057716,
     "baseline_majority_accuracy": 0.9270136103894229,
     "baseline_pr_auc": 0.07298638961057716,
+    "calibration_slope": 0.9955641733445042,
     "baseline_note": "Accuracy is not a meaningful headline here: predicting 'no disease' for everyone scores 0.927. Judge this model on ROC-AUC and PR-AUC. Every figure in this block is survey-weighted, so it describes US adults rather than BRFSS respondents. Predicted probabilities are calibrated against that population -- mean predicted risk tracks observed prevalence -- so the percentage shown to users is literal."
   },
   "metrics_unweighted": {
@@ -179,7 +180,454 @@
     "baseline_majority_accuracy": 0.909712656565333,
     "baseline_pr_auc": 0.090287343434667
   },
-  "trained_utc": "2026-09-02T13:33:18+00:00",
+  "subgroups": {
+    "sex": {
+      "Female": {
+        "n": 32754,
+        "n_positive": 2202,
+        "represents_adults": 31950.427500368398,
+        "observed": 0.05659881053112886,
+        "predicted": 0.05692773161405757,
+        "brier_score": 0.0471892053628194,
+        "observed_over_predicted": 0.9942221291169894,
+        "roc_auc": 0.8548437615329795,
+        "recall": 0.8163997965325446,
+        "calibration_slope": 0.9956424252229937
+      },
+      "Male": {
+        "n": 29680,
+        "n_positive": 3435,
+        "represents_adults": 30190.335557649818,
+        "observed": 0.09032936204242199,
+        "predicted": 0.08927618632570868,
+        "brier_score": 0.06749647441489945,
+        "observed_over_predicted": 1.0117968269037725,
+        "roc_auc": 0.8497717819031488,
+        "recall": 0.8648270442327713,
+        "calibration_slope": 0.9921043335074387
+      }
+    },
+    "age_band": {
+      "18-34": {
+        "n": 7761,
+        "n_positive": 68,
+        "represents_adults": 13706.224754968582,
+        "observed": 0.010342877340410301,
+        "predicted": 0.009535829541009958,
+        "brier_score": 0.010149389055005956,
+        "observed_over_predicted": 1.0846332032184027,
+        "roc_auc": 0.7911354314887618,
+        "recall": 0.06183144963317785,
+        "calibration_slope": 1.0360168155163165
+      },
+      "35-49": {
+        "n": 11903,
+        "n_positive": 275,
+        "represents_adults": 14552.065511079538,
+        "observed": 0.02408183315283882,
+        "predicted": 0.02378121901598111,
+        "brier_score": 0.021126176068605423,
+        "observed_over_predicted": 1.0126408211730313,
+        "roc_auc": 0.8630945967288259,
+        "recall": 0.5910760090628443,
+        "calibration_slope": 1.2408967873456422
+      },
+      "50-64": {
+        "n": 17231,
+        "n_positive": 1266,
+        "represents_adults": 17392.00881506403,
+        "observed": 0.08215141533510402,
+        "predicted": 0.07466640359459936,
+        "brier_score": 0.06648714669368255,
+        "observed_over_predicted": 1.10024604614874,
+        "roc_auc": 0.8050175985639518,
+        "recall": 0.8115214194884883,
+        "calibration_slope": 0.9891148233276894
+      },
+      "65-79": {
+        "n": 19821,
+        "n_positive": 2823,
+        "represents_adults": 13055.433524085696,
+        "observed": 0.1457703488225538,
+        "predicted": 0.1511284209792498,
+        "brier_score": 0.10848812590745718,
+        "observed_over_predicted": 0.9645462308017386,
+        "roc_auc": 0.7722142921997517,
+        "recall": 0.9350131130348891,
+        "calibration_slope": 1.0381214690460232
+      },
+      "80+": {
+        "n": 5718,
+        "n_positive": 1205,
+        "represents_adults": 3435.03045282037,
+        "observed": 0.20708826294262636,
+        "predicted": 0.22291840247820893,
+        "brier_score": 0.15319009264443015,
+        "observed_over_predicted": 0.9289868429003746,
+        "roc_auc": 0.6855984051066257,
+        "recall": 0.9558997281613842,
+        "calibration_slope": 0.8131147812478664
+      }
+    },
+    "sex_age": {
+      "Female 18-34": {
+        "n": 3681,
+        "n_positive": 25,
+        "represents_adults": 6870.7435083459995,
+        "observed": 0.007859664036467243,
+        "predicted": 0.008387259461569303,
+        "brier_score": 0.007665009109465853,
+        "observed_over_predicted": 0.9370956118003122,
+        "roc_auc": 0.7729825439257265,
+        "recall": 0.09169810022517667,
+        "calibration_slope": 1.1384704813424467
+      },
+      "Female 35-49": {
+        "n": 6155,
+        "n_positive": 131,
+        "represents_adults": 7525.0767875354395,
+        "observed": 0.02240808397254759,
+        "predicted": 0.022516717149321814,
+        "brier_score": 0.020117376847781362,
+        "observed_over_predicted": 0.9951754433804088,
+        "roc_auc": 0.8779044967414137,
+        "recall": 0.6461638172795858,
+        "calibration_slope": 1.1633941344457244
+      },
+      "Female 50-64": {
+        "n": 9099,
+        "n_positive": 498,
+        "represents_adults": 8844.35027147727,
+        "observed": 0.06425400661589757,
+        "predicted": 0.05830679152198372,
+        "brier_score": 0.054110702951337276,
+        "observed_over_predicted": 1.1019986683999161,
+        "roc_auc": 0.8287909737841685,
+        "recall": 0.811945747045356,
+        "calibration_slope": 1.0426003613311916
+      },
+      "Female 65-79": {
+        "n": 10570,
+        "n_positive": 1029,
+        "represents_adults": 6747.85318307038,
+        "observed": 0.1009611497089815,
+        "predicted": 0.10800150757765249,
+        "brier_score": 0.08294410935969677,
+        "observed_over_predicted": 0.9348124111729735,
+        "roc_auc": 0.7711722566517208,
+        "recall": 0.8741433340813469,
+        "calibration_slope": 0.9534008353795507
+      },
+      "Female 80+": {
+        "n": 3249,
+        "n_positive": 519,
+        "represents_adults": 1962.4037499393098,
+        "observed": 0.1713082478536868,
+        "predicted": 0.17699447605783314,
+        "brier_score": 0.135241020066382,
+        "observed_over_predicted": 0.9678734142963402,
+        "roc_auc": 0.6752853566916882,
+        "recall": 0.9087114142052217,
+        "calibration_slope": 0.7107004554531522
+      },
+      "Male 18-34": {
+        "n": 4080,
+        "n_positive": 43,
+        "represents_adults": 6835.481246622583,
+        "observed": 0.012838900820298465,
+        "predicted": 0.010690324759776965,
+        "brier_score": 0.0126465851948562,
+        "observed_over_predicted": 1.2009832356642387,
+        "roc_auc": 0.7963553569220408,
+        "recall": 0.04345348972859364,
+        "calibration_slope": 0.9549258540411002
+      },
+      "Male 35-49": {
+        "n": 5748,
+        "n_positive": 144,
+        "represents_adults": 7026.988723544097,
+        "observed": 0.025874221272456234,
+        "predicted": 0.025135351492771824,
+        "brier_score": 0.022206481146436585,
+        "observed_over_predicted": 1.029395641429438,
+        "roc_auc": 0.8466525360137728,
+        "recall": 0.5399861613473805,
+        "calibration_slope": 1.3374292262712153
+      },
+      "Male 50-64": {
+        "n": 8132,
+        "n_positive": 768,
+        "represents_adults": 8547.658543586756,
+        "observed": 0.10067004834521859,
+        "predicted": 0.09159386258677696,
+        "brier_score": 0.07929318041793128,
+        "observed_over_predicted": 1.0990916367332229,
+        "roc_auc": 0.7794841158647716,
+        "recall": 0.811241186058535,
+        "calibration_slope": 0.9470335484954225
+      },
+      "Male 65-79": {
+        "n": 9251,
+        "n_positive": 1794,
+        "represents_adults": 6307.580341015317,
+        "observed": 0.19370725656246884,
+        "predicted": 0.19726561846853696,
+        "brier_score": 0.1358151299329758,
+        "observed_over_predicted": 0.9819615707304025,
+        "roc_auc": 0.7467216650788865,
+        "recall": 0.9689532003845427,
+        "calibration_slope": 1.1089629782758752
+      },
+      "Male 80+": {
+        "n": 2469,
+        "n_positive": 686,
+        "represents_adults": 1472.6267028810605,
+        "observed": 0.2547682592689533,
+        "predicted": 0.2841160469613412,
+        "brier_score": 0.17710880012554758,
+        "observed_over_predicted": 0.8967049274186856,
+        "roc_auc": 0.6688945958927427,
+        "recall": 0.9981824666899906,
+        "calibration_slope": 0.9745544081532289
+      }
+    },
+    "race_ethnicity": {
+      "American Indian or Alaska Native": {
+        "n": 894,
+        "n_positive": 94,
+        "represents_adults": 578.0499133179336,
+        "observed": 0.07582217100080524,
+        "predicted": 0.07459120539461132,
+        "brier_score": 0.06096656772783404,
+        "observed_over_predicted": 1.0165028249601507,
+        "roc_auc": 0.8488324003873616,
+        "recall": 0.7669959998813984,
+        "calibration_slope": 0.934358049490566
+      },
+      "Asian": {
+        "n": 1611,
+        "n_positive": 55,
+        "represents_adults": 3568.723057783707,
+        "observed": 0.02765871175411511,
+        "predicted": 0.038791357031837156,
+        "brier_score": 0.026199649758459946,
+        "observed_over_predicted": 0.7130122241254625,
+        "roc_auc": 0.8971803229898171,
+        "recall": 0.8638711707219716,
+        "calibration_slope": 1.008679664120402
+      },
+      "Black": {
+        "n": 4619,
+        "n_positive": 330,
+        "represents_adults": 7386.483902100935,
+        "observed": 0.07849202566027395,
+        "predicted": 0.07928967438031291,
+        "brier_score": 0.06465037272322179,
+        "observed_over_predicted": 0.9899400681580172,
+        "roc_auc": 0.8290564478472441,
+        "recall": 0.8682504167073523,
+        "calibration_slope": 0.8270872964567081
+      },
+      "Hispanic": {
+        "n": 5511,
+        "n_positive": 306,
+        "represents_adults": 10594.79274308369,
+        "observed": 0.05798551282587332,
+        "predicted": 0.0579608889195874,
+        "brier_score": 0.04469383305745176,
+        "observed_over_predicted": 1.0004248365879977,
+        "roc_auc": 0.8761452575313459,
+        "recall": 0.8318700109269732,
+        "calibration_slope": 1.0774786836551484
+      },
+      "Other": {
+        "n": 2109,
+        "n_positive": 192,
+        "represents_adults": 2412.7091317625336,
+        "observed": 0.06332846777581416,
+        "predicted": 0.06464765992278083,
+        "brier_score": 0.04595787313970817,
+        "observed_over_predicted": 0.97959412376964,
+        "roc_auc": 0.8921819003003669,
+        "recall": 0.8510609848237908,
+        "calibration_slope": 1.1571350263735338
+      },
+      "White": {
+        "n": 47690,
+        "n_positive": 4660,
+        "represents_adults": 37600.004309969416,
+        "observed": 0.08101001503623936,
+        "predicted": 0.07917176820982218,
+        "brier_score": 0.06262689886320459,
+        "observed_over_predicted": 1.0232184637021802,
+        "roc_auc": 0.8465532680094945,
+        "recall": 0.8442011501498824,
+        "calibration_slope": 1.0002136357591722
+      }
+    },
+    "income_band": {
+      "$100k-200k": {
+        "n": 12848,
+        "n_positive": 722,
+        "represents_adults": 13062.920277583546,
+        "observed": 0.04831152676265178,
+        "predicted": 0.04795557445283328,
+        "brier_score": 0.0386936868522565,
+        "observed_over_predicted": 1.0074225429239432,
+        "roc_auc": 0.8739077061403543,
+        "recall": 0.7728591004607516,
+        "calibration_slope": 1.1193912110310036
+      },
+      "$15k-25k": {
+        "n": 4471,
+        "n_positive": 695,
+        "represents_adults": 4576.835886695688,
+        "observed": 0.11389519407851043,
+        "predicted": 0.11248119359980714,
+        "brier_score": 0.08265928671120108,
+        "observed_over_predicted": 1.012570994612078,
+        "roc_auc": 0.8267327972417948,
+        "recall": 0.8923318871777104,
+        "calibration_slope": 1.0106053758460036
+      },
+      "$200k or more": {
+        "n": 4445,
+        "n_positive": 176,
+        "represents_adults": 5054.250101244397,
+        "observed": 0.0323700790804178,
+        "predicted": 0.034870052469168675,
+        "brier_score": 0.027874301807319972,
+        "observed_over_predicted": 0.9283060043869651,
+        "roc_auc": 0.8600084170075734,
+        "recall": 0.6122598288715404,
+        "calibration_slope": 1.044798771039523
+      },
+      "$25k-35k": {
+        "n": 5558,
+        "n_positive": 706,
+        "represents_adults": 5751.350026890466,
+        "observed": 0.10192021225216429,
+        "predicted": 0.09579101607568193,
+        "brier_score": 0.08077904285027053,
+        "observed_over_predicted": 1.0639850836495965,
+        "roc_auc": 0.8168086927750613,
+        "recall": 0.856207031880614,
+        "calibration_slope": 0.8257512927824552
+      },
+      "$35k-50k": {
+        "n": 7108,
+        "n_positive": 740,
+        "represents_adults": 6566.177291239543,
+        "observed": 0.08889332141353745,
+        "predicted": 0.08479992634546846,
+        "brier_score": 0.06812107417801157,
+        "observed_over_predicted": 1.0482712101823393,
+        "roc_auc": 0.8465314160953132,
+        "recall": 0.868949256374073,
+        "calibration_slope": 0.9911429298891865
+      },
+      "$50k-100k": {
+        "n": 16979,
+        "n_positive": 1396,
+        "represents_adults": 15553.537499885744,
+        "observed": 0.07039859487884989,
+        "predicted": 0.06920366529443343,
+        "brier_score": 0.05574562715075616,
+        "observed_over_predicted": 1.0172668539929572,
+        "roc_auc": 0.8567970035956611,
+        "recall": 0.858772527348295,
+        "calibration_slope": 1.0168158802998395
+      },
+      "Not reported": {
+        "n": 8443,
+        "n_positive": 831,
+        "represents_adults": 8948.785334001976,
+        "observed": 0.07190728724134988,
+        "predicted": 0.07995915952675613,
+        "brier_score": 0.0575457581226882,
+        "observed_over_predicted": 0.899300188582999,
+        "roc_auc": 0.8429706505965038,
+        "recall": 0.8473084025782995,
+        "calibration_slope": 0.9525331307673743
+      },
+      "Under $15k": {
+        "n": 2582,
+        "n_positive": 371,
+        "represents_adults": 2626.906640476854,
+        "observed": 0.11844960230837574,
+        "predicted": 0.1130666134295216,
+        "brier_score": 0.08638005036706366,
+        "observed_over_predicted": 1.0476090042460637,
+        "roc_auc": 0.8238319853741064,
+        "recall": 0.9226736442248891,
+        "calibration_slope": 0.9308081255497134
+      }
+    },
+    "education": {
+      "College graduate": {
+        "n": 28673,
+        "n_positive": 1956,
+        "represents_adults": 21536.130671959618,
+        "observed": 0.05289429335286117,
+        "predicted": 0.053696120674494516,
+        "brier_score": 0.0434166448058386,
+        "observed_over_predicted": 0.985067313773112,
+        "roc_auc": 0.8707850348447922,
+        "recall": 0.8036273694320017,
+        "calibration_slope": 1.0368027105321191
+      },
+      "Did not finish high school": {
+        "n": 2799,
+        "n_positive": 415,
+        "represents_adults": 5598.142642080243,
+        "observed": 0.12907237374618402,
+        "predicted": 0.11604239102689184,
+        "brier_score": 0.09196150543369476,
+        "observed_over_predicted": 1.1122864033047422,
+        "roc_auc": 0.8160026310270488,
+        "recall": 0.8959976810900968,
+        "calibration_slope": 0.9025223562829259
+      },
+      "High school graduate": {
+        "n": 14067,
+        "n_positive": 1550,
+        "represents_adults": 15711.67239407917,
+        "observed": 0.0752027960628704,
+        "predicted": 0.07998268372895305,
+        "brier_score": 0.059455360824836975,
+        "observed_over_predicted": 0.9402384685880155,
+        "roc_auc": 0.8489210662847779,
+        "recall": 0.8554806356470757,
+        "calibration_slope": 0.9726014394900175
+      },
+      "Not reported": {
+        "n": 97,
+        "n_positive": 7,
+        "represents_adults": 73.5218453173633,
+        "observed": 0.03307271777548834,
+        "predicted": 0.06759468349503675,
+        "brier_score": 0.04119227382503434,
+        "observed_over_predicted": 0.48927986737176987,
+        "roc_auc": 0.48878115737617434,
+        "recall": 0.3240548254788775,
+        "calibration_slope": 0.0644214316091712
+      },
+      "Some college": {
+        "n": 16798,
+        "n_positive": 1709,
+        "represents_adults": 19221.295504581816,
+        "observed": 0.07750428205870258,
+        "predicted": 0.07525421192855672,
+        "brier_score": 0.060268812359804594,
+        "observed_over_predicted": 1.0298995906339699,
+        "roc_auc": 0.8501494979735712,
+        "recall": 0.8460160461745119,
+        "calibration_slope": 1.0028301572491924
+      }
+    }
+  },
+  "subgroup_note": "Weighted metrics on the held-out test split, by group. Race, income and education are evaluation strata only -- the model is never given them as inputs. 'observed_over_predicted' above 1 means the model under-states risk for that group. Read every row against its own n: a small cell moves a lot on a few cases.",
+  "trained_utc": "2026-09-02T15:29:31+00:00",
   "n_features": 23,
   "library_versions": {
     "scikit-learn": "1.8.0",
