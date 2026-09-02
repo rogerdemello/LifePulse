@@ -54,8 +54,12 @@ htmlcov/
 #
 # The CSVs are large (22 MB for BRFSS alone) and are inputs, not outputs.
 # `python ml_model/train_all.py` needs them; see the README for sources.
+#
+# Anchored to the repo root (`/data/`) so this doesn't also match `data/`
+# directories elsewhere in the tree, e.g. tests/data/, which holds small,
+# committed test fixtures rather than training inputs.
 # ---------------------------------------------------------------------------
-data/
+/data/
 ml_model/data/
 
 # Superseded local-only scripts, kept on disk for reference but not published.
