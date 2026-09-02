@@ -1,0 +1,103 @@
+tests/test_explanations.py
+  s_f57d0ffcc5919d::t_89c34c40da993c 230-277
+tests/test_model_quality.py
+  s_f57d0ffcc5919d::t_0e56d837f140d7 380-425
+app/routes/heart.py
+  s_f57d0ffcc5919d::t_8c522cf2e407be 210
+  s_f57d0ffcc5919d::t_02cfffe0c8d40c 206
+  s_f57d0ffcc5919d::t_52ba6f874570b2 149
+  s_f57d0ffcc5919d::t_297fdd33075389 56,70-76,78-100
+  s_f57d0ffcc5919d::t_7d5d00c5634c2a 104,122
+  s_f57d0ffcc5919d::t_93f5ec8d9fe634 178
+app/models/heart/metadata.json
+  s_f57d0ffcc5919d::t_3837f95b58627d 246-298
+  s_f57d0ffcc5919d::t_e1e534e8f3f9c0 746
+README.md
+  s_f57d0ffcc5919d::t_6c700b6b2ccc44 208-215
+  s_f57d0ffcc5919d::t_9b39c78b71b7b9 264-297
+ml_model/train_all.py
+  s_f57d0ffcc5919d::t_905dcf216bdd8d 196-197
+  s_f57d0ffcc5919d::t_0fcce035337ae8 521-523,526-527
+  s_f57d0ffcc5919d::t_06e4b749bcbf92 613-620
+  s_f57d0ffcc5919d::t_11d5e951226010 221-227
+  s_f57d0ffcc5919d::t_cee4570bf8fe66 239
+  s_f57d0ffcc5919d::t_3d8c1055e891c6 611-612,621
+  s_f57d0ffcc5919d::t_bf5dce8ad17592 494,499,504,512-520,529
+  s_f57d0ffcc5919d::t_91e0fd043a4836 524-525,528
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "autter_version": "1.6.9",
+  "base_commit_sha": "f34074bedecbe6b1d9b209fee4d59b964ec0d44d",
+  "branch": "fix/80plus-risk-interval",
+  "prompts": {
+    "s_f57d0ffcc5919d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d1c3fab-fd7e-4614-b519-175a70e058cf",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:ee1091ddc208282ccd4789a7085f9d3aa6671bfa2d082dfa7b0c4a7a3b6cd64b",
+      "total_additions": 289,
+      "total_deletions": 49,
+      "accepted_lines": 3301,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_f57d0ffcc5919d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d1c3fab-fd7e-4614-b519-175a70e058cf",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:ee1091ddc208282ccd4789a7085f9d3aa6671bfa2d082dfa7b0c4a7a3b6cd64b",
+      "stats": {
+        "total_additions": 289,
+        "total_deletions": 49,
+        "accepted_lines": 3301,
+        "overriden_lines": 0,
+        "files": {
+          "README.md": {
+            "total_additions": 42,
+            "total_deletions": 0,
+            "accepted_lines": 924,
+            "overriden_lines": 0
+          },
+          "app/models/heart/metadata.json": {
+            "total_additions": 65,
+            "total_deletions": 12,
+            "accepted_lines": 753,
+            "overriden_lines": 0
+          },
+          "app/routes/heart.py": {
+            "total_additions": 36,
+            "total_deletions": 23,
+            "accepted_lines": 36,
+            "overriden_lines": 0
+          },
+          "ml_model/train_all.py": {
+            "total_additions": 52,
+            "total_deletions": 14,
+            "accepted_lines": 767,
+            "overriden_lines": 0
+          },
+          "tests/test_explanations.py": {
+            "total_additions": 48,
+            "total_deletions": 0,
+            "accepted_lines": 396,
+            "overriden_lines": 0
+          },
+          "tests/test_model_quality.py": {
+            "total_additions": 46,
+            "total_deletions": 0,
+            "accepted_lines": 425,
+            "overriden_lines": 0
+          }
+        }
+      }
+    }
+  }
+}
