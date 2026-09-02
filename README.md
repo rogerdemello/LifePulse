@@ -205,6 +205,14 @@ are "something has broken" bounds, not a claim that the current numbers are good
 A third asserts the 80+ band is still the weakest, so if a retrain fixes it, the
 test fails and this section gets updated with it.
 
+Both weak spots are named here rather than tuned away, which is a judgement call
+and not the only defensible one — a stricter build could refuse to ship a model
+that over-states a group's risk by 40%. For the Asian subgroup, that's the
+decision made: the miscalibration is small in absolute terms (predicting 3.9%
+where 2.8% had the outcome) and named plainly above. The 80+ band gets a second
+mitigation, because it's also where a reader is most likely to act on the
+number: see "How precise is the number on the page?" below.
+
 ### Why migraine uses class weighting and heart doesn't
 
 It looks like an inconsistency and isn't. Heart is 9% positive, where
@@ -252,6 +260,40 @@ correction each:
   scored 10.3% sits in the 10–20% band whose average is 14.6%, and telling them
   "people like you: 15%" overstates their risk by half. What transfers is the
   *width*, applied to their own estimate.
+
+**Past 80, the width comes from a second, narrower table.** The table above
+mixes every age together, but the "who it works less well for" audit shows the
+model discriminates far worse past 80 (ROC-AUC 0.686 against 0.855 overall) —
+an individual score there carries less information than the same score at 50.
+`risk_bins_80plus` is the same calculation, restricted to the 5,718 test
+respondents aged 80+, and every reader in that band reads their interval from
+it instead:
+
+| Predicted | n | Observed | 95% interval | vs. the general population |
+|---|---|---|---|---|
+| 2–5% | 284 | 18.0% | 8.0–35.6% | ±13.8pp vs ±0.8pp |
+| 5–10% | 789 | 4.6% | 2.4–8.6% | ±3.1pp vs ±1.2pp |
+| 10–20% | 1,956 | 12.7% | 9.3–17.0% | ±3.9pp vs ±1.9pp |
+| 20–35% | 1,823 | 26.4% | 22.3–31.0% | ±4.4pp vs ±2.3pp |
+| 35%+ | 860 | 37.7% | 30.0–46.1% | ±8.0pp vs ±4.4pp |
+
+Every band is 2–7× wider than its general-population counterpart, purely from
+a smaller effective sample — not a fudge factor applied because the ROC-AUC
+looked bad. The 0–2% band is missing on purpose: restricted to 80+ it was six
+people, and a Wilson interval on six people isn't a wide estimate, it's a
+shrug (it read "0–66% observed" before this floor existed).
+`tests/test_model_quality.py` fails a build under an 80+ bin with n<30, and
+fails one where an 80+ bin isn't wider than its general-population
+counterpart — a reader in that band who lands in the missing bin gets the
+general table instead, which is still an honest number, just not the tightest
+one available.
+
+The alternative considered here was declining to give an 80+ reader a number
+at all, the way `app/ml/safety.py` already does for inputs the model has no
+evidence for. That didn't fit: 80+ isn't *no* evidence, it's weaker evidence,
+and the model still beats prevalence-ranking there. Widening the number is the
+same move as everything else in this section — weaken the claim to match what
+the data actually supports, rather than withdraw it.
 
 ### Calibration and the decision threshold
 

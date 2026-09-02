@@ -53,7 +53,7 @@ def _to_model_units(values):
     return {**values, "Age": brfss_age_bucket(values["Age"])}
 
 
-def _what_happened_to_people_scored_like_you(model, probability):
+def _what_happened_to_people_scored_like_you(model, probability, age_band):
     """The observed outcome rate for the reader's band, with its interval.
 
     The page was printing this risk to two decimal places -- 12.34% -- from a
@@ -67,28 +67,41 @@ def _what_happened_to_people_scored_like_you(model, probability):
     around it. That is the same move app/ml/sleep_risk.py makes: an observed
     rate from real data, checkable against the published file, instead of a
     number that has to be taken on trust.
-    """
-    for band in model.metadata.get("risk_bins", []):
-        if not band["low"] <= probability < band["high"]:
-            continue
 
-        # The band's own rate is deliberately not shown as though it were the
-        # reader's. Bands are wide -- 10-20% is one of them -- so somebody
-        # scored 10.3% would be told "people like you: 15%", which overstates
-        # their risk by half. What transfers is the *width*: how tightly the
-        # outcome rate is pinned down for people the model scores this way.
-        half_width = (band["observed_high"] - band["observed_low"]) / 2
-        return {
-            "estimate": f"{probability * 100:.0f}",
-            "low": f"{max(0.0, probability - half_width) * 100:.0f}",
-            "high": f"{min(1.0, probability + half_width) * 100:.0f}",
-            "give_or_take": f"{half_width * 100:.0f}",
-            "n": f"{band['n']:,}",
-        }
+    Past 80 the model discriminates markedly worse (ROC-AUC 0.686 against
+    0.855 overall -- see the subgroup audit), so a reader's true width there
+    is wider than the general population's bins would say. ``risk_bins_80plus``
+    is the same calculation restricted to that cohort; it's tried first for a
+    reader in that band and falls back to the general bins only for a
+    probability the smaller 80+ sample didn't produce a bin for.
+    """
+    bin_sets = [model.metadata.get("risk_bins", [])]
+    if age_band == "80+":
+        bin_sets.insert(0, model.metadata.get("risk_bins_80plus", []))
+
+    for bins in bin_sets:
+        for band in bins:
+            if not band["low"] <= probability < band["high"]:
+                continue
+
+            # The band's own rate is deliberately not shown as though it were
+            # the reader's. Bands are wide -- 10-20% is one of them -- so
+            # somebody scored 10.3% would be told "people like you: 15%",
+            # which overstates their risk by half. What transfers is the
+            # *width*: how tightly the outcome rate is pinned down for people
+            # the model scores this way.
+            half_width = (band["observed_high"] - band["observed_low"]) / 2
+            return {
+                "estimate": f"{probability * 100:.0f}",
+                "low": f"{max(0.0, probability - half_width) * 100:.0f}",
+                "high": f"{min(1.0, probability + half_width) * 100:.0f}",
+                "give_or_take": f"{half_width * 100:.0f}",
+                "n": f"{band['n']:,}",
+            }
     return None
 
 
-def _how_it_does_for_people_like_you(model, raw):
+def _how_it_does_for_people_like_you(model, raw, age_band):
     """The model's measured accuracy for the reader's own sex and age band.
 
     An aggregate ROC-AUC of 0.855 is an average over 62,000 people, and averages
@@ -106,8 +119,7 @@ def _how_it_does_for_people_like_you(model, raw):
         return None
 
     male = int(float(raw["Sex"])) == 1
-    band = brfss_age_band(raw["Age"])
-    stats = subgroups.get(f"{'Male' if male else 'Female'} {band}")
+    stats = subgroups.get(f"{'Male' if male else 'Female'} {age_band}")
     if not stats or stats["n"] < 500:
         return None
 
@@ -134,7 +146,7 @@ def _how_it_does_for_people_like_you(model, raw):
 
     return {
         "group": f"{'men' if male else 'women'} aged "
-                 f"{band.replace('80+', '80 and over').replace('-', '–')}",
+                 f"{age_band.replace('80+', '80 and over').replace('-', '–')}",
         "direction": direction,
         "n": f"{stats['n']:,}",
         "observed": f"{observed:.1f}",
@@ -163,6 +175,7 @@ def predict_heart_disease():
         return interstitial
 
     probability = model.proba_one(raw)["Yes"]
+    age_band = brfss_age_band(raw["Age"])
 
     # The threshold comes from the model, not a hardcoded 0.5. Only 9.4% of the
     # training population has heart disease, so a calibrated model rarely exceeds
@@ -190,11 +203,11 @@ def predict_heart_disease():
         # One decimal, not two. The second was four significant figures of a
         # quantity the band below says is good to about one.
         probability=f"{probability * 100:.1f}",
-        band=_what_happened_to_people_scored_like_you(model, probability),
+        band=_what_happened_to_people_scored_like_you(model, probability, age_band),
         threshold=f"{threshold * 100:.1f}",
         metrics=metrics,
         population=population,
-        subgroup=_how_it_does_for_people_like_you(model, raw),
+        subgroup=_how_it_does_for_people_like_you(model, raw, age_band),
         caveats=caveats,
         factors=factors,
         factor_noun="your estimate",
