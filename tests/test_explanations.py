@@ -227,6 +227,54 @@ def test_the_subgroup_line_reads_the_right_cell(client):
     assert float(predicted) == round(expected["predicted"] * 100, 1)
 
 
+RISK_BAND_LINE = re.compile(
+    r"pinned down to about\s*([\d.]+)\s*points either way.*?"
+    r"measured against\s*([\d,]+) survey respondents",
+    re.S,
+)
+
+
+def test_the_80plus_band_reads_a_wider_interval_than_the_general_one(client):
+    """Past 80 the model discriminates worse (ROC-AUC 0.686 -- see
+    test_the_oldest_band_is_the_weakest_and_stays_declared in
+    tests/test_model_quality.py), so the width the page shows an 80+ reader
+    should come from risk_bins_80plus, not the general population's
+    risk_bins, and it should read visibly wider for it."""
+    model = get_model("heart")
+    body = client.post(
+        "/heart_disease/", data={**HIGH_RISK_HEART, "age": "85"}
+    ).get_data(as_text=True)
+    probability = float(
+        re.search(r"([\d.]+)% estimated risk", body).group(1)
+    ) / 100
+
+    match = RISK_BAND_LINE.search(body)
+    assert match, "no risk-band line rendered for an 80+ profile"
+    shown_width, shown_n = match.groups()
+
+    def band_for(bins):
+        return next((b for b in bins if b["low"] <= probability < b["high"]), None)
+
+    own = band_for(model.metadata["risk_bins_80plus"])
+    general = band_for(model.metadata["risk_bins"])
+    assert own, (
+        f"probability {probability} isn't covered by any 80+ bin -- adjust "
+        f"the fixture so this test actually exercises risk_bins_80plus"
+    )
+
+    own_width = (own["observed_high"] - own["observed_low"]) / 2 * 100
+    general_width = (general["observed_high"] - general["observed_low"]) / 2 * 100
+
+    assert shown_n == f"{own['n']:,}", "page quoted a different n than the 80+ bin's"
+    assert float(shown_width) == pytest.approx(round(own_width), abs=0.5), (
+        "page's give-or-take doesn't match the 80+ bin's own width"
+    )
+    assert own_width > general_width, (
+        "the 80+ band is no wider than the general population's for this "
+        "probability"
+    )
+
+
 def _summary(client, path, form):
     body = client.post(path, data=form).get_data(as_text=True)
     match = re.search(

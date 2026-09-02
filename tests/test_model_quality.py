@@ -377,3 +377,49 @@ def test_the_intervals_use_the_effective_sample_size():
             f"band {band['low']}-{band['high']} has effective n "
             f"{band['effective_n']} >= raw n {band['n']}"
         )
+
+
+def test_the_80plus_bands_are_shaped_like_the_general_ones():
+    """risk_bins_80plus is the same computation as risk_bins, restricted to
+    the 80+ cohort -- see test_the_oldest_band_is_the_weakest_and_stays_declared
+    for why that cohort gets its own bins at all."""
+    bins = load_metadata("heart").get("risk_bins_80plus")
+    assert bins, "heart metadata records no 80+ risk bands"
+    for band in bins:
+        for field in ("low", "high", "n", "effective_n", "mean_predicted",
+                      "observed", "observed_low", "observed_high"):
+            assert field in band, f"80+ band {band.get('low')} is missing {field}"
+        assert band["observed_low"] <= band["observed"] <= band["observed_high"], (
+            f"80+ band {band['low']}-{band['high']} has its own rate outside "
+            f"its interval: {band['observed']:.3f} vs "
+            f"({band['observed_low']:.3f}, {band['observed_high']:.3f})"
+        )
+
+
+def test_a_thin_80plus_bin_is_dropped_rather_than_reported():
+    """Six people is not a wide estimate, it's a shrug. The unrestricted 0-2%
+    bin has tens of thousands of respondents; restricted to 80+ it has six --
+    a Wilson interval on six people came back "0-66% observed" on the first
+    run, which reads as broken rather than uncertain. min_n=30 in the
+    _risk_bins call for this drops any bin that thin; the reader falls back to
+    the general population's bin for it instead (see the route)."""
+    for band in load_metadata("heart")["risk_bins_80plus"]:
+        assert band["n"] >= 30, f"80+ band {band['low']}-{band['high']} has n={band['n']}"
+
+
+def test_the_80plus_bands_are_wider_than_the_general_population():
+    """The reason to compute these separately at all: ROC-AUC 0.686 past 80
+    means individual scores there carry less information, and this is the
+    honest way that shows up -- as a real reduction in effective sample size
+    for the same band of predicted risk, not a fudge factor applied because
+    the subgroup audit looked bad."""
+    general = {(b["low"], b["high"]): b for b in load_metadata("heart")["risk_bins"]}
+    for band in load_metadata("heart")["risk_bins_80plus"]:
+        counterpart = general.get((band["low"], band["high"]))
+        assert counterpart, f"no general-population bin covers {band['low']}-{band['high']}"
+        own_width = band["observed_high"] - band["observed_low"]
+        general_width = counterpart["observed_high"] - counterpart["observed_low"]
+        assert own_width > general_width, (
+            f"80+ band {band['low']}-{band['high']} is not wider than its "
+            f"general-population counterpart ({own_width:.3f} vs {general_width:.3f})"
+        )

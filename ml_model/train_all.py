@@ -193,7 +193,8 @@ def _wilson(successes, total):
     return max(0.0, centre - spread), min(1.0, centre + spread)
 
 
-def _risk_bins(y, proba, weights, edges=(0.0, 0.02, 0.05, 0.10, 0.20, 0.35, 1.01)):
+def _risk_bins(y, proba, weights, edges=(0.0, 0.02, 0.05, 0.10, 0.20, 0.35, 1.01),
+                min_n=0):
     """What actually happened to people the model scored the way it scored you.
 
     The result page prints a percentage. A percentage with no sense of its own
@@ -217,6 +218,13 @@ def _risk_bins(y, proba, weights, edges=(0.0, 0.02, 0.05, 0.10, 0.20, 0.35, 1.01
     smaller than the raw count, so these intervals are wider than a naive one --
     correctly, because a respondent standing in for 60,000 adults carries less
     information about the population than 60,000 respondents would.
+
+    ``min_n`` drops a bin outright rather than report it. On the full test set
+    every bin clears any reasonable floor; restricted to a subgroup (see
+    risk_bins_80plus below) the thinnest bin can be six people, and a Wilson
+    interval on six people isn't a wide estimate, it's a shrug -- a 0-2%
+    predicted bin came back "0-66% observed". Silence is more honest than
+    that, and the caller falls back to the unrestricted bins.
     """
     proba = np.asarray(proba, dtype="float64")
     y = np.asarray(y, dtype="float64")
@@ -228,7 +236,7 @@ def _risk_bins(y, proba, weights, edges=(0.0, 0.02, 0.05, 0.10, 0.20, 0.35, 1.01
     for low, high in zip(edges[:-1], edges[1:], strict=True):
         in_bin = (proba >= low) & (proba < high)
         n = int(in_bin.sum())
-        if n == 0:
+        if n == 0 or n < min_n:
             continue
         w = weights[in_bin]
         observed = float(np.average(y[in_bin], weights=w))
@@ -483,21 +491,40 @@ def train_heart():
     # else in the pipeline: the model never sees them, and this is the only
     # honest use for them -- checking who the model works less well for.
     test_rows = df.loc[X_test.index]
+    age_band_labels = test_rows["Age"].map(F.brfss_age_band).to_numpy()
     subgroups = _subgroup_metrics(
         y_test.to_numpy(), proba, pred, w_test,
         {
             "sex": np.where(test_rows["Sex"] == 1, "Male", "Female"),
-            "age_band": test_rows["Age"].map(F.brfss_age_band).to_numpy(),
+            "age_band": age_band_labels,
             # What the result page can actually look up, because these are the
             # only two of the five the form asks for.
             "sex_age": (
                 np.where(test_rows["Sex"] == 1, "Male ", "Female ")
-                + test_rows["Age"].map(F.brfss_age_band).to_numpy()
+                + age_band_labels
             ),
             "race_ethnicity": test_rows["RaceEthnicity"].to_numpy(),
             "income_band": test_rows["IncomeBand"].to_numpy(),
             "education": test_rows["EducationLevel"].to_numpy(),
         },
+    )
+
+    # 80+ gets its own risk bins, not just its own subgroup row. ROC-AUC 0.686
+    # there (see the age_band audit above) means the model separates that
+    # group's high- and low-risk members far worse than it does anyone
+    # younger, so a score's width should be read off the 80+ cohort, not the
+    # whole test set. The mechanism is exactly _risk_bins again, restricted to
+    # that cohort -- the interval comes out wider mostly because n=5,718 is a
+    # 20th of the full test set, and a real reduction in effective sample size
+    # is the honest reason to say "this is less pinned down", not a fudge
+    # factor tacked on because the ROC-AUC looked bad.
+    # min_n=30: below that the bin is a handful of respondents standing in for
+    # a percentage, not evidence for one. The lowest bin here is 6 people
+    # before this filter -- see _risk_bins' docstring.
+    eighty_plus = age_band_labels == "80+"
+    risk_bins_80plus = _risk_bins(
+        y_test.to_numpy()[eighty_plus], proba[eighty_plus], w_test[eighty_plus],
+        min_n=30,
     )
 
     # Loudly, in the training log, because a subgroup the model serves badly is
@@ -580,6 +607,17 @@ def train_heart():
             "result page quotes the reader's own band so the percentage arrives "
             "with a width rather than four significant figures. Rates are "
             "survey-weighted; the counts the interval is computed from are not."
+        ),
+        "risk_bins_80plus": risk_bins_80plus,
+        "risk_bins_80plus_note": (
+            f"The same calculation as risk_bins, restricted to test "
+            f"respondents in the 80+ age band (n={int(eighty_plus.sum())} "
+            f"here against {len(y_test)} overall), because that is the band "
+            f"where the model discriminates worst -- see "
+            f"subgroups.age_band['80+'].roc_auc. The result page reads a "
+            f"reader's interval from here instead of risk_bins when they are "
+            f"in that band, and only falls back to risk_bins for a "
+            f"probability this smaller sample didn't produce a bin for."
         ),
         "subgroups": subgroups,
         "subgroup_note": (
