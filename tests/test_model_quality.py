@@ -38,6 +38,52 @@ def test_heart_beats_chance_and_is_calibrated():
     assert m["brier_score"] < 0.09
 
 
+def test_heart_is_trained_on_the_survey_weights():
+    """BRFSS rows are not people; they are people times _LLCPWT.
+
+    Trained unweighted, the model is calibrated to whoever answers telephone
+    surveys -- a group that skews old and therefore has more heart disease than
+    the country does. The app quotes its percentage as literal, so it has to be
+    literal about a population somebody belongs to.
+    """
+    meta = load_metadata("heart")
+    weighting = meta.get("weighting")
+    assert weighting, "heart metadata does not record any survey weighting"
+    assert weighting["variable"] == "_LLCPWT"
+    assert weighting["population"], "the weighting must name what it represents"
+
+    # The correction is large enough to matter, and in the expected direction.
+    # If these ever converge, the weight has stopped being applied.
+    assert weighting["weighted_prevalence"] < weighting["unweighted_prevalence"]
+    assert weighting["unweighted_prevalence"] - weighting["weighted_prevalence"] > 0.01
+
+
+def test_heart_records_both_weighted_and_unweighted_metrics():
+    """Reporting only the flattering set is how the correction gets lost."""
+    meta = load_metadata("heart")
+    assert "metrics_unweighted" in meta
+    for key in ("roc_auc", "brier_score", "observed_prevalence"):
+        assert key in meta["metrics"]
+        assert key in meta["metrics_unweighted"]
+    # The headline block is the weighted one, so its prevalence should track the
+    # weighted figure rather than the raw sample's.
+    assert abs(meta["metrics"]["observed_prevalence"]
+               - meta["weighting"]["weighted_prevalence"]) < 0.01
+
+
+def test_the_brfss_fetcher_carries_the_design_variables():
+    """The weight has to survive the trip from the XPT to the CSV.
+
+    _PSU is deliberately absent: every (_STSTR, _PSU) pair in the cycle is
+    unique, so there is exactly one record per cluster and nothing to group by.
+    """
+    source = (Path(__file__).resolve().parent.parent
+              / "ml_model" / "fetch_brfss.py").read_text(encoding="utf-8")
+    assert "_LLCPWT" in source
+    assert "SurveyWeight" in source
+    assert "weighted_prevalence" in source
+
+
 def test_heart_threshold_is_tuned_not_hardcoded():
     meta = load_metadata("heart")
     assert "decision_threshold" in meta
