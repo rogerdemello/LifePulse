@@ -205,6 +205,20 @@ are "something has broken" bounds, not a claim that the current numbers are good
 A third asserts the 80+ band is still the weakest, so if a retrain fixes it, the
 test fails and this section gets updated with it.
 
+### Why migraine uses class weighting and heart doesn't
+
+It looks like an inconsistency and isn't. Heart is 9% positive, where
+`class_weight="balanced"` more than doubles the Brier score and pushes mean
+predicted risk to 0.35 against a true 0.09. Migraine is **40%** positive, so
+"balanced" barely moves anything — measured, ROC-AUC 0.9236 against 0.9237
+without it, and an identical Brier of 0.110.
+
+Migraine now records `brier_score`, `mean_predicted_risk`, `observed_prevalence`
+and `calibration_slope` like heart does. Its page prints a confidence to one
+decimal place and nothing anywhere said whether that number was literal. It is —
+mean predicted 0.409 against observed 0.400, slope 1.08 — but that wasn't
+knowable until it was measured.
+
 ### Calibration and the decision threshold
 
 The heart model is deliberately trained **without** class weighting. On the
@@ -619,7 +633,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-**477 tests** (476 pass; one skips when the gitignored data is absent), covering:
+**482 tests** (481 pass; one skips when the gitignored data is absent), covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
@@ -705,7 +719,7 @@ LifePulse/
 │   └── train_all.py            # retrains both models
 ├── tools/
 │   └── build_icon_sprite.py    # rebuilds app/templates/_icons.html
-├── tests/                      # 476 tests
+├── tests/                      # 481 tests
 ├── data/                       # training inputs (gitignored)
 ├── .github/
 │   ├── workflows/ci.yml        # lint, tests + coverage floor, boot check,
@@ -791,6 +805,12 @@ seriously.
   distributions look real — strongly non-uniform, with genuine missing values,
   unlike the synthetic files that were rejected — but that isn't the same as
   knowing where it came from. Every other input can name its source.
+  This is now **recorded in `metadata.json` and shown on the migraine pages
+  themselves**, rather than only here: a caveat a reader never sees is a caveat
+  the project has made to itself. The proper fix is to replace the model with a
+  published instrument — ID-Migraine is three questions with citable sensitivity
+  and specificity — which would complete the pattern already applied to sleep and
+  the lifestyle score.
 - **BRFSS is self-reported.** "Have you ever been told you have high blood
   pressure" is not a measurement.
 - **No screen reader has been listened to.** The app has been driven by keyboard

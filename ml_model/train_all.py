@@ -535,6 +535,14 @@ def train_migraine():
     X_train, X_test, y_train, y_test = _split(X, y)
     scaler, Xtr, Xte = _scaled(X_train, X_test)
 
+    # class_weight="balanced" here and deliberately NOT on heart. It is not an
+    # inconsistency: heart is 9% positive, where reweighting more than doubles
+    # the Brier score and pushes mean predicted risk to 0.35 against a true
+    # 0.09. This dataset is 40% positive, so "balanced" barely moves anything --
+    # measured, ROC-AUC 0.9236 against 0.9237 without it and an identical Brier
+    # of 0.110. It is kept because it costs nothing, and written down because
+    # the next person to compare the two trainers will otherwise assume one of
+    # them is wrong.
     model = HistGradientBoostingClassifier(
         max_iter=400,
         learning_rate=0.05,
@@ -552,6 +560,14 @@ def train_migraine():
         "balanced_accuracy": float(balanced_accuracy_score(y_test, pred)),
         "f1": float(f1_score(y_test, pred)),
         "roc_auc": float(roc_auc_score(y_test, proba)),
+        # Recorded because the page prints a percentage. Heart has carried
+        # these since it was rebuilt; migraine showed a number to one decimal
+        # place with nothing anywhere saying whether it meant what it said.
+        # It does, as it happens -- but that was not knowable before.
+        "brier_score": float(brier_score_loss(y_test, proba)),
+        "mean_predicted_risk": float(proba.mean()),
+        "observed_prevalence": float(y_test.mean()),
+        "calibration_slope": _calibration_slope(y_test, proba),
         "baseline_majority_accuracy": majority,
         "cv_accuracy_mean": float(
             cross_val_score(model, Xtr, y_train, cv=5, n_jobs=-1).mean()
@@ -559,6 +575,9 @@ def train_migraine():
     }
     log.info("  accuracy %.4f (baseline %.4f) | ROC-AUC %.4f | F1 %.4f",
              metrics["accuracy"], majority, metrics["roc_auc"], metrics["f1"])
+    log.info("  calibration: mean predicted %.4f vs observed %.4f | Brier %.4f",
+             metrics["mean_predicted_risk"], metrics["observed_prevalence"],
+             metrics["brier_score"])
 
     return _save("migraine", model, scaler, F.MIGRAINE_FEATURES, {
         "task": "binary classification",
@@ -568,6 +587,29 @@ def train_migraine():
         "dataset": "migraine_dataset_500",
         "n_rows": int(len(y)),
         "estimator": type(model).__name__,
+        # The one input in this repository that cannot name its source, stated
+        # in the artifact rather than only in the README -- so the page can
+        # read it and say so, and so it cannot be quietly forgotten.
+        "provenance": {
+            "documented": False,
+            "source_file": "data/migraine_dataset_500 (1).csv",
+            # User-facing: this string is rendered on the migraine pages, so it
+            # uses real punctuation rather than the "--" convention the code
+            # comments use. The sentence naming the other sources lives in the
+            # template, which can name them specifically.
+            "note": (
+                "No documented origin, no published methodology, and 2,000 rows "
+                "despite ‘500’ in the filename. The distributions look "
+                "like real responses — strongly non-uniform, with genuine "
+                "missing values, unlike the synthetic files this project "
+                "rejected — but looking real is not the same as being "
+                "traceable."
+            ),
+            "consequence": (
+                "The metrics below describe this file. Whether they describe "
+                "anyone else is unknown, and unknowable without the source."
+            ),
+        },
         "raw_profile": _profile(df, F.MIGRAINE_RAW),
         "metrics": metrics,
     })

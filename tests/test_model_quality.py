@@ -292,3 +292,43 @@ def test_fruit_and_veg_are_gone_from_the_contract():
 
     assert "Fruits" not in HEART_RAW
     assert "Veggies" not in HEART_RAW
+
+
+# --------------------------------------------------------------------------
+# provenance
+# --------------------------------------------------------------------------
+
+def test_migraine_declares_that_its_source_is_undocumented():
+    """The one input in this repository that cannot name where it came from.
+
+    Recorded in the artifact rather than only in the README, so the page can
+    read it and say so. A caveat the reader never sees is a caveat the project
+    has made to itself.
+    """
+    provenance = load_metadata("migraine").get("provenance")
+    assert provenance, "migraine metadata does not record its provenance"
+    assert provenance["documented"] is False
+    assert provenance["note"] and provenance["consequence"]
+
+
+def test_the_documented_models_do_not_carry_the_warning():
+    """It must mean something. If every model declared undocumented provenance
+    the notice would be wallpaper."""
+    heart = load_metadata("heart")
+    assert not heart.get("provenance", {}).get("documented") is False
+    assert "BRFSS" in heart["dataset"]
+
+
+def test_migraine_records_whether_its_percentage_means_anything():
+    """The page prints a confidence to one decimal place. Heart has carried
+    calibration figures since it was rebuilt; migraine printed a number with
+    nothing anywhere saying whether it was literal.
+
+    It is, as it turns out -- mean predicted risk tracks observed prevalence
+    closely. That was not knowable before it was measured.
+    """
+    m = load_metadata("migraine")["metrics"]
+    for key in ("brier_score", "mean_predicted_risk", "observed_prevalence",
+                "calibration_slope"):
+        assert key in m, f"migraine metrics missing {key}"
+    assert abs(m["mean_predicted_risk"] - m["observed_prevalence"]) < 0.05
