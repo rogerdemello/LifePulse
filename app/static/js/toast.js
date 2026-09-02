@@ -39,10 +39,10 @@ class ToastNotification {
     // message says, and an unlabelled icon font otherwise reads as nothing or
     // as a stray glyph.
     const icons = {
-      success: '<i class="bi bi-check-circle-fill" aria-hidden="true"></i>',
-      error: '<i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>',
-      warning: '<i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>',
-      info: '<i class="bi bi-info-circle-fill" aria-hidden="true"></i>'
+      success: '<svg class="bi" aria-hidden="true"><use href="#i-check-circle-fill"></use></svg>',
+      error: '<svg class="bi" aria-hidden="true"><use href="#i-exclamation-circle-fill"></use></svg>',
+      warning: '<svg class="bi" aria-hidden="true"><use href="#i-exclamation-triangle-fill"></use></svg>',
+      info: '<svg class="bi" aria-hidden="true"><use href="#i-info-circle-fill"></use></svg>'
     };
 
     // The close button was a tabbable control whose entire content was an icon
@@ -54,7 +54,7 @@ class ToastNotification {
       <div class="toast-icon">${icons[type]}</div>
       <div class="toast-message">${message}</div>
       <button type="button" class="toast-close" aria-label="Dismiss notification">
-        <i class="bi bi-x" aria-hidden="true"></i>
+        <svg class="bi" aria-hidden="true"><use href="#i-x"></use></svg>
       </button>
     `;
     toast.querySelector('.toast-close')

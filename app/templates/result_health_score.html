@@ -72,7 +72,7 @@
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 pt-4 px-4">
           <h2 class="h5 fw-bold mb-1">
-            <i class="bi bi-list-check me-2" aria-hidden="true"></i>How this was calculated
+            <svg class="bi me-2" aria-hidden="true"><use href="#i-list-check"></use></svg>How this was calculated
           </h2>
           <p class="text-muted small mb-0">
             Every point is traceable to a rule below. Nothing here is a model
@@ -107,7 +107,7 @@
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
           <h2 class="h5 fw-bold mb-2">
-            <i class="bi bi-arrow-up-right-circle me-2" aria-hidden="true"></i>Where the most points are
+            <svg class="bi me-2" aria-hidden="true"><use href="#i-arrow-up-right-circle"></use></svg>Where the most points are
           </h2>
           <p class="mb-2">
             <strong>{{ result.biggest_opportunity.label }}</strong> is where you have
@@ -137,10 +137,10 @@
 
       <div class="text-center mt-4">
         <a href="{{ url_for('health_score.predict_health_score') }}" class="btn btn-primary btn-lg me-2">
-          <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Assess again
+          <svg class="bi me-1" aria-hidden="true"><use href="#i-arrow-repeat"></use></svg>Assess again
         </a>
         <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">
-          <i class="bi bi-house me-1" aria-hidden="true"></i>Home
+          <svg class="bi me-1" aria-hidden="true"><use href="#i-house"></use></svg>Home
         </a>
       </div>
 

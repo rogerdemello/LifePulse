@@ -9,9 +9,9 @@ the resulting feature vectors are the same.
 import numpy as np
 import pandas as pd
 import pytest
+from conftest import DATA, requires_dataset
 
 from app.ml import features as F
-from conftest import DATA, requires_dataset
 
 # Only the two remaining models appear here. The lifestyle score is a rubric
 # and sleep is an empirical lookup, so neither has a training path for a

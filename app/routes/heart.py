@@ -53,6 +53,41 @@ def _to_model_units(values):
     return {**values, "Age": brfss_age_bucket(values["Age"])}
 
 
+def _what_happened_to_people_scored_like_you(model, probability):
+    """The observed outcome rate for the reader's band, with its interval.
+
+    The page was printing this risk to two decimal places -- 12.34% -- from a
+    model whose Brier score is 0.057. That is four significant figures of a
+    quantity good to about one, and a number that precise reads as a
+    measurement rather than an estimate.
+
+    Rather than model the uncertainty, report it. ``risk_bins`` in the metadata
+    records, for each band of predicted risk, what share of held-out survey
+    respondents in that band actually had heart disease, with a 95% interval
+    around it. That is the same move app/ml/sleep_risk.py makes: an observed
+    rate from real data, checkable against the published file, instead of a
+    number that has to be taken on trust.
+    """
+    for band in model.metadata.get("risk_bins", []):
+        if not band["low"] <= probability < band["high"]:
+            continue
+
+        # The band's own rate is deliberately not shown as though it were the
+        # reader's. Bands are wide -- 10-20% is one of them -- so somebody
+        # scored 10.3% would be told "people like you: 15%", which overstates
+        # their risk by half. What transfers is the *width*: how tightly the
+        # outcome rate is pinned down for people the model scores this way.
+        half_width = (band["observed_high"] - band["observed_low"]) / 2
+        return {
+            "estimate": f"{probability * 100:.0f}",
+            "low": f"{max(0.0, probability - half_width) * 100:.0f}",
+            "high": f"{min(1.0, probability + half_width) * 100:.0f}",
+            "give_or_take": f"{half_width * 100:.0f}",
+            "n": f"{band['n']:,}",
+        }
+    return None
+
+
 def _how_it_does_for_people_like_you(model, raw):
     """The model's measured accuracy for the reader's own sex and age band.
 
@@ -152,7 +187,10 @@ def predict_heart_disease():
     return render_template(
         "result_heart.html",
         prediction="Yes" if probability >= threshold else "No",
-        probability=f"{probability * 100:.2f}",
+        # One decimal, not two. The second was four significant figures of a
+        # quantity the band below says is good to about one.
+        probability=f"{probability * 100:.1f}",
+        band=_what_happened_to_people_scored_like_you(model, probability),
         threshold=f"{threshold * 100:.1f}",
         metrics=metrics,
         population=population,

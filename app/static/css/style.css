@@ -73,22 +73,12 @@
 
   --transition: 220ms cubic-bezier(0.25, 0.1, 0.25, 1);
 
-  /* Bootstrap reads its own --bs-* variables for utilities and components
-     (.text-body, .form-label, .table, .border, ...). Overriding only our
-     tokens left those on Bootstrap's built-in light palette, so in dark mode
-     every card title and form label rendered near-black on a near-black
-     surface -- invisible, and invisible to the test suite too. Mapping ours
-     onto theirs keeps the whole page on one palette. */
-  --bs-body-color: var(--ink);
-  --bs-body-bg: var(--page);
-  --bs-emphasis-color: var(--ink);
-  --bs-secondary-color: var(--ink-muted);
-  --bs-tertiary-color: var(--ink-faint);
-  --bs-border-color: var(--border);
-  --bs-heading-color: var(--ink);
-  --bs-link-color: var(--brand);
-  --bs-link-hover-color: var(--brand-strong);
-  --bs-code-color: var(--ink);
+  /* The --bs-* mappings that used to sit here are gone with Bootstrap. They
+     existed because Bootstrap's components read its own variables, so
+     overriding only our tokens left card titles and form labels near-black on
+     a near-black surface in dark mode. Now that .text-body, .form-label,
+     .table and .border are all defined in this repository against these
+     tokens directly, there is no second palette to keep in step. */
 }
 
 /* `hidden` must beat Bootstrap's display utilities.
@@ -710,6 +700,24 @@ footer p { margin: 0; }
 .btn-outline-danger { color: var(--danger); background: transparent; border-color: var(--danger); }
 .btn-outline-danger:hover { color: #fff; background: var(--danger); }
 
+/* The "Back to Home" button on the generic result page. It was coming from
+   Bootstrap and had no rule here, so dropping the CDN left it unstyled -- a
+   plain blue link where a button should be. Deliberately the same quiet
+   treatment as .btn-outline-secondary rather than a second filled button:
+   it is a way back, not the action the page is about. */
+.btn-secondary {
+  color: var(--ink);
+  background: var(--surface-sunken);
+  border-color: var(--border);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+  color: var(--ink);
+  background: var(--border);
+  border-color: var(--border-strong);
+}
+
 .btn-link { color: var(--brand); }
 
 .form-label {
@@ -1020,16 +1028,6 @@ footer p { margin: 0; }
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 4px 16px rgba(0, 0, 0, 0.35);
     --shadow-lifted: 0 2px 4px rgba(0, 0, 0, 0.40), 0 12px 32px rgba(0, 0, 0, 0.50);
 
-    --bs-body-color: var(--ink);
-    --bs-body-bg: var(--page);
-    --bs-emphasis-color: var(--ink);
-    --bs-secondary-color: var(--ink-muted);
-    --bs-tertiary-color: var(--ink-faint);
-    --bs-border-color: var(--border);
-    --bs-heading-color: var(--ink);
-    --bs-link-color: var(--brand);
-    --bs-link-hover-color: var(--brand-strong);
-    --bs-code-color: var(--ink);
   }
 
   /* Where a token is a light hue, anything filled with it needs dark ink. */

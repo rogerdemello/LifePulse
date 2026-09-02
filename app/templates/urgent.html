@@ -11,8 +11,7 @@
         <div class="card-body p-4 p-md-5">
 
           <div class="d-flex align-items-start mb-4">
-            <i class="bi bi-exclamation-octagon-fill {% if emergency %}text-danger{% else %}text-warning{% endif %} me-3"
-               style="font-size: 2.5rem; line-height: 1;" aria-hidden="true"></i>
+            <svg class="bi {% if emergency %}text-danger{% else %}text-warning{% endif %} me-3" style="font-size: 2.5rem; line-height: 1;" aria-hidden="true"><use href="#i-exclamation-octagon-fill"></use></svg>
             <div>
               <h1 class="h4 fw-bold mb-1">
                 {% if emergency %}
@@ -46,7 +45,7 @@
 
           <div class="d-flex gap-2 flex-wrap">
             <a href="javascript:history.back()" class="btn btn-primary">
-              <i class="bi bi-pencil me-1" aria-hidden="true"></i>Go back and check my answers
+              <svg class="bi me-1" aria-hidden="true"><use href="#i-pencil"></use></svg>Go back and check my answers
             </a>
 
             <form method="POST" action="{{ action }}" class="d-inline">

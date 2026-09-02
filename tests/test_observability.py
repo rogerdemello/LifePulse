@@ -10,8 +10,6 @@ Tracing must not become a back door through which answers get recorded.
 
 import logging
 
-import pytest
-
 from app import observability
 
 FORM = {

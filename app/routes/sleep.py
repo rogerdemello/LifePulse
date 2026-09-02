@@ -59,8 +59,10 @@ def predict_sleep():
     for field, allowed in choices.items():
         try:
             value = int(form[field])
-        except (TypeError, ValueError):
-            raise FormError(f"“{field.replace('_', ' ')}” was not a valid choice.")
+        except (TypeError, ValueError) as exc:
+            raise FormError(
+                f"“{field.replace('_', ' ')}” was not a valid choice."
+            ) from exc
         if value not in allowed:
             raise FormError(
                 f"“{field.replace('_', ' ')}” must be between "
@@ -68,8 +70,8 @@ def predict_sleep():
             )
     try:
         float(form["sleep_hours"])
-    except (TypeError, ValueError):
-        raise FormError("Hours of sleep must be a number.")
+    except (TypeError, ValueError) as exc:
+        raise FormError("Hours of sleep must be a number.") from exc
 
     # Blood pressure is optional here -- it is not used for the assessment, but
     # if it is given it goes through the same safety checks as everywhere else.

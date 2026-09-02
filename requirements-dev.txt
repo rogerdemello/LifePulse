@@ -3,3 +3,12 @@
 -r requirements.txt
 
 pytest==8.4.2
+
+# Gates that run in CI alongside the tests.
+#   ruff        lint; see ruff.toml for what is selected and why
+#   pip-audit   known vulnerabilities in the pinned runtime dependencies. It
+#               found seven across five packages the first time it ran.
+#   pytest-cov  a coverage floor, so a change cannot quietly stop being tested
+ruff==0.16.5
+pip-audit==2.10.1
+pytest-cov==7.1.0

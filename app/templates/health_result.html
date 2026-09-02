@@ -4,7 +4,7 @@
 {% block content %}
 <div class="container py-5">
   <div class="text-center mb-4">
-    <h1 class="fw-bold h2 mb-2"><i class="bi bi-clipboard2-pulse me-2" aria-hidden="true"></i>Your Health Insights</h1>
+    <h1 class="fw-bold h2 mb-2"><svg class="bi me-2" aria-hidden="true"><use href="#i-clipboard2-pulse"></use></svg>Your Health Insights</h1>
     <p class="text-muted">Comprehensive analysis of your health metrics</p>
   </div>
 
@@ -18,7 +18,7 @@
           <div class="card h-100 shadow-sm border-0 hover-lift">
             <div class="card-body text-center p-4">
               <div class="mb-2">
-                <span style="font-size: 2rem;"><i class="bi bi-speedometer2 me-2" aria-hidden="true"></i></span>
+                <span style="font-size: 2rem;"><svg class="bi me-2" aria-hidden="true"><use href="#i-speedometer2"></use></svg></span>
               </div>
               <h2 class="h6 text-muted text-uppercase small mb-2">Body Mass Index</h2>
               <div class="h2 fw-bold mb-2">{{ bmi }}</div>
@@ -48,7 +48,7 @@
           <div class="card h-100 shadow-sm border-0 hover-lift">
             <div class="card-body text-center p-4">
               <div class="mb-2">
-                <span style="font-size: 2rem;"><i class="bi bi-fire me-2" aria-hidden="true"></i></span>
+                <span style="font-size: 2rem;"><svg class="bi me-2" aria-hidden="true"><use href="#i-fire"></use></svg></span>
               </div>
               <h2 class="h6 text-muted text-uppercase small mb-2">Basal Metabolic Rate</h2>
               <div class="h2 fw-bold mb-2">{{ bmr|round|int }}</div>
@@ -65,7 +65,7 @@
           <div class="card h-100 shadow-sm border-0 hover-lift">
             <div class="card-body text-center p-4">
               <div class="mb-2">
-                <span style="font-size: 2rem;"><i class="bi bi-egg-fried me-2" aria-hidden="true"></i></span>
+                <span style="font-size: 2rem;"><svg class="bi me-2" aria-hidden="true"><use href="#i-egg-fried"></use></svg></span>
               </div>
               <h2 class="h6 text-muted text-uppercase small mb-2">Daily Calorie Needs</h2>
               <div class="h2 fw-bold mb-2">{{ calorie_needs|round|int }}</div>
@@ -82,18 +82,18 @@
           <div class="card h-100 shadow-sm border-0 hover-lift">
             <div class="card-body text-center p-4">
               <div class="mb-2">
-                <span style="font-size: 2rem;"><i class="bi bi-rulers me-2" aria-hidden="true"></i></span>
+                <span style="font-size: 2rem;"><svg class="bi me-2" aria-hidden="true"><use href="#i-rulers"></use></svg></span>
               </div>
               <h2 class="h6 text-muted text-uppercase small mb-2">Waist-Hip Ratio</h2>
               <div class="h2 fw-bold mb-2">{{ wh_ratio }}</div>
               <div>
                 {% if wh_ratio > 0.9 %}
-                  <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Elevated Risk</span>
+                  <span class="badge bg-warning text-dark px-3 py-2"><svg class="bi me-2" aria-hidden="true"><use href="#i-exclamation-triangle"></use></svg>Elevated Risk</span>
                   <div class="mt-2">
                     <small class="text-muted">Higher risk of metabolic disorders</small>
                   </div>
                 {% else %}
-                  <span class="badge bg-success px-3 py-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Healthy Range</span>
+                  <span class="badge bg-success px-3 py-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg>Healthy Range</span>
                   <div class="mt-2">
                     <small class="text-muted">Good fat distribution</small>
                   </div>
@@ -108,18 +108,18 @@
           <div class="card h-100 shadow-sm border-0 hover-lift">
             <div class="card-body text-center p-4">
               <div class="mb-2">
-                <span style="font-size: 2rem;"><i class="bi bi-clipboard2-pulse me-2" aria-hidden="true"></i></span>
+                <span style="font-size: 2rem;"><svg class="bi me-2" aria-hidden="true"><use href="#i-clipboard2-pulse"></use></svg></span>
               </div>
               <h2 class="h6 text-muted text-uppercase small mb-2">Blood Pressure</h2>
               <div class="h3 fw-bold mb-2">{{ bp_cat }}</div>
               <div>
                 {% if bp_cat == 'Normal' %}
-                  <span class="badge bg-success px-3 py-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Healthy</span>
+                  <span class="badge bg-success px-3 py-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg>Healthy</span>
                   <div class="mt-2">
                     <small class="text-muted">Keep maintaining healthy habits</small>
                   </div>
                 {% else %}
-                  <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Attention Needed</span>
+                  <span class="badge bg-warning text-dark px-3 py-2"><svg class="bi me-2" aria-hidden="true"><use href="#i-exclamation-triangle"></use></svg>Attention Needed</span>
                   <div class="mt-2">
                     <small class="text-muted">{{ bp_details if bp_details else 'Monitor regularly' }}</small>
                   </div>
@@ -134,7 +134,7 @@
       {% if warnings %}
       <div class="alert alert-warning border-0 shadow-sm mb-4" role="alert">
         <div class="d-flex align-items-start">
-          <div class="me-3" style="font-size: 2rem;"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i></div>
+          <div class="me-3" style="font-size: 2rem;"><svg class="bi me-2" aria-hidden="true"><use href="#i-exclamation-triangle"></use></svg></div>
           <div class="flex-grow-1">
             <h2 class="h5 alert-heading mb-3">Important Health Considerations</h2>
             <ul class="mb-0">
@@ -152,7 +152,7 @@
       <div class="card mb-4">
         <div class="card-header border-0 pt-4 px-4">
           <h2 class="h5 fw-bold mb-1">
-            <i class="bi bi-lightbulb me-2" aria-hidden="true"></i>General guidance
+            <svg class="bi me-2" aria-hidden="true"><use href="#i-lightbulb"></use></svg>General guidance
           </h2>
           <p class="text-muted small mb-0">
             Based on the numbers above, from standard public health advice.
@@ -176,18 +176,18 @@
       <!-- Quick Stats Summary -->
       <div class="card border-0 shadow-sm mb-4 bg-primary text-white">
         <div class="card-body p-4">
-          <h2 class="h5 fw-bold mb-3"><i class="bi bi-bar-chart me-2" aria-hidden="true"></i>Quick Summary</h2>
+          <h2 class="h5 fw-bold mb-3"><svg class="bi me-2" aria-hidden="true"><use href="#i-bar-chart"></use></svg>Quick Summary</h2>
           <div class="row g-3">
             <div class="col-md-6">
               <div class="d-flex justify-content-between align-items-center">
                 <span class="text-muted">Overall Assessment:</span>
                 <strong>
                   {% if warnings|length == 0 %}
-                    <span class="text-success"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Excellent</span>
+                    <span class="text-success"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg>Excellent</span>
                   {% elif warnings|length <= 2 %}
-                    <span class="text-warning"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Good with concerns</span>
+                    <span class="text-warning"><svg class="bi me-2" aria-hidden="true"><use href="#i-exclamation-triangle"></use></svg>Good with concerns</span>
                   {% else %}
-                    <span class="text-danger"><i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>Needs attention</span>
+                    <span class="text-danger"><svg class="bi me-2" aria-hidden="true"><use href="#i-exclamation-circle"></use></svg>Needs attention</span>
                   {% endif %}
                 </strong>
               </div>
@@ -205,10 +205,10 @@
       <!-- Navigation Buttons -->
       <div class="text-center mt-4">
         <a href="/health" class="btn btn-primary btn-lg px-4 me-2">
-          <i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>Calculate Again
+          <svg class="bi me-2" aria-hidden="true"><use href="#i-arrow-repeat"></use></svg>Calculate Again
         </a>
         <a href="/" class="btn btn-outline-secondary btn-lg px-4">
-          <i class="bi bi-house me-2" aria-hidden="true"></i>Back to Home
+          <svg class="bi me-2" aria-hidden="true"><use href="#i-house"></use></svg>Back to Home
         </a>
       </div>
     </div>

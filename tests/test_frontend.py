@@ -761,3 +761,21 @@ def test_no_markup_relies_on_bootstraps_javascript():
     base = (TEMPLATES / "base.html").read_text(encoding="utf-8")
     assert "bootstrap.bundle" not in base, "the JS bundle is back"
     assert "data-nav-toggle" in base, "the navbar has no toggle at all"
+
+
+def test_the_migraine_page_says_its_data_has_no_documented_source(client):
+    """Stated where somebody reading a migraine result will see it, not only in
+    the README."""
+    body = client.get("/migraine/").get_data(as_text=True)
+    assert "Where this one's data came from" in body
+    assert "2,000 rows" in body
+    # And it names what the others can, so the contrast is on the page too.
+    assert "BRFSS 2023" in body and "NHANES" in body
+
+
+def test_the_notice_appears_on_no_other_assessment(client):
+    """A caveat on every page is wallpaper. It is on migraine because migraine
+    is the only input here that cannot name a survey and a cycle."""
+    for path in ("/heart_disease/", "/sleep/", "/health-score/", "/health/"):
+        body = client.get(path).get_data(as_text=True)
+        assert "Where this one's data came from" not in body, path
