@@ -165,6 +165,44 @@ are numbered within stratum and every `(_STSTR, _PSU)` pair in the cycle is
 unique — one record per cluster, so there is nothing for a "cluster-aware" split
 to group by.
 
+### Who it works less well for
+
+A single ROC-AUC of 0.855 is an average over 62,434 test rows, and averages hide
+their tails. `metadata.json` carries weighted metrics split six ways — sex, age
+band, sex × age, race/ethnicity, income and education — and the result page tells
+each reader how the model does for *their* sex and age band, not just overall.
+
+Two findings the aggregate was hiding:
+
+| | n | Observed | Predicted | O/E | ROC-AUC |
+|---|---|---|---|---|---|
+| Age 35–49 | 11,903 | 0.024 | 0.024 | 1.01 | 0.863 |
+| Age 50–64 | 17,231 | 0.082 | 0.075 | **1.10** | 0.805 |
+| Age 65–79 | 19,821 | 0.146 | 0.151 | 0.96 | 0.772 |
+| **Age 80+** | 5,718 | 0.207 | 0.223 | 0.93 | **0.686** |
+| **Asian** | 1,611 | 0.028 | 0.039 | **0.71** | 0.897 |
+| White | 47,690 | 0.081 | 0.079 | 1.02 | 0.847 |
+
+- **Discrimination falls off with age.** 0.863 at 35–49 against 0.686 past 80 —
+  and past 80 is where a reader is most likely to act on the answer. The model
+  ranks the oldest group barely better than a coin weighted by prevalence.
+- **It over-states risk for Asian adults by about 40%** — predicting 3.9% where
+  2.8% had the outcome. Ranking within the group is fine (0.897, the best of any
+  group); it is the level that is wrong.
+
+Race, income and education are **evaluation strata only**. The model is never
+given them as inputs — feeding race into a clinical risk score is the mistake
+behind a generation of race-adjusted equations now being withdrawn, and
+`tests/test_model_quality.py` fails if one ever reaches the feature contract.
+They are carried to answer the question "who does this work worse for", which
+cannot be answered without them.
+
+Two tests hold the floor: no group above n=500 may fall outside an
+observed/predicted band of 0.6–1.4, and none may drop below ROC-AUC 0.65. Those
+are "something has broken" bounds, not a claim that the current numbers are good.
+A third asserts the 80+ band is still the weakest, so if a retrain fixes it, the
+test fails and this section gets updated with it.
+
 ### Calibration and the decision threshold
 
 The heart model is deliberately trained **without** class weighting. On the
@@ -448,13 +486,15 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-**427 tests** (426 pass; one skips when the gitignored data is absent), covering:
+**449 tests** (448 pass; one skips when the gitignored data is absent), covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
 - **Training/serving parity** — a CSV row and the equivalent form dict produce identical vectors
 - **Model quality** — each model beats its baseline; heart stays calibrated; the heart
-  data stays recent; the survey weights stay applied and the correction stays visible
+  data stays recent; the survey weights stay applied and the correction stays visible;
+  no subgroup drifts outside its calibration or discrimination floor, and race, income
+  and education never reach the feature contract
 - **Safety** — each tier fires correctly, including the BP 190/125 and HR 0 cases that once returned a calm "No Sleep Disorder"
 - **Triage** — emergency phrasings are caught, including inflections like "ending my life"; ordinary ones like "improve my fitness" never trigger a false alarm
 - **Sleep & lifestyle** — the lookup table is monotonic and the rubric's components sum to its total
@@ -520,7 +560,7 @@ LifePulse/
 │   ├── fetch_brfss.py          # CDC BRFSS -> data/brfss_heart.csv
 │   ├── fetch_nhanes.py         # CDC NHANES -> data/nhanes_sleep.csv
 │   └── train_all.py            # retrains both models
-├── tests/                      # 427 tests
+├── tests/                      # 449 tests
 ├── data/                       # training inputs (gitignored)
 ├── .github/workflows/ci.yml    # pytest + boot check + contract check
 ├── requirements.txt            # pinned runtime deps

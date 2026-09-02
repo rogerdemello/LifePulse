@@ -180,6 +180,93 @@ def _binary_metrics(y, proba, pred, sample_weight=None):
     }
 
 
+def _calibration_slope(y, proba, sample_weight=None):
+    """Regress the outcome on the model's own log-odds.
+
+    A slope of 1 means the model's confidence is correctly scaled. Below 1 it is
+    over-confident -- pushing high risks too high and low risks too low -- and
+    above 1 it is under-confident. This is the half of calibration that an
+    observed-versus-expected ratio cannot see: a model can put exactly the right
+    average risk on a subgroup while being badly wrong about which members of it
+    are the high-risk ones.
+
+    Fitted here by iteratively reweighted least squares rather than with
+    ``LogisticRegression``, for one reason that matters: scikit-learn's default
+    is *penalised*, and a penalty shrinks the slope toward zero -- which is the
+    direction that makes a miscalibrated subgroup look better than it is. The
+    unpenalised spelling is also mid-deprecation in 1.8 (``penalty=None`` warns,
+    and its suggested replacement ``C=np.inf`` warns too), so pinning this to
+    twelve lines of arithmetic is both safer and steadier than tracking it.
+    """
+    p = np.clip(np.asarray(proba, dtype="float64"), 1e-6, 1 - 1e-6)
+    X = np.column_stack([np.ones(len(p)), np.log(p / (1 - p))])
+    y = np.asarray(y, dtype="float64")
+    w = (np.ones(len(p)) if sample_weight is None
+         else np.asarray(sample_weight, dtype="float64"))
+
+    beta = np.zeros(2)
+    for _ in range(100):
+        mu = 1.0 / (1.0 + np.exp(-np.clip(X @ beta, -35, 35)))
+        variance = np.clip(mu * (1.0 - mu), 1e-10, None)
+        working = w * variance
+        target = X @ beta + (y - mu) / variance
+        step = np.linalg.solve((X.T * working) @ X, (X.T * working) @ target)
+        if np.allclose(step, beta, rtol=1e-8, atol=1e-10):
+            beta = step
+            break
+        beta = step
+    return float(beta[1])
+
+
+def _subgroup_metrics(y, proba, pred, weights, strata):
+    """Per-subgroup performance, weighted, for every stratum in ``strata``.
+
+    ``strata`` maps a stratum name ("sex", "age_band") to a label per test row.
+
+    One number over 312,166 people can hide a model that works for the majority
+    and fails for a minority, and there is no way to tell which you have without
+    splitting it. So this reports each group whether the answer is flattering or
+    not, and reports ``n`` beside every figure so a reader can see which cells
+    are too small to lean on.
+
+    ``observed``/``predicted`` is calibration-in-the-large: above 1 the model
+    over-predicts for that group, below 1 it under-predicts. It is the number
+    that matters most here, because the app shows people a percentage and tells
+    them it is literal.
+    """
+    out = {}
+    for stratum, labels in strata.items():
+        labels = pd.Series(labels).to_numpy()
+        rows = {}
+        for level in sorted(pd.unique(labels)):
+            mask = labels == level
+            y_g, p_g, pred_g, w_g = y[mask], proba[mask], pred[mask], weights[mask]
+
+            observed = float(np.average(y_g, weights=w_g))
+            predicted = float(np.average(p_g, weights=w_g))
+            row = {
+                "n": int(mask.sum()),
+                "n_positive": int(y_g.sum()),
+                "represents_adults": float(w_g.sum()),
+                "observed": observed,
+                "predicted": predicted,
+                "brier_score": float(brier_score_loss(y_g, p_g, sample_weight=w_g)),
+            }
+            # A ratio needs a denominator, and a group with no cases in the test
+            # split has none. Report the absence rather than dividing by zero.
+            row["observed_over_predicted"] = (
+                observed / predicted if predicted > 0 else None
+            )
+            # Both of these need the group to contain some of each class.
+            if 0 < y_g.sum() < mask.sum():
+                row["roc_auc"] = float(roc_auc_score(y_g, p_g, sample_weight=w_g))
+                row["recall"] = float(recall_score(y_g, pred_g, sample_weight=w_g))
+                row["calibration_slope"] = _calibration_slope(y_g, p_g, w_g)
+            rows[str(level)] = row
+        out[stratum] = rows
+    return out
+
+
 def _split(X, y, stratify=True):
     return train_test_split(
         X, y, test_size=0.2, random_state=SEED, stratify=y if stratify else None
@@ -321,6 +408,40 @@ def train_heart():
     # correction is visible rather than a claim in a commit message.
     metrics = _binary_metrics(y_test, proba, pred, sample_weight=w_test)
     unweighted = _binary_metrics(y_test, proba, pred)
+    metrics["calibration_slope"] = _calibration_slope(y_test, proba, w_test)
+
+    # The subgroup audit. Race, income and education are read here and nowhere
+    # else in the pipeline: the model never sees them, and this is the only
+    # honest use for them -- checking who the model works less well for.
+    test_rows = df.loc[X_test.index]
+    subgroups = _subgroup_metrics(
+        y_test.to_numpy(), proba, pred, w_test,
+        {
+            "sex": np.where(test_rows["Sex"] == 1, "Male", "Female"),
+            "age_band": test_rows["Age"].map(F.brfss_age_band).to_numpy(),
+            # What the result page can actually look up, because these are the
+            # only two of the five the form asks for.
+            "sex_age": (
+                np.where(test_rows["Sex"] == 1, "Male ", "Female ")
+                + test_rows["Age"].map(F.brfss_age_band).to_numpy()
+            ),
+            "race_ethnicity": test_rows["RaceEthnicity"].to_numpy(),
+            "income_band": test_rows["IncomeBand"].to_numpy(),
+            "education": test_rows["EducationLevel"].to_numpy(),
+        },
+    )
+
+    # Loudly, in the training log, because a subgroup the model serves badly is
+    # the kind of thing that gets noticed only if it is put in front of someone.
+    for stratum in ("sex", "age_band", "race_ethnicity", "income_band"):
+        log.info("  %s:", stratum)
+        for level, row in subgroups[stratum].items():
+            if row["n"] < 500:
+                continue
+            log.info("    %-34s n=%6d  obs %.3f  pred %.3f  O/E %.2f  AUC %s",
+                     level, row["n"], row["observed"], row["predicted"],
+                     row["observed_over_predicted"] or float("nan"),
+                     f"{row['roc_auc']:.3f}" if "roc_auc" in row else "  -  ")
 
     metrics["baseline_note"] = (
         "Accuracy is not a meaningful headline here: predicting 'no disease' "
@@ -383,6 +504,14 @@ def train_heart():
         "raw_profile": _profile(df, F.HEART_RAW, weights=df["SurveyWeight"]),
         "metrics": metrics,
         "metrics_unweighted": unweighted,
+        "subgroups": subgroups,
+        "subgroup_note": (
+            "Weighted metrics on the held-out test split, by group. Race, "
+            "income and education are evaluation strata only -- the model is "
+            "never given them as inputs. 'observed_over_predicted' above 1 "
+            "means the model under-states risk for that group. Read every row "
+            "against its own n: a small cell moves a lot on a few cases."
+        ),
     })
 
 

@@ -194,6 +194,35 @@ def brfss_age_bucket(years):
     return min(13, 2 + int((years - 25) // 5))
 
 
+# Reporting bands for the subgroup audit, coarser than the 13 BRFSS buckets.
+#
+# Thirteen five-year bands split the test set too thinly to say anything about
+# the young end -- heart disease is rare enough under 35 that a single band there
+# holds a couple of dozen cases, and a ROC-AUC computed on that is noise with a
+# decimal point. Five bands keep every cell large enough to mean something.
+#
+# Defined here, next to brfss_age_bucket, because ml_model/train_all.py computes
+# the per-band metrics and app/routes/heart.py looks up which band the reader is
+# in. Two definitions of "the 50-64 band" would eventually disagree, and the
+# symptom would be a page quoting another group's numbers at somebody.
+AGE_BANDS = (
+    (1, 3, "18-34"),
+    (4, 6, "35-49"),
+    (7, 9, "50-64"),
+    (10, 12, "65-79"),
+    (13, 13, "80+"),
+)
+
+
+def brfss_age_band(bucket):
+    """Name the reporting band a BRFSS ``_AGEG5YR`` bucket falls in."""
+    bucket = int(bucket)
+    for low, high, label in AGE_BANDS:
+        if low <= bucket <= high:
+            return label
+    raise ValueError(f"age bucket {bucket} is outside the BRFSS 1-13 range")
+
+
 def build_heart(raw):
     """BRFSS heart-disease features. ``Age`` is the BRFSS 1-13 bucket, not years."""
     df = _as_frame(raw)
