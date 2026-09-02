@@ -213,6 +213,25 @@ where 2.8% had the outcome) and named plainly above. The 80+ band gets a second
 mitigation, because it's also where a reader is most likely to act on the
 number: see "How precise is the number on the page?" below.
 
+### Peer-group comparators
+
+"Compared with 7.2% among US adults" tells a 28-year-old almost nothing — the
+comparator that means something is same sex, same age band, and the audit
+above already computes exactly those cells. The result page now reads that
+cell twice, for two different purposes: once here as a base rate ("among men
+aged 50–64, it's about 10 in 100"), and again further down the page as a
+calibration check ("it predicted 9.2% on average where 10.1% actually had
+it"). Same lookup, `subgroups.sex_age`, read once at request time and passed
+to the template as a single `subgroup` value — not two separate ones to keep
+in sync.
+
+There's no new model and no new dependency here, the same shape as
+`app/ml/sleep_risk.py`: a table beat needing one. It's heart-only for now.
+Migraine has no verified demographic breakdown to comparator against — see
+"Migraine's data provenance is unverifiable" below — and sleep's NHANES table
+is keyed on two symptom questions, not sex and age, so extending either would
+mean new data work rather than reading data already on hand.
+
 ### Why migraine uses class weighting and heart doesn't
 
 It looks like an inconsistency and isn't. Heart is 9% positive, where

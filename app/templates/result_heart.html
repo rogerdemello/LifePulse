@@ -62,11 +62,20 @@
             </div>
             </div>
 
+            {# "Compared with 7.2% among US adults" tells a 28-year-old almost
+               nothing -- the comparator that means something is same sex,
+               same age band, which subgroups.sex_age already has. Reusing
+               `subgroup` (below) rather than adding a second lookup: it's the
+               same cell, just read here as a base rate instead of a
+               calibration check. #}
             <p class="mt-4 mb-2 mx-auto" style="max-width: 42rem;">
               Out of 100 people who answered the way you did, we'd expect
               <strong>about {{ probability|float|round|int }}</strong> to have heart
               disease. Across {{ population }}, it's about
-              {{ '%.0f'|format(metrics.observed_prevalence * 100) }} in 100.
+              {{ '%.0f'|format(metrics.observed_prevalence * 100) }} in 100{% if subgroup %}
+              &mdash; among {{ subgroup.group }}, it's about
+              {{ subgroup.observed|float|round|int }} in 100, from
+              {{ subgroup.n }} survey respondents{% endif %}.
             </p>
             {# The estimate's width, from what actually happened to people the
                model scored the same way -- not a modelled confidence interval.
