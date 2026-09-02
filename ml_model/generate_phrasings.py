@@ -36,7 +36,6 @@ sys.path.insert(0, str(ROOT))
 
 from app.azure_openai import AzureUnavailable, build_request, complete_json, is_configured
 from app.ml.features import FIELD_LABELS, HEART_RAW, MIGRAINE_RAW
-from app.ml.lifestyle import FACTORS
 
 OUT = ROOT / "app" / "ml" / "phrasings.json"
 

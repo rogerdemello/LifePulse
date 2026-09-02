@@ -1,0 +1,41 @@
+# Linting for LifePulse.
+#
+# Chosen to catch mistakes, not to enforce taste. This codebase has a settled
+# style and a lot of deliberate prose in its comments; a linter that starts
+# reformatting either would cost more than it finds.
+#
+#   ruff check .        what CI runs
+#   ruff check --fix .  fix the mechanical ones
+
+target-version = "py312"
+line-length = 90          # the width the existing code already wraps to
+
+exclude = [".venv", "__pycache__", "app/models", "data"]
+
+[lint]
+select = [
+    "F",      # pyflakes: undefined names, unused imports, f-strings with no
+              # placeholders. The category that finds real bugs.
+    "E9",     # syntax and IO errors
+    "B",      # bugbear: mutable default arguments, `except` that swallows,
+              # loop variables captured by closures
+    "I",      # import sorting, which this project already follows by hand
+    "UP",     # constructs superseded on Python 3.12
+    "C4",     # comprehensions that allocate for no reason
+    "T20",    # print() left in application code
+]
+
+# Nothing is globally ignored. Where a rule genuinely does not apply -- the
+# command-line tools print on purpose -- it is turned off for those files only,
+# so a stray print in a request path is still caught.
+
+[lint.per-file-ignores]
+# Tests assert on things linters dislike: unused imports that prove an import
+# works, and long lines quoting real output.
+"tests/*" = ["E501"]
+# Command-line tools; printing is their interface.
+"ml_model/*" = ["T20"]
+"tools/*" = ["T20"]
+
+[lint.isort]
+known-first-party = ["app"]

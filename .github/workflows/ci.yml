@@ -31,8 +31,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
 
+      - name: Lint
+        # Configuration and reasoning in ruff.toml. It is selected to find bugs
+        # rather than to enforce taste -- the run that introduced it turned up a
+        # variable left behind by an earlier change, five imports orphaned when
+        # two models were deleted, and two zip() calls that would truncate
+        # silently rather than raise.
+        run: ruff check .
+
       - name: Run tests
-        run: pytest -q
+        # The coverage floor is below where the suite currently sits, on
+        # purpose: it is there to catch a change that quietly stops being
+        # tested, not to make every refactor a coverage negotiation.
+        run: pytest -q --cov=app --cov-report=term-missing --cov-fail-under=85
         env:
           # Windows consoles default to cp1252 and the log lines contain
           # non-ASCII; keep output encoding explicit so this behaves the same
@@ -68,3 +79,38 @@ jobs:
               assert saved == expected, f'{name} is stale: retrain it'
               print(f'{name}: {len(saved)} features OK')
           EOF
+
+      - name: Check the pages load nothing from anywhere else
+        # tests/test_design_system.py asserts this against the templates. This
+        # asserts it against what a browser is actually served, which is the
+        # thing that matters and the thing a Jinja change could break without
+        # touching a template's literal text.
+        run: |
+          python - <<'EOF'
+          import re
+          from wsgi import app
+
+          pages = ['/', '/start', '/privacy', '/summary', '/heart_disease/',
+                   '/sleep/', '/health-score/', '/health/', '/nutrition/']
+          with app.test_client() as client:
+              for page in pages:
+                  body = client.get(page).get_data(as_text=True)
+                  external = re.findall(r'(?:src|href)="(https?://[^"]+)"', body)
+                  assert not external, f'{page} fetches {external}'
+                  print(f'{page}: same-origin only')
+          EOF
+
+  audit:
+    # Separate job: a newly disclosed vulnerability in a pinned dependency is
+    # not a reason to block a pull request that did not touch dependencies, but
+    # it is very much a reason to be told about it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install pip-audit==2.10.1
+      - name: Known vulnerabilities in the pinned dependencies
+        run: pip-audit -r requirements.txt --progress-spinner off

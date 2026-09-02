@@ -61,7 +61,7 @@
                      {% if not configured %}disabled{% endif %} required>
               <button class="btn btn-primary" type="submit"
                       {% if not configured %}disabled{% endif %}>
-                <i class="bi bi-search me-1" aria-hidden="true"></i>Look up
+                <svg class="bi me-1" aria-hidden="true"><use href="#i-search"></use></svg>Look up
               </button>
             </div>
             <small class="text-muted">Plain names work best &mdash; "cheddar" rather than a brand.</small>
@@ -87,12 +87,12 @@
           <div>
             {% for fact in groups.cautions %}
               <span class="fact-pill fact-high" title="{{ fact.detail }}">
-                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>{{ fact.text }}
+                <svg class="bi" aria-hidden="true"><use href="#i-exclamation-triangle-fill"></use></svg>{{ fact.text }}
               </span>
             {% endfor %}
             {% for fact in groups.strengths %}
               <span class="fact-pill fact-good" title="{{ fact.detail }}">
-                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>{{ fact.text }}
+                <svg class="bi" aria-hidden="true"><use href="#i-check-circle-fill"></use></svg>{{ fact.text }}
               </span>
             {% endfor %}
             {% for fact in groups.moderate %}

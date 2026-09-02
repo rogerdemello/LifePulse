@@ -1,0 +1,32 @@
+{# Where a model's data came from, on the page rather than only in the README.
+
+   Rendered only when a model's metadata says its provenance is undocumented,
+   so it appears on migraine and on nothing else. The README has said this
+   since the models were rebuilt; a caveat a reader never sees is a caveat the
+   project has made to itself.
+
+   Deliberately not styled as a warning. Nothing here is unsafe -- the numbers
+   describe the file they were measured on, and the file looks like real
+   responses. What cannot be checked is whether it describes anyone else, and
+   the honest register for that is "here is what we don't know", not a red
+   panel. Red is reserved for "seek care", which is the whole basis of the
+   colour system in style.css. #}
+
+{% set provenance = model_meta.get(model_name, {}).get("provenance") %}
+{% if provenance and not provenance.documented %}
+<div class="alert alert-secondary border-0 shadow-sm mb-4" role="note">
+  <div class="d-flex align-items-start">
+    <svg class="bi me-3 mt-1" style="font-size: 1.4rem;" aria-hidden="true"><use href="#i-info-circle"></use></svg>
+    <div>
+      <h2 class="h6 fw-bold mb-2">Where this one's data came from &mdash; and what we can't tell you</h2>
+      <p class="mb-2 small">{{ provenance.note }}</p>
+      <p class="mb-0 small text-muted">
+        {{ provenance.consequence }}
+        Every other assessment here names a survey and a cycle:
+        the heart model uses CDC BRFSS 2023, the sleep screening CDC NHANES
+        2017&ndash;18, and the lifestyle score published guidance rather than data.
+      </p>
+    </div>
+  </div>
+</div>
+{% endif %}

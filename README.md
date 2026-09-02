@@ -24,11 +24,13 @@
 - [Models, rules and lookups](#models-rules-and-lookups)
 - [Why three of six aren't models](#why-three-of-six-arent-models)
 - [Datasets checked and rejected](#datasets-checked-and-rejected)
+- [The emergency check, measured](#the-emergency-check-measured)
 - [The safety net](#the-safety-net)
 - [Explaining a result](#explaining-a-result)
 - [How the ML layer is organised](#how-the-ml-layer-is-organised)
 - [Azure OpenAI](#azure-openai)
 - [Design system](#design-system)
+- [Continuous integration](#continuous-integration)
 - [Testing](#testing)
 - [Endpoints](#endpoints)
 - [Project structure](#project-structure)
@@ -203,6 +205,54 @@ are "something has broken" bounds, not a claim that the current numbers are good
 A third asserts the 80+ band is still the weakest, so if a retrain fixes it, the
 test fails and this section gets updated with it.
 
+### Why migraine uses class weighting and heart doesn't
+
+It looks like an inconsistency and isn't. Heart is 9% positive, where
+`class_weight="balanced"` more than doubles the Brier score and pushes mean
+predicted risk to 0.35 against a true 0.09. Migraine is **40%** positive, so
+"balanced" barely moves anything — measured, ROC-AUC 0.9236 against 0.9237
+without it, and an identical Brier of 0.110.
+
+Migraine now records `brier_score`, `mean_predicted_risk`, `observed_prevalence`
+and `calibration_slope` like heart does. Its page prints a confidence to one
+decimal place and nothing anywhere said whether that number was literal. It is —
+mean predicted 0.409 against observed 0.400, slope 1.08 — but that wasn't
+knowable until it was measured.
+
+### How precise is the number on the page?
+
+It was being printed to two decimal places — *12.34%* — from a model whose Brier
+score is 0.057. Four significant figures of a quantity good to about one, and a
+number that precise reads as a measurement rather than an estimate.
+
+Rather than model the uncertainty, `risk_bins` in the metadata **reports** it:
+bin the held-out test set by predicted risk and record what share of respondents
+in each band actually had the outcome, with a 95% interval.
+
+| Predicted | n | Effective n | Predicted | Observed | 95% interval |
+|---|---|---|---|---|---|
+| 0–2% | 22,854 | 5,424 | 0.8% | 0.7% | 0.5–0.9% |
+| 2–5% | 11,056 | 2,040 | 3.2% | 3.6% | 2.9–4.5% |
+| 5–10% | 9,207 | 1,930 | 7.3% | 8.3% | 7.1–9.6% |
+| 10–20% | 9,720 | 1,385 | 14.3% | 14.6% | 12.8–16.5% |
+| 20–35% | 6,692 | 1,348 | 26.1% | 25.2% | 23.0–27.6% |
+| 35%+ | 2,905 | 493 | 43.8% | 43.6% | 39.3–48.0% |
+
+The page now reads *"about 10%, or roughly 8–12%"*. Two details that took a
+correction each:
+
+- **The interval is weighted too.** Computing the width from raw counts while the
+  rate is survey-weighted put the point estimate *outside its own interval* — the
+  2–5% band read "3.6% (2.9–3.5)". The width comes from Kish's effective sample
+  size, (Σw)²/Σw², which is what a weighted sample is worth in independent
+  observations. That's always smaller than the raw count, so these intervals are
+  wider than a naive one — correctly, because a respondent standing in for 60,000
+  adults carries less information than 60,000 respondents would.
+- **The band's own rate is not shown as the reader's.** Bands are wide; somebody
+  scored 10.3% sits in the 10–20% band whose average is 14.6%, and telling them
+  "people like you: 15%" overstates their risk by half. What transfers is the
+  *width*, applied to their own estimate.
+
 ### Calibration and the decision threshold
 
 The heart model is deliberately trained **without** class weighting. On the
@@ -319,6 +369,63 @@ Three unused CSVs sit in `data/`. None survived:
 | **Stroke** (5,110 rows, real data) | Age alone scores ROC-AUC 0.786; all six features score 0.786. The other five questions add nothing — an age lookup table wearing a form. |
 | **Liver** (1,700 rows) | Good model (ROC-AUC 0.835 without a blood test) on synthetic data — every continuous column uniformly distributed, KS p > 0.05. |
 | **Mental-health wearable** (10,000 rows) | 0.658 accuracy against a 0.516 baseline. Inferring a mental-health condition from heart rate and step count is not a claim this app should make. |
+
+---
+
+## The emergency check, measured
+
+`check_emergency` in `app/ml/triage.py` is the highest-stakes path in the
+product — it's what stands between somebody typing "crushing chest pain" and a
+questionnaire. For its whole life it was validated by fifteen hand-picked
+examples, all of them cases somebody had already thought of.
+
+`tests/data/emergency_phrasings.csv` is 110 labelled phrasings built to include
+the ones nobody had: negations, third-person reports, and ordinary complaints
+that happen to contain an emergency phrase's words.
+
+| | Sensitivity | False alarms |
+|---|---|---|
+| Bag-of-stems (before) | 95.6% | **46.2%** |
+| **Now** | **100%** | **10.8%** |
+
+Nearly half of ordinary complaints used to fire the stop sign. "no chest pain",
+"my dad had chest pain last year, am I at risk", and "back pain and a chest
+infection" all did. That isn't cosmetic: a warning that goes off on the wrong
+sentences is one people learn to click past, and it blocks the person asking
+about their father's heart attack from the heart assessment they came for.
+
+Two rules fixed it, both suppressing only on unambiguous, local evidence:
+
+- **Negation** — a cue in the few words before or inside the match, unless the
+  cue belongs to the keyword itself, or "I don't want to live" would negate its
+  own phrase. It looks *backwards only*: "chest pressure that won't go away" and
+  "better off dead without me" both carry a cue after the symptom, and
+  suppressing on those cost five real emergencies when it was tried.
+- **Attribution** — a third-party subject before the match with no first-person
+  word in between. "my dad had chest pain" attributes; "my dad worries, but I
+  have chest pain" doesn't.
+
+**Proximity was tried and removed**, which is the interesting one. Requiring a
+keyword's words to sit close together fixes the remaining false alarms — and
+breaks the case this module exists for. Someone types "I get a lot of pain when
+I walk upstairs", is asked where, and answers "it is in my chest"; those two
+words land eight apart in the joined text, and that is precisely when the stop
+sign matters most. On this data proximity was *anti-correlated* with
+correctness: the false alarm had the words closer together than the real
+emergency did. So the incidental matches are left to fire, in the safe
+direction.
+
+Two bugs surfaced on the way, both invisible without the measurement:
+
+- `_normalise` replaced apostrophes with a space, so "don't" became `don` + `t`.
+  Every negation cue a person actually types — don't, haven't, can't, won't —
+  was split in half, so the cue the matcher looked for never appeared.
+- "can" is a three-letter prefix of "cant", so prefix matching had "I can
+  breathe fine" matching the keyword "cant breathe" — telling somebody with a
+  snoring complaint to call an ambulance.
+
+The two floors are asymmetric on purpose. Sensitivity must be 100%; the
+false-alarm bound is a ceiling on drift, not a target.
 
 ---
 
@@ -470,12 +577,86 @@ means reassuring, everything else is neutral. The stylesheet previously put a
 gradient on every card, which meant the genuinely urgent panels had to compete
 with decoration.
 
-`app/static/css/style.css` is token-driven, and those tokens also drive
-Bootstrap's own `--bs-*` variables — overriding only ours left Bootstrap's
-components on its built-in light palette, which made card titles and form labels
-invisible in dark mode. Contrast ratios are computed from the stylesheet in
-`tests/test_design_system.py`, so a palette change fails a test rather than
-showing up in a screenshot months later.
+`app/static/css/style.css` is token-driven, and contrast ratios are computed
+from it in `tests/test_design_system.py`, so a palette change fails a test rather
+than showing up in a screenshot months later.
+
+### Nothing loads from a CDN
+
+The page used to pull Bootstrap's CSS, its icon font and Inter from jsDelivr and
+Google Fonts. `style.css` restyled `.card` and `.btn` on top of that but never
+defined `.container`, `.row`, `.col-md-6` or a single spacing utility — which the
+templates use **145 times** between them. A blocked CDN therefore didn't degrade
+the styling, it collapsed every page into one unstyled column, and 448 tests
+couldn't see it because catching it needs a network fault.
+
+| | Before | Now |
+|---|---|---|
+| Third-party requests per page | 4 | **0** |
+| CSS shipped | ~330 kB (Bootstrap + icon font CSS) | **62 kB** (`layout.css` + `style.css`) |
+| Web fonts | Inter + Bootstrap Icons | none; system stack |
+| Icons | 2,000-glyph font | the 60 used, as an inline SVG sprite |
+
+- `app/static/css/layout.css` — the grid, spacing and utility classes the
+  templates actually use. A subset, deliberately, and not a Bootstrap clone.
+- `app/templates/_icons.html` — built by `python tools/build_icon_sprite.py`
+  from whatever the templates, the JavaScript and `app/ml/triage.py` reference,
+  so an icon can't be added to a page and missing from the sprite.
+
+Three tests hold it: every class the templates use must have a rule somewhere in
+this repository, no template may reference another origin, and the sprite must
+contain exactly the icons referenced — no more and no fewer. CI checks the last
+one again against the *rendered* pages, which is what a browser is served.
+
+### Security headers
+
+There were none. `app/security.py` adds them, and dropping the CDNs is what makes
+the useful one possible:
+
+```
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-…'; …
+Referrer-Policy: no-referrer
+X-Content-Type-Options: nosniff
+Permissions-Policy: camera=(), microphone=(), geolocation=(), …
+Strict-Transport-Security: max-age=31536000  (HTTPS only)
+```
+
+`script-src` carries a per-response nonce and **no** `'unsafe-inline'`, so an
+injected `<script>` doesn't run even if escaping fails somewhere — worth having
+because `/start` echoes back a sentence the visitor typed. `Referrer-Policy:
+no-referrer` matters more than usual here: the assessment paths alone say what
+someone was worried about.
+
+`style-src` still allows inline styles. That's a stated gap rather than an
+oversight — a nonce can't cover style *attributes*, and there are about thirty
+of them plus five per-page `<style>` blocks. An injected style can restyle a
+page but cannot execute, which is why scripts were the half to close first.
+
+---
+
+## Continuous integration
+
+`.github/workflows/ci.yml`, on every push to `main` and every pull request:
+
+| Gate | What it catches |
+|---|---|
+| `ruff check .` | Its first run found a variable left behind by an earlier change, five imports orphaned when two models were deleted, and two `zip()` calls that would truncate silently rather than raise. Config in `ruff.toml`. |
+| `pytest --cov-fail-under=85` | Currently 87%. The floor sits below the suite on purpose — it catches a change that quietly stops being tested, not every refactor. |
+| Boot check | The app starts and every model loads. |
+| Feature-contract check | The committed artifacts still match `app/ml/features.py`. |
+| Same-origin check | The **rendered** pages fetch nothing from anywhere else. |
+| `pip-audit` | Known vulnerabilities in the pinned runtime deps. Its first run found seven across five packages, all since bumped. Runs as its own job: a newly disclosed CVE shouldn't block a PR that didn't touch dependencies, but somebody should be told. |
+
+`.github/dependabot.yml` raises weekly pip updates and monthly Actions updates.
+scikit-learn, numpy, pandas, scipy and joblib are excluded from *automatic* PRs —
+not from updates, but because merging one without running
+`python ml_model/train_all.py` leaves artifacts that may no longer load. Bump
+those by hand and commit the retrained models with them.
+
+`Dockerfile` builds on the same Python 3.12 as CI and the deploy, runs as a
+non-root user, and deliberately bakes in no `SECRET_KEY` — `app/app.py` refuses
+to start in production without one, and an image carrying a key would make every
+deployment from it share a signing key. `tests/test_deploy.py` asserts both.
 
 ---
 
@@ -486,7 +667,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-**449 tests** (448 pass; one skips when the gitignored data is absent), covering:
+**487 tests** (486 pass; one skips when the gitignored data is absent), covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
@@ -496,12 +677,20 @@ pytest
   no subgroup drifts outside its calibration or discrimination floor, and race, income
   and education never reach the feature contract
 - **Safety** — each tier fires correctly, including the BP 190/125 and HR 0 cases that once returned a calm "No Sleep Disorder"
-- **Triage** — emergency phrasings are caught, including inflections like "ending my life"; ordinary ones like "improve my fitness" never trigger a false alarm
+- **Triage** — measured against 110 labelled phrasings, not sampled: every labelled
+  emergency is caught, and negated ("no chest pain") and third-person ("my dad had
+  chest pain") reports no longer fire the stop sign
 - **Sleep & lifestyle** — the lookup table is monotonic and the rubric's components sum to its total
 - **Explanations** — directions aren't inverted below 50% risk; age actually moves the heart prediction
 - **Nutrition** — derived facts match published thresholds; search ranks relevance above brevity (the USDA API is mocked, so CI stays hermetic)
 - **Front end** — every referenced asset exists, pages render without JavaScript, landmarks and skip links are present, contrast clears WCAG AA in both themes
 - **Rate limiting** — bursts are throttled per client, GETs never are
+- **Security headers** — every response carries them, including the error pages;
+  the CSP nonce changes per response and the markup uses the one it was given;
+  HSTS is sent over HTTPS and never over plain HTTP
+- **Front end** — every class the templates use has a rule in this repository,
+  no template references another origin, and the icon sprite holds exactly the
+  icons referenced
 - **Observability** — every request carries an id reaching the logs and the error page, and request logs never contain the answers
 - **Azure OpenAI** — the outbound body contains only fixed app text plus the typed sentence; assessment routes never reach the network; emergencies are detected before any call; every failure mode falls back to keywords; the privacy page changes when it's switched on
 
@@ -536,6 +725,7 @@ LifePulse/
 ├── app/
 │   ├── app.py                  # application factory
 │   ├── observability.py        # request ids, timing, optional Sentry
+│   ├── security.py             # CSP, HSTS, Referrer-Policy, Permissions-Policy
 │   ├── azure_openai.py         # optional LLM client; only /start uses it
 │   ├── ratelimit.py            # per-client throttle on the model endpoints
 │   ├── ml/
@@ -550,8 +740,9 @@ LifePulse/
 │   │                           # features.json, metadata.json
 │   ├── routes/                 # start, heart, sleep, migraine, health_score,
 │   │                           # calculator_routes, nutrition, support
-│   ├── templates/              # Jinja templates + partials
-│   ├── static/                 # css, js (steps, summary, charts, toast)
+│   ├── templates/              # Jinja templates, partials, icon sprite
+│   ├── static/                 # css (layout + style), js (steps, summary,
+│   │                           # charts, toast) — all served from this origin
 │   └── utils/
 │       ├── calculator.py       # BMI / BMR / calorie rules
 │       ├── nutrition.py        # USDA FoodData client
@@ -560,10 +751,18 @@ LifePulse/
 │   ├── fetch_brfss.py          # CDC BRFSS -> data/brfss_heart.csv
 │   ├── fetch_nhanes.py         # CDC NHANES -> data/nhanes_sleep.csv
 │   └── train_all.py            # retrains both models
-├── tests/                      # 449 tests
+├── tools/
+│   └── build_icon_sprite.py    # rebuilds app/templates/_icons.html
+├── tests/                      # 486 tests
 ├── data/                       # training inputs (gitignored)
-├── .github/workflows/ci.yml    # pytest + boot check + contract check
+├── .github/
+│   ├── workflows/ci.yml        # lint, tests + coverage floor, boot check,
+│   │                           # contract check, same-origin check, pip-audit
+│   └── dependabot.yml          # weekly pip, monthly actions
+├── Dockerfile                  # same Python as CI and the deploy
+├── ruff.toml                   # lint config, chosen to find bugs not taste
 ├── requirements.txt            # pinned runtime deps
+├── LICENSE                     # MIT
 ├── .python-version             # Python 3.12 for Render
 ├── Procfile                    # gunicorn wsgi:app
 └── wsgi.py                     # WSGI entry point
@@ -640,6 +839,12 @@ seriously.
   distributions look real — strongly non-uniform, with genuine missing values,
   unlike the synthetic files that were rejected — but that isn't the same as
   knowing where it came from. Every other input can name its source.
+  This is now **recorded in `metadata.json` and shown on the migraine pages
+  themselves**, rather than only here: a caveat a reader never sees is a caveat
+  the project has made to itself. The proper fix is to replace the model with a
+  published instrument — ID-Migraine is three questions with citable sensitivity
+  and specificity — which would complete the pattern already applied to sleep and
+  the lifestyle score.
 - **BRFSS is self-reported.** "Have you ever been told you have high blood
   pressure" is not a measurement.
 - **No screen reader has been listened to.** The app has been driven by keyboard

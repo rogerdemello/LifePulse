@@ -5,7 +5,6 @@ one class forever, so "87.2% accurate" was worse than useless as a headline.
 Every check here is against the relevant baseline, not an absolute number.
 """
 
-import json
 import re
 import sys
 from pathlib import Path
@@ -293,3 +292,88 @@ def test_fruit_and_veg_are_gone_from_the_contract():
 
     assert "Fruits" not in HEART_RAW
     assert "Veggies" not in HEART_RAW
+
+
+# --------------------------------------------------------------------------
+# provenance
+# --------------------------------------------------------------------------
+
+def test_migraine_declares_that_its_source_is_undocumented():
+    """The one input in this repository that cannot name where it came from.
+
+    Recorded in the artifact rather than only in the README, so the page can
+    read it and say so. A caveat the reader never sees is a caveat the project
+    has made to itself.
+    """
+    provenance = load_metadata("migraine").get("provenance")
+    assert provenance, "migraine metadata does not record its provenance"
+    assert provenance["documented"] is False
+    assert provenance["note"] and provenance["consequence"]
+
+
+def test_the_documented_models_do_not_carry_the_warning():
+    """It must mean something. If every model declared undocumented provenance
+    the notice would be wallpaper."""
+    heart = load_metadata("heart")
+    assert not heart.get("provenance", {}).get("documented") is False
+    assert "BRFSS" in heart["dataset"]
+
+
+def test_migraine_records_whether_its_percentage_means_anything():
+    """The page prints a confidence to one decimal place. Heart has carried
+    calibration figures since it was rebuilt; migraine printed a number with
+    nothing anywhere saying whether it was literal.
+
+    It is, as it turns out -- mean predicted risk tracks observed prevalence
+    closely. That was not knowable before it was measured.
+    """
+    m = load_metadata("migraine")["metrics"]
+    for key in ("brier_score", "mean_predicted_risk", "observed_prevalence",
+                "calibration_slope"):
+        assert key in m, f"migraine metrics missing {key}"
+    assert abs(m["mean_predicted_risk"] - m["observed_prevalence"]) < 0.05
+
+
+# --------------------------------------------------------------------------
+# how precise the number on the page actually is
+# --------------------------------------------------------------------------
+
+def test_heart_records_what_happened_in_each_risk_band():
+    """The page prints a percentage, and a percentage with no width reads as a
+    measurement. It was being printed to two decimal places from a model whose
+    Brier score is 0.057."""
+    bins = load_metadata("heart").get("risk_bins")
+    assert bins, "heart metadata records no risk bands"
+    for band in bins:
+        for field in ("low", "high", "n", "effective_n", "mean_predicted",
+                      "observed", "observed_low", "observed_high"):
+            assert field in band, f"band {band.get('low')} is missing {field}"
+        assert band["observed_low"] <= band["observed"] <= band["observed_high"], (
+            f"band {band['low']}-{band['high']} has its own rate outside its "
+            f"interval: {band['observed']:.3f} vs "
+            f"({band['observed_low']:.3f}, {band['observed_high']:.3f})"
+        )
+
+
+def test_the_bands_cover_every_possible_prediction():
+    """A reader whose risk falls in no band silently gets no interval."""
+    bins = sorted(load_metadata("heart")["risk_bins"], key=lambda b: b["low"])
+    assert bins[0]["low"] == 0.0
+    assert bins[-1]["high"] >= 1.0
+    for lower, upper in zip(bins[:-1], bins[1:], strict=True):
+        assert lower["high"] == upper["low"], "the bands leave a gap"
+
+
+def test_the_intervals_use_the_effective_sample_size():
+    """Weighted rates need weighted intervals. Computing the width from raw
+    counts put the point estimate outside its own interval on the first run --
+    the 2-5% band read "3.6% (2.9-3.5)".
+
+    Unequal weights always make Kish's effective n smaller than the raw count,
+    so this also asserts the correction is actually being applied.
+    """
+    for band in load_metadata("heart")["risk_bins"]:
+        assert band["effective_n"] < band["n"], (
+            f"band {band['low']}-{band['high']} has effective n "
+            f"{band['effective_n']} >= raw n {band['n']}"
+        )

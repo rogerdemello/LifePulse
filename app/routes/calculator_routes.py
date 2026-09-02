@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, jsonify
+from flask import Blueprint, jsonify, render_template, request
 
 from app.ml.safety import check_possible
 from app.ratelimit import rate_limit

@@ -324,3 +324,25 @@ def test_save_control_is_offered_on_every_result_page(client):
         body = client.post(path, data=form).get_data(as_text=True)
         assert "Add to visit summary" in body, path
         assert "nothing is uploaded" in body.lower(), path
+
+
+def test_the_risk_is_no_longer_printed_to_two_decimals(client):
+    """Four significant figures of a quantity good to about one."""
+    body = client.post("/heart_disease/", data=HIGH_RISK_HEART).get_data(as_text=True)
+    assert not re.search(r"\d+\.\d\d% estimated risk", body), (
+        "the estimate is still shown to two decimal places"
+    )
+    assert re.search(r"\d+\.\d% estimated risk", body)
+
+
+def test_the_estimate_arrives_with_its_width(client):
+    """And the width has to bracket the estimate, or the sentence contradicts
+    the number printed two lines above it."""
+    body = client.post("/heart_disease/", data=HIGH_RISK_HEART).get_data(as_text=True)
+    match = re.search(
+        r"Read that as.*?about (\d+)%.*?roughly\s*(\d+)&ndash;(\d+)%", body, re.S
+    )
+    assert match, "no interval shown alongside the estimate"
+    estimate, low, high = (int(g) for g in match.groups())
+    assert low <= estimate <= high
+    assert low < high, "a zero-width interval is not an interval"

@@ -19,10 +19,10 @@
         </div>
         <div class="d-flex gap-2 d-none" id="summaryToolbar">
           <button type="button" id="summaryPrint" class="btn btn-primary">
-            <i class="bi bi-printer me-1" aria-hidden="true"></i>Print / Save as PDF
+            <svg class="bi me-1" aria-hidden="true"><use href="#i-printer"></use></svg>Print / Save as PDF
           </button>
           <button type="button" id="summaryClear" class="btn btn-outline-danger">
-            <i class="bi bi-trash me-1" aria-hidden="true"></i>Clear
+            <svg class="bi me-1" aria-hidden="true"><use href="#i-trash"></use></svg>Clear
           </button>
         </div>
       </div>
@@ -43,7 +43,7 @@
       <!-- Empty state -->
       <div id="summaryEmpty" class="card border-0 shadow-sm d-none">
         <div class="card-body p-5 text-center">
-          <i class="bi bi-clipboard2 text-muted mb-3" style="font-size: 3rem;" aria-hidden="true"></i>
+          <svg class="bi text-muted mb-3" style="font-size: 3rem;" aria-hidden="true"><use href="#i-clipboard2"></use></svg>
           <h2 class="h5 fw-bold mb-2">Nothing saved yet</h2>
           <p class="text-muted mb-4">
             Complete an assessment and choose <strong>Add to visit summary</strong> on
@@ -66,7 +66,7 @@
         <div id="summaryQuestions" class="card border-0 shadow-sm mt-4 d-none">
           <div class="card-body p-4">
             <h2 class="h5 fw-bold mb-1">
-              <i class="bi bi-chat-square-quote me-2" aria-hidden="true"></i>Questions to ask
+              <svg class="bi me-2" aria-hidden="true"><use href="#i-chat-square-quote"></use></svg>Questions to ask
             </h2>
             <p class="text-muted small mb-3">
               Drawn from what your results actually showed. Tick them off as you go.
@@ -88,7 +88,7 @@
       </div>
 
       <p class="text-muted small mt-4 summary-toolbar">
-        <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
+        <svg class="bi me-1" aria-hidden="true"><use href="#i-shield-check"></use></svg>
         Saved results live in this browser's local storage. They are never uploaded,
         and clearing your browser data removes them.
         {# inline-block + py-1 so the link clears the 24px minimum target; in

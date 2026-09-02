@@ -167,7 +167,11 @@ class ModelBundle:
         """Return ``{class_label: probability}`` for a single record."""
         probs = self.predict_proba(raw)[0]
         labels = self.classes or list(range(len(probs)))
-        return dict(zip(labels, (float(p) for p in probs)))
+        # strict=True: if metadata.json ever lists a different number of classes
+        # than the estimator predicts, zip would silently drop the extras and
+        # the page would label a probability with the wrong outcome. Better to
+        # raise, which prediction_errors turns into an error page.
+        return dict(zip(labels, (float(p) for p in probs), strict=True))
 
     # -- explanation ------------------------------------------------------
 
@@ -224,7 +228,10 @@ class ModelBundle:
         scale = 100.0 if class_index is not None else 1.0
 
         factors = []
-        for field_name, alternative in zip(fields, counterfactuals):
+        # strict=True for the same reason: one counterfactual was scored per
+        # field, so a length mismatch means the batch came back wrong and every
+        # contribution after the gap would be attributed to the wrong answer.
+        for field_name, alternative in zip(fields, counterfactuals, strict=True):
             delta = (actual - alternative) * scale
             if abs(delta) < 0.05:
                 continue  # below the rounding the page displays; noise

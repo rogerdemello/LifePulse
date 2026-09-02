@@ -24,7 +24,7 @@ import argparse
 import json
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import joblib
@@ -37,17 +37,13 @@ sys.path.insert(0, str(ROOT))
 import sklearn
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import HistGradientBoostingClassifier
-from sklearn.linear_model import LinearRegression, RidgeCV
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
     balanced_accuracy_score,
     brier_score_loss,
-    classification_report,
     f1_score,
-    mean_absolute_error,
     precision_score,
-    r2_score,
     recall_score,
     roc_auc_score,
     roc_curve,
@@ -80,7 +76,7 @@ def _save(name, model, scaler, feature_names, metadata):
 
     metadata = dict(metadata)
     metadata.update(
-        trained_utc=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        trained_utc=datetime.now(UTC).isoformat(timespec="seconds"),
         n_features=len(feature_names),
         library_versions={
             "scikit-learn": sklearn.__version__,
@@ -178,6 +174,77 @@ def _binary_metrics(y, proba, pred, sample_weight=None):
         "baseline_majority_accuracy": majority,
         "baseline_pr_auc": float(np.average(y, weights=w)),
     }
+
+
+def _wilson(successes, total):
+    """A 95% interval for a proportion, which behaves near 0 and 1.
+
+    The textbook normal interval does not: at the low end it produces bounds
+    below zero, and this model's whole left tail sits under 2%. Wilson is the
+    standard fix and needs no extra dependency.
+    """
+    if total <= 0:
+        return None
+    z = 1.959964
+    p = successes / total
+    denominator = 1 + z * z / total
+    centre = (p + z * z / (2 * total)) / denominator
+    spread = z * np.sqrt(p * (1 - p) / total + z * z / (4 * total * total)) / denominator
+    return max(0.0, centre - spread), min(1.0, centre + spread)
+
+
+def _risk_bins(y, proba, weights, edges=(0.0, 0.02, 0.05, 0.10, 0.20, 0.35, 1.01)):
+    """What actually happened to people the model scored the way it scored you.
+
+    The result page prints a percentage. A percentage with no sense of its own
+    width invites being read as a measurement, and this one was being printed to
+    two decimal places from a model whose Brier score is 0.057 -- four
+    significant figures of a quantity good to about one.
+
+    Rather than model the uncertainty, this reports it: bin the held-out test
+    set by predicted risk, and record the observed rate in each bin with a
+    Wilson interval around it. Someone scored 12% can then be told what share of
+    similarly-scored people in the survey actually had the outcome, and how
+    tightly that is pinned down. It is the same move as app/ml/sleep_risk.py --
+    an observed rate from real data, checkable against the published file,
+    rather than a number that has to be trusted.
+
+    The rate is survey-weighted, so the interval has to be too, or the point
+    estimate lands outside its own interval -- which it did on the first run:
+    the 2-5% band read "3.6% (2.9-3.5)". The width therefore comes from Kish's
+    effective sample size, (sum w)^2 / sum(w^2), which is what a weighted sample
+    is worth in independent observations. Unequal weights always make that
+    smaller than the raw count, so these intervals are wider than a naive one --
+    correctly, because a respondent standing in for 60,000 adults carries less
+    information about the population than 60,000 respondents would.
+    """
+    proba = np.asarray(proba, dtype="float64")
+    y = np.asarray(y, dtype="float64")
+    weights = np.asarray(weights, dtype="float64")
+
+    bins = []
+    # edges[:-1] rather than edges, so the two really are the same length and
+    # strict= is a check rather than a decoration.
+    for low, high in zip(edges[:-1], edges[1:], strict=True):
+        in_bin = (proba >= low) & (proba < high)
+        n = int(in_bin.sum())
+        if n == 0:
+            continue
+        w = weights[in_bin]
+        observed = float(np.average(y[in_bin], weights=w))
+        effective_n = float(w.sum() ** 2 / np.square(w).sum())
+        interval = _wilson(observed * effective_n, effective_n)
+        bins.append({
+            "low": float(low),
+            "high": float(min(high, 1.0)),
+            "n": n,
+            "effective_n": round(effective_n, 1),
+            "mean_predicted": float(np.average(proba[in_bin], weights=w)),
+            "observed": observed,
+            "observed_low": interval[0],
+            "observed_high": interval[1],
+        })
+    return bins
 
 
 def _calibration_slope(y, proba, sample_weight=None):
@@ -362,7 +429,9 @@ def train_heart():
     X_train, X_val, y_train, y_val = train_test_split(
         X_fit, y_fit, test_size=0.2, random_state=SEED, stratify=y_fit
     )
-    w_train = weights.loc[X_train.index].to_numpy()
+    # No w_train: the fit is deliberately unweighted, for the reason set out
+    # above. The validation and test weights are what the threshold and every
+    # reported metric are computed against.
     w_val = weights.loc[X_val.index].to_numpy()
     w_test = weights.loc[X_test.index].to_numpy()
 
@@ -444,13 +513,13 @@ def train_heart():
                      f"{row['roc_auc']:.3f}" if "roc_auc" in row else "  -  ")
 
     metrics["baseline_note"] = (
-        "Accuracy is not a meaningful headline here: predicting 'no disease' "
-        "for everyone scores %.3f. Judge this model on ROC-AUC and PR-AUC. "
-        "Every figure in this block is survey-weighted, so it describes US "
-        "adults rather than BRFSS respondents. Predicted probabilities are "
-        "calibrated against that population -- mean predicted risk tracks "
-        "observed prevalence -- so the percentage shown to users is literal."
-        % metrics["baseline_majority_accuracy"]
+        f"Accuracy is not a meaningful headline here: predicting 'no disease' "
+        f"for everyone scores {metrics['baseline_majority_accuracy']:.3f}. Judge "
+        f"this model on ROC-AUC and PR-AUC. Every figure in this block is "
+        f"survey-weighted, so it describes US adults rather than BRFSS "
+        f"respondents. Predicted probabilities are calibrated against that "
+        f"population -- mean predicted risk tracks observed prevalence -- so "
+        f"the percentage shown to users is literal."
     )
 
     log.info("  ROC-AUC %.4f | PR-AUC %.4f (baseline %.4f) | balanced acc %.4f",
@@ -493,17 +562,25 @@ def train_heart():
             "weighted_prevalence": weighted_prevalence,
             "unweighted_prevalence": unweighted_prevalence,
             "note": (
-                "Complete cases only -- respondents missing any of the 15 "
-                "answers are dropped before training, and dropping is not "
-                "random. These %d rows carry %.0f million adults, short of the "
-                "full cycle, so read every figure here as describing US adults "
-                "who answered every question."
-                % (len(y), df["SurveyWeight"].sum() / 1e6)
+                f"Complete cases only -- respondents missing any of the 15 "
+                f"answers are dropped before training, and dropping is not "
+                f"random. These {len(y)} rows carry "
+                f"{df['SurveyWeight'].sum() / 1e6:.0f} million adults, short of "
+                f"the full cycle, so read every figure here as describing US "
+                f"adults who answered every question."
             ),
         },
         "raw_profile": _profile(df, F.HEART_RAW, weights=df["SurveyWeight"]),
         "metrics": metrics,
         "metrics_unweighted": unweighted,
+        "risk_bins": _risk_bins(y_test, proba, w_test),
+        "risk_bins_note": (
+            "Observed outcome rate among held-out test respondents whose "
+            "predicted risk fell in each band, with a 95% Wilson interval. The "
+            "result page quotes the reader's own band so the percentage arrives "
+            "with a width rather than four significant figures. Rates are "
+            "survey-weighted; the counts the interval is computed from are not."
+        ),
         "subgroups": subgroups,
         "subgroup_note": (
             "Weighted metrics on the held-out test split, by group. Race, "
@@ -537,6 +614,14 @@ def train_migraine():
     X_train, X_test, y_train, y_test = _split(X, y)
     scaler, Xtr, Xte = _scaled(X_train, X_test)
 
+    # class_weight="balanced" here and deliberately NOT on heart. It is not an
+    # inconsistency: heart is 9% positive, where reweighting more than doubles
+    # the Brier score and pushes mean predicted risk to 0.35 against a true
+    # 0.09. This dataset is 40% positive, so "balanced" barely moves anything --
+    # measured, ROC-AUC 0.9236 against 0.9237 without it and an identical Brier
+    # of 0.110. It is kept because it costs nothing, and written down because
+    # the next person to compare the two trainers will otherwise assume one of
+    # them is wrong.
     model = HistGradientBoostingClassifier(
         max_iter=400,
         learning_rate=0.05,
@@ -554,6 +639,14 @@ def train_migraine():
         "balanced_accuracy": float(balanced_accuracy_score(y_test, pred)),
         "f1": float(f1_score(y_test, pred)),
         "roc_auc": float(roc_auc_score(y_test, proba)),
+        # Recorded because the page prints a percentage. Heart has carried
+        # these since it was rebuilt; migraine showed a number to one decimal
+        # place with nothing anywhere saying whether it meant what it said.
+        # It does, as it happens -- but that was not knowable before.
+        "brier_score": float(brier_score_loss(y_test, proba)),
+        "mean_predicted_risk": float(proba.mean()),
+        "observed_prevalence": float(y_test.mean()),
+        "calibration_slope": _calibration_slope(y_test, proba),
         "baseline_majority_accuracy": majority,
         "cv_accuracy_mean": float(
             cross_val_score(model, Xtr, y_train, cv=5, n_jobs=-1).mean()
@@ -561,6 +654,9 @@ def train_migraine():
     }
     log.info("  accuracy %.4f (baseline %.4f) | ROC-AUC %.4f | F1 %.4f",
              metrics["accuracy"], majority, metrics["roc_auc"], metrics["f1"])
+    log.info("  calibration: mean predicted %.4f vs observed %.4f | Brier %.4f",
+             metrics["mean_predicted_risk"], metrics["observed_prevalence"],
+             metrics["brier_score"])
 
     return _save("migraine", model, scaler, F.MIGRAINE_FEATURES, {
         "task": "binary classification",
@@ -570,6 +666,29 @@ def train_migraine():
         "dataset": "migraine_dataset_500",
         "n_rows": int(len(y)),
         "estimator": type(model).__name__,
+        # The one input in this repository that cannot name its source, stated
+        # in the artifact rather than only in the README -- so the page can
+        # read it and say so, and so it cannot be quietly forgotten.
+        "provenance": {
+            "documented": False,
+            "source_file": "data/migraine_dataset_500 (1).csv",
+            # User-facing: this string is rendered on the migraine pages, so it
+            # uses real punctuation rather than the "--" convention the code
+            # comments use. The sentence naming the other sources lives in the
+            # template, which can name them specifically.
+            "note": (
+                "No documented origin, no published methodology, and 2,000 rows "
+                "despite ‘500’ in the filename. The distributions look "
+                "like real responses — strongly non-uniform, with genuine "
+                "missing values, unlike the synthetic files this project "
+                "rejected — but looking real is not the same as being "
+                "traceable."
+            ),
+            "consequence": (
+                "The metrics below describe this file. Whether they describe "
+                "anyone else is unknown, and unknowable without the source."
+            ),
+        },
         "raw_profile": _profile(df, F.MIGRAINE_RAW),
         "metrics": metrics,
     })

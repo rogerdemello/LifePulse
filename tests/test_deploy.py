@@ -82,3 +82,36 @@ def test_no_second_file_claims_to_set_the_python_version():
         "Only the latter is read by the deploy; delete runtime.txt or keep "
         "them in step."
     )
+
+
+def test_the_container_builds_on_the_same_python():
+    """A third place the version can drift, added with the Dockerfile.
+
+    The Dockerfile exists precisely so local, CI and the deploy cannot disagree
+    about the interpreter that installs the pinned wheels -- an image built on
+    a different minor version would reintroduce the failure this file is about,
+    just somewhere new.
+    """
+    dockerfile = ROOT / "Dockerfile"
+    if not dockerfile.exists():
+        return
+    found = re.search(r"^FROM python:([\d.]+)", dockerfile.read_text(encoding="utf-8"),
+                      re.M)
+    assert found, "the Dockerfile no longer pins a Python base image"
+    assert _minor(found.group(1)) == _minor(_pinned()), (
+        f"the image builds on {found.group(1)} but the deploy pins {_pinned()}"
+    )
+
+
+def test_the_container_does_not_bake_in_a_secret_key():
+    """app/app.py refuses to start in production without SECRET_KEY rather than
+    falling back to a predictable default. An image carrying one would make
+    every deployment from it share a signing key.
+    """
+    dockerfile = ROOT / "Dockerfile"
+    if not dockerfile.exists():
+        return
+    text = dockerfile.read_text(encoding="utf-8")
+    assert not re.search(r"^\s*(ENV|ARG)\s+SECRET_KEY\s*=", text, re.M), (
+        "the Dockerfile sets SECRET_KEY; it must come from the environment"
+    )

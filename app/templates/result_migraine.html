@@ -6,8 +6,9 @@
 {% block content %}
 <div class="container py-5">
   {% include "_caveats.html" %}
+  {% set model_name = "migraine" %}{% include "_provenance.html" %}
   <div class="text-center mb-4">
-    <h1 class="fw-bold h2 mb-2"><i class="bi bi-bandaid me-2" aria-hidden="true"></i>Migraine Risk Assessment Results</h1>
+    <h1 class="fw-bold h2 mb-2"><svg class="bi me-2" aria-hidden="true"><use href="#i-bandaid"></use></svg>Migraine Risk Assessment Results</h1>
     <p class="text-muted">Your personalized migraine risk evaluation</p>
   </div>
 
@@ -24,9 +25,9 @@
           <div class="text-center">
             <h2 class="h3 mb-2">
               {% if 'No Migraine' in prediction %}
-                <i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Low Migraine Risk
+                <svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg>Low Migraine Risk
               {% else %}
-                <i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Elevated Migraine Risk
+                <svg class="bi me-2" aria-hidden="true"><use href="#i-exclamation-triangle"></use></svg>Elevated Migraine Risk
               {% endif %}
             </h2>
             <p class="mb-0 opacity-90">Assessment: <strong>{{ prediction }}</strong></p>
@@ -37,7 +38,7 @@
           <!-- Confidence Score -->
           <div class="text-center mb-4 py-3">
             {% if 'No Migraine' in prediction %}
-              <div class="mb-3"><i class="bi bi-emoji-smile" style="font-size:3rem" aria-hidden="true"></i></div>
+              <div class="mb-3"><svg class="bi" style="font-size:3rem" aria-hidden="true"><use href="#i-emoji-smile"></use></svg></div>
               <h3 class="h4 text-success mb-3">Low Risk Profile</h3>
               <div class="mb-3">
                 <div class="d-inline-block px-4 py-2 rounded-pill bg-success text-white">
@@ -49,7 +50,7 @@
                 Your current habits appear to minimize common migraine triggers.
               </p>
             {% else %}
-              <div class="mb-3"><i class="bi bi-bandaid" style="font-size:3rem" aria-hidden="true"></i></div>
+              <div class="mb-3"><svg class="bi" style="font-size:3rem" aria-hidden="true"><use href="#i-bandaid"></use></svg></div>
               <h3 class="h4 text-warning mb-3">Elevated Risk Profile</h3>
               <div class="mb-3">
                 <div class="d-inline-block px-4 py-2 rounded-pill bg-danger text-white">
@@ -67,7 +68,7 @@
 
           <!-- Understanding Your Result -->
           <div class="mb-4">
-            <h3 class="h5 fw-bold mb-3"><i class="bi bi-book me-2" aria-hidden="true"></i>Understanding Your Result</h3>
+            <h3 class="h5 fw-bold mb-3"><svg class="bi me-2" aria-hidden="true"><use href="#i-book"></use></svg>Understanding Your Result</h3>
             {% if 'No Migraine' in prediction %}
               <div class="alert alert-success border-0 shadow-sm">
                 <h4 class="h6 fw-bold mb-2">What This Means:</h4>
@@ -106,82 +107,82 @@
       <!-- Recommendations Card -->
       <div class="card border-0 shadow-sm mb-4">
         <div class="result-header is-neutral">
-          <h3 class="h5 mb-0"><i class="bi bi-lightbulb me-2" aria-hidden="true"></i>Personalized Recommendations</h3>
+          <h3 class="h5 mb-0"><svg class="bi me-2" aria-hidden="true"><use href="#i-lightbulb"></use></svg>Personalized Recommendations</h3>
         </div>
         <div class="card-body p-4">
           {% if 'No Migraine' in prediction %}
             <div class="row">
               <div class="col-md-6 mb-3">
-                <h4 class="h6 fw-bold text-success mb-3"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Keep Doing</h4>
+                <h4 class="h6 fw-bold text-success mb-3"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg>Keep Doing</h4>
                 <ul class="list-unstyled">
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Maintain your consistent sleep schedule (7-9 hours)</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Continue staying well-hydrated throughout the day</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Keep eating regular, balanced meals</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Continue your physical activity routine</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i>Maintain effective stress management practices</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg>Maintain your consistent sleep schedule (7-9 hours)</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg>Continue staying well-hydrated throughout the day</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg>Keep eating regular, balanced meals</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg>Continue your physical activity routine</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg>Maintain effective stress management practices</li>
                 </ul>
               </div>
               <div class="col-md-6 mb-3">
-                <h4 class="h6 fw-bold mb-3"><i class="bi bi-bullseye me-2" aria-hidden="true"></i>Prevention Tips</h4>
+                <h4 class="h6 fw-bold mb-3"><svg class="bi me-2" aria-hidden="true"><use href="#i-bullseye"></use></svg>Prevention Tips</h4>
                 <ul class="list-unstyled">
-                  <li class="mb-2"><i class="bi bi-journal-text me-2" aria-hidden="true"></i>Keep a wellness journal to track patterns</li>
-                  <li class="mb-2"><i class="bi bi-cloud-sun me-2" aria-hidden="true"></i>Monitor weather changes (barometric pressure)</li>
-                  <li class="mb-2"><i class="bi bi-egg-fried me-2" aria-hidden="true"></i>Maintain balanced diet with regular meal times</li>
-                  <li class="mb-2"><i class="bi bi-sunglasses me-2" aria-hidden="true"></i>Protect eyes from bright lights/screens</li>
-                  <li class="mb-2"><i class="bi bi-peace me-2" aria-hidden="true"></i>Practice daily relaxation techniques</li>
+                  <li class="mb-2"><svg class="bi me-2" aria-hidden="true"><use href="#i-journal-text"></use></svg>Keep a wellness journal to track patterns</li>
+                  <li class="mb-2"><svg class="bi me-2" aria-hidden="true"><use href="#i-cloud-sun"></use></svg>Monitor weather changes (barometric pressure)</li>
+                  <li class="mb-2"><svg class="bi me-2" aria-hidden="true"><use href="#i-egg-fried"></use></svg>Maintain balanced diet with regular meal times</li>
+                  <li class="mb-2"><svg class="bi me-2" aria-hidden="true"><use href="#i-sunglasses"></use></svg>Protect eyes from bright lights/screens</li>
+                  <li class="mb-2"><svg class="bi me-2" aria-hidden="true"><use href="#i-peace"></use></svg>Practice daily relaxation techniques</li>
                 </ul>
               </div>
             </div>
           {% else %}
             <div class="row">
               <div class="col-md-6 mb-3">
-                <h4 class="h6 fw-bold mb-3"><i class="bi bi-moon me-2" aria-hidden="true"></i>Sleep & Rest</h4>
+                <h4 class="h6 fw-bold mb-3"><svg class="bi me-2" aria-hidden="true"><use href="#i-moon"></use></svg>Sleep & Rest</h4>
                 <ul class="list-unstyled">
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Consistent schedule:</strong> Go to bed and wake at same time daily</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>7-9 hours:</strong> Aim for optimal sleep duration</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Dark, cool room:</strong> Optimize sleep environment</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Wind-down routine:</strong> 30 min before bed, no screens</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Stress management:</strong> Try meditation, deep breathing, or yoga</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Consistent schedule:</strong> Go to bed and wake at same time daily</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>7-9 hours:</strong> Aim for optimal sleep duration</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Dark, cool room:</strong> Optimize sleep environment</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Wind-down routine:</strong> 30 min before bed, no screens</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Stress management:</strong> Try meditation, deep breathing, or yoga</li>
                 </ul>
               </div>
 
               <div class="col-md-6 mb-3">
-                <h4 class="h6 fw-bold mb-3"><i class="bi bi-droplet me-2" aria-hidden="true"></i>Nutrition & Hydration</h4>
+                <h4 class="h6 fw-bold mb-3"><svg class="bi me-2" aria-hidden="true"><use href="#i-droplet"></use></svg>Nutrition & Hydration</h4>
                 <ul class="list-unstyled">
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Hydration goal:</strong> Drink 2-3 liters of water daily</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Regular meals:</strong> Don't skip meals, especially breakfast</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Caffeine caution:</strong> Limit to 1-2 cups, avoid after 2 PM</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Avoid triggers:</strong> Aged cheese, processed meats, artificial sweeteners</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Magnesium-rich:</strong> Leafy greens, nuts, whole grains</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Hydration goal:</strong> Drink 2-3 liters of water daily</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Regular meals:</strong> Don't skip meals, especially breakfast</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Caffeine caution:</strong> Limit to 1-2 cups, avoid after 2 PM</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Avoid triggers:</strong> Aged cheese, processed meats, artificial sweeteners</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Magnesium-rich:</strong> Leafy greens, nuts, whole grains</li>
                 </ul>
               </div>
 
               <div class="col-md-6 mb-3">
-                <h4 class="h6 fw-bold mb-3"><i class="bi bi-activity me-2" aria-hidden="true"></i>Physical Activity</h4>
+                <h4 class="h6 fw-bold mb-3"><svg class="bi me-2" aria-hidden="true"><use href="#i-activity"></use></svg>Physical Activity</h4>
                 <ul class="list-unstyled">
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Regular exercise:</strong> 30 min moderate activity, 5 days/week</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Low-impact options:</strong> Walking, swimming, cycling, yoga</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Warm-up gradually:</strong> Sudden intense exercise can trigger</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Stay hydrated:</strong> Drink water before, during, after exercise</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Listen to body:</strong> Stop if you feel migraine coming</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Regular exercise:</strong> 30 min moderate activity, 5 days/week</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Low-impact options:</strong> Walking, swimming, cycling, yoga</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Warm-up gradually:</strong> Sudden intense exercise can trigger</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Stay hydrated:</strong> Drink water before, during, after exercise</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Listen to body:</strong> Stop if you feel migraine coming</li>
                 </ul>
               </div>
 
               <div class="col-md-6 mb-3">
-                <h4 class="h6 fw-bold mb-3"><i class="bi bi-laptop me-2" aria-hidden="true"></i>Screen & Environment</h4>
+                <h4 class="h6 fw-bold mb-3"><svg class="bi me-2" aria-hidden="true"><use href="#i-laptop"></use></svg>Screen & Environment</h4>
                 <ul class="list-unstyled">
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>20-20-20 rule:</strong> Every 20 min, look 20 ft away for 20 sec</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Blue light filter:</strong> Use on all devices, especially evening</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Adjust brightness:</strong> Match screen to ambient light</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Ergonomic setup:</strong> Proper posture, screen at eye level</li>
-                  <li class="mb-2"><i class="bi bi-check2 text-success me-2" aria-hidden="true"></i><strong>Reduce glare:</strong> Use matte screens, adjust lighting</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>20-20-20 rule:</strong> Every 20 min, look 20 ft away for 20 sec</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Blue light filter:</strong> Use on all devices, especially evening</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Adjust brightness:</strong> Match screen to ambient light</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Ergonomic setup:</strong> Proper posture, screen at eye level</li>
+                  <li class="mb-2"><svg class="bi text-success me-2" aria-hidden="true"><use href="#i-check2"></use></svg><strong>Reduce glare:</strong> Use matte screens, adjust lighting</li>
                 </ul>
               </div>
             </div>
 
             <!-- Track Your Triggers -->
             <div class="alert alert-warning mt-4 mb-0">
-              <h4 class="h6 fw-bold mb-2"><i class="bi bi-journal-text me-2" aria-hidden="true"></i>Track Your Triggers</h4>
+              <h4 class="h6 fw-bold mb-2"><svg class="bi me-2" aria-hidden="true"><use href="#i-journal-text"></use></svg>Track Your Triggers</h4>
               <p class="mb-2 small">
                 Keep a migraine diary for at least 3 months. Record:
               </p>
@@ -201,7 +202,7 @@
       <!-- When to Seek Medical Help -->
       <div class="card mb-4 card-edge-danger">
         <div class="card-body p-4">
-          <h3 class="h5 fw-bold text-danger mb-3"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>When to See a Doctor</h3>
+          <h3 class="h5 fw-bold text-danger mb-3"><svg class="bi me-2" aria-hidden="true"><use href="#i-exclamation-triangle"></use></svg>When to See a Doctor</h3>
           <p class="mb-2">Consult a neurologist or headache specialist if you experience:</p>
           <div class="row">
             <div class="col-md-6">
@@ -223,7 +224,7 @@
           </div>
           <div class="alert alert-info border-0 mt-3 mb-0">
             <small>
-              <strong><i class="bi bi-capsule me-2" aria-hidden="true"></i>Treatment Options:</strong> A neurologist can prescribe preventive medications, 
+              <strong><svg class="bi me-2" aria-hidden="true"><use href="#i-capsule"></use></svg>Treatment Options:</strong> A neurologist can prescribe preventive medications, 
               acute treatments, or recommend specialized therapies like Botox injections or CGRP inhibitors 
               for chronic migraines.
             </small>
@@ -278,10 +279,10 @@
       <!-- Navigation -->
       <div class="text-center mt-4">
         <a href="{{ url_for('migraine.predict_migraine') }}" class="btn btn-primary btn-lg px-4 me-2">
-          <i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>Test Again
+          <svg class="bi me-2" aria-hidden="true"><use href="#i-arrow-repeat"></use></svg>Test Again
         </a>
         <a href="/" class="btn btn-outline-secondary btn-lg px-4">
-          <i class="bi bi-house me-2" aria-hidden="true"></i>Back to Home
+          <svg class="bi me-2" aria-hidden="true"><use href="#i-house"></use></svg>Back to Home
         </a>
       </div>
 

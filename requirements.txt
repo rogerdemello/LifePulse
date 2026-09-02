@@ -7,12 +7,17 @@
 # with -- to move these pins, bump them and rerun `python ml_model/train_all.py`.
 
 # --- web ---
-Flask==3.1.2
-Werkzeug==3.1.3
+#
+# These five were bumped when pip-audit went into CI and reported seven known
+# vulnerabilities across them. They are not the scientific stack, so moving
+# them does not invalidate the model pickles -- which is the whole reason the
+# two groups are separated below.
+Flask==3.1.3
+Werkzeug==3.1.6
 Jinja2==3.1.6
 itsdangerous==2.2.0
-click==8.3.1
-python-dotenv==1.1.1
+click==8.3.3
+python-dotenv==1.2.2
 gunicorn==23.0.0
 
 # --- inference (must match the versions used to train app/models/) ---
@@ -23,7 +28,7 @@ scipy==1.16.3
 joblib==1.5.2
 
 # --- nutrition lookup (USDA FoodData Central) ---
-requests==2.32.5
+requests==2.33.0
 
 # Removed, and why:
 #   onnx / onnxruntime / skl2onnx  no code ever loaded an .onnx file

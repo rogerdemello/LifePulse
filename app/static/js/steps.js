@@ -41,9 +41,9 @@
     nav.className = 'd-flex gap-2 justify-content-between mt-4';
     nav.innerHTML =
       '<button type="button" class="btn btn-outline-secondary" data-step-back>' +
-      '  <i class="bi bi-arrow-left me-1"></i>Back</button>' +
+      '  <svg class="bi me-1" aria-hidden="true"><use href="#i-arrow-left"></use></svg>Back</button>' +
       '<button type="button" class="btn btn-primary ms-auto" data-step-next>' +
-      '  Next<i class="bi bi-arrow-right ms-1"></i></button>';
+      '  Next<svg class="bi ms-1" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button>';
     form.insertBefore(nav, actions);
 
     var back = nav.querySelector('[data-step-back]');

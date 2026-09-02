@@ -1,0 +1,24 @@
+# Keep the image to what actually runs.
+#
+# data/ alone is 43 MB of training CSVs and the BRFSS XPT is 1.2 GB -- they are
+# inputs to ml_model/, not to the app, which only needs the artifacts already
+# committed in app/models/.
+.git
+.github
+.venv
+venv
+__pycache__
+**/__pycache__
+*.pyc
+.pytest_cache
+.coverage
+htmlcov
+data
+ml_model/data
+tests
+.env
+.env.*
+!.env.example
+*.md
+!README.md
+.claude

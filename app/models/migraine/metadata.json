@@ -9,6 +9,12 @@
   "dataset": "migraine_dataset_500",
   "n_rows": 2000,
   "estimator": "HistGradientBoostingClassifier",
+  "provenance": {
+    "documented": false,
+    "source_file": "data/migraine_dataset_500 (1).csv",
+    "note": "No documented origin, no published methodology, and 2,000 rows despite \u2018500\u2019 in the filename. The distributions look like real responses \u2014 strongly non-uniform, with genuine missing values, unlike the synthetic files this project rejected \u2014 but looking real is not the same as being traceable.",
+    "consequence": "The metrics below describe this file. Whether they describe anyone else is unknown, and unknowable without the source."
+  },
   "raw_profile": {
     "Age": {
       "kind": "numeric",
@@ -98,10 +104,14 @@
     "balanced_accuracy": 0.8354166666666667,
     "f1": 0.8024691358024691,
     "roc_auc": 0.9235677083333332,
+    "brier_score": 0.11020285221375524,
+    "mean_predicted_risk": 0.4089479062158037,
+    "observed_prevalence": 0.4,
+    "calibration_slope": 1.0804665449891115,
     "baseline_majority_accuracy": 0.6,
     "cv_accuracy_mean": 0.8387499999999999
   },
-  "trained_utc": "2026-08-01T06:59:35+00:00",
+  "trained_utc": "2026-09-02T18:34:48+00:00",
   "n_features": 20,
   "library_versions": {
     "scikit-learn": "1.8.0",

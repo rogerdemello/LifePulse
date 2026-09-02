@@ -10,10 +10,11 @@ warning that fires on "I want to improve my fitness" destroys the credibility
 of every other warning in the app.
 """
 
+from pathlib import Path
+
 import pytest
 
 from app.ml.triage import CONCERNS, check_emergency, match_concerns
-
 
 # --------------------------------------------------------------------------
 # emergencies -- must fire
@@ -174,3 +175,161 @@ def test_the_homepage_leads_with_it(client):
     body = client.get("/").get_data(as_text=True)
     assert 'action="/start"' in body
     assert 'name="concern"' in body
+
+
+# --------------------------------------------------------------------------
+# Measured, not sampled
+#
+# The tests above are hand-picked examples, which is how this check was
+# validated for its whole life: fifteen cases, all of them ones somebody had
+# thought of. tests/data/emergency_phrasings.csv is a labelled set built to
+# include the ones nobody had -- negations, third-person reports, and ordinary
+# complaints that happen to contain an emergency phrase's words.
+#
+# Against it, the original bag-of-stems matcher scored:
+#
+#     sensitivity 95.6%    false alarms 46.2%
+#
+# Nearly half of ordinary complaints fired the stop sign. That is not a
+# cosmetic problem: a warning that goes off on "my dad had chest pain, am I at
+# risk" is one people learn to click past, and it also blocks that person from
+# the assessment they came for.
+# --------------------------------------------------------------------------
+
+PHRASINGS = Path(__file__).resolve().parent / "data" / "emergency_phrasings.csv"
+
+# Both floors are deliberately asymmetric. A missed emergency is the failure
+# this module exists to prevent, so nothing short of catching all of them
+# passes. False alarms are the safe direction, so the bound there is a ceiling
+# on drift rather than a target.
+REQUIRED_SENSITIVITY = 1.0
+MAX_FALSE_ALARM_RATE = 0.15
+
+
+def _labelled():
+    rows = []
+    for line in PHRASINGS.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.startswith("#") or line.startswith("text,"):
+            continue
+        text, expect, category = line.rsplit(",", 2)
+        rows.append((text, expect == "yes", category))
+    return rows
+
+
+def _score():
+    caught = missed = alarmed = quiet = 0
+    misses, alarms = [], []
+    for text, is_emergency, category in _labelled():
+        fired = bool(check_emergency(text))
+        if is_emergency and fired:
+            caught += 1
+        elif is_emergency:
+            missed += 1
+            misses.append((category, text))
+        elif fired:
+            alarmed += 1
+            alarms.append((category, text))
+        else:
+            quiet += 1
+    return caught, missed, alarmed, quiet, misses, alarms
+
+
+def test_the_labelled_set_covers_both_directions():
+    """A set of only true emergencies would measure nothing about false alarms,
+    which is where this check was actually failing."""
+    rows = _labelled()
+    assert len(rows) >= 100
+    categories = {category for _, _, category in rows}
+    for required in ("negated", "attributed", "incidental", "ordinary"):
+        assert required in categories, f"the set has no {required} cases"
+    assert sum(1 for _, is_emergency, _ in rows if is_emergency) >= 40
+
+
+def test_no_labelled_emergency_is_missed():
+    """The one that must not regress."""
+    caught, missed, _, _, misses, _ = _score()
+    sensitivity = caught / (caught + missed)
+    assert sensitivity >= REQUIRED_SENSITIVITY, (
+        f"sensitivity {sensitivity:.1%}; missed:\n  "
+        + "\n  ".join(f"[{c}] {t}" for c, t in misses)
+    )
+
+
+def test_false_alarms_stay_within_bounds():
+    _, _, alarmed, quiet, _, alarms = _score()
+    rate = alarmed / (alarmed + quiet)
+    assert rate <= MAX_FALSE_ALARM_RATE, (
+        f"false alarm rate {rate:.1%}; fired on:\n  "
+        + "\n  ".join(f"[{c}] {t}" for c, t in alarms)
+    )
+
+
+def test_negation_and_attribution_are_handled():
+    """The two categories the suppression rules were written for.
+
+    Everything still firing is `incidental` -- an emergency phrase's words
+    scattered through an unrelated sentence, like "back pain and a chest
+    infection". Those are left alone on purpose: the obvious fix is to require
+    the words to sit close together, and that breaks the case this module
+    exists for. See _emergency_span.
+    """
+    _, _, _, _, _, alarms = _score()
+    by_category = {}
+    for category, text in alarms:
+        by_category.setdefault(category, []).append(text)
+
+    assert len(by_category.get("attributed", [])) == 0, (
+        "somebody else's symptom still stops the questionnaire: "
+        f"{by_category['attributed']}"
+    )
+    # One survives: "no history of stroke or heart attack", where the cue sits
+    # five words from the match, past the window. Widening the window to reach
+    # it starts suppressing real emergencies, which is the worse trade.
+    assert len(by_category.get("negated", [])) <= 1, by_category.get("negated")
+
+
+def test_a_denied_symptom_does_not_fire():
+    assert not check_emergency("no chest pain but I get breathless on stairs")
+    assert not check_emergency("I don't have chest pain")
+    assert not check_emergency("I have never fainted in my life")
+
+
+def test_someone_elses_symptom_does_not_fire():
+    """These people are asking for the heart assessment, and firing the stop
+    sign is what stands between them and it."""
+    assert not check_emergency("my dad had chest pain last year am I at risk")
+    assert not check_emergency("family history of heart attack on my dad's side")
+    assert not check_emergency("my mother had a stroke should I be checked")
+
+
+def test_a_negation_cannot_suppress_a_symptom_it_does_not_govern():
+    """Both of these carry a negation cue *after* the symptom, negating
+    something else entirely. Suppressing on them cost five real emergencies
+    when the window looked in both directions."""
+    assert check_emergency("chest pressure that won't go away")
+    assert check_emergency("everyone would be better off dead without me")
+
+
+def test_the_keyword_phrase_may_contain_its_own_negation():
+    """"I don't want to live" must not negate the keyword "dont want to live"."""
+    assert check_emergency("I don't want to live anymore")
+    assert check_emergency("I have no reason to live")
+
+
+def test_a_contraction_is_one_word():
+    """_normalise deletes apostrophes rather than splitting on them. While it
+    split, "don't" became "don" + "t" and no negation cue the matcher looked
+    for ever appeared in real typed text."""
+    from app.ml.triage import _tokens
+
+    assert _tokens("I don't have chest pain") == [
+        "i", "dont", "have", "chest", "pain"
+    ]
+    assert check_emergency("I can't breathe")
+
+
+def test_a_negation_cue_never_stands_in_for_an_ordinary_word():
+    """"can" is a three-letter prefix of "cant", so prefix matching made
+    "I can breathe fine" match the keyword "cant breathe"."""
+    assert not check_emergency("I can breathe fine it's the snoring that bothers me")
+    assert check_emergency("I can't breathe properly")
