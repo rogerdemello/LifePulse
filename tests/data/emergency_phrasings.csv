@@ -1,0 +1,151 @@
+text,expect,category
+# ---------------------------------------------------------------------------
+# Ground truth for app/ml/triage.check_emergency.
+#
+# `expect` is yes when the person is describing something about themselves that
+# should stop the questionnaire and send them for emergency care, and no
+# otherwise. It is a judgement about what the app should DO, not about whether
+# the words appear.
+#
+# Two of the "no" categories are the point of this file:
+#
+#   negated      "no chest pain" contains the phrase and means the opposite
+#   attributed   "my dad had chest pain" is somebody else's symptom, and is
+#                usually a person asking for exactly the risk assessment this
+#                app offers -- firing the stop sign blocks them from it
+#
+# The rest are ordinary complaints. `incidental` ones deliberately contain the
+# words of an emergency phrase scattered across an unrelated sentence, because
+# the matcher is order-independent over a bag of stems.
+#
+# Lines beginning with # are comments. Written by hand; extend it rather than
+# tuning thresholds against it blindly.
+# ---------------------------------------------------------------------------
+
+# --- cardiac -----------------------------------------------------------------
+I have crushing chest pain right now,yes,cardiac
+crushing pain in my chest and my left arm,yes,cardiac
+my chest feels tight and I'm sweating,yes,cardiac
+chest pressure that won't go away,yes,cardiac
+I think I'm having a heart attack,yes,cardiac
+tightness in my chest when I walk upstairs,yes,cardiac
+pain in my chest spreading to my jaw,yes,cardiac
+my chest hurts and I feel sick,yes,cardiac
+severe chest pains for the last hour,yes,cardiac
+I get angina when I exert myself,yes,cardiac
+heavy feeling in my chest and short of breath,yes,cardiac
+chest tightness that started an hour ago,yes,cardiac
+
+# --- stroke ------------------------------------------------------------------
+one side of my face is drooping,yes,stroke
+my speech has gone slurred,yes,stroke
+sudden weakness on one side of my body,yes,stroke
+I can't speak properly all of a sudden,yes,stroke
+my arm went numb on one side,yes,stroke
+I think I'm having a stroke,yes,stroke
+sudden vision loss in one eye,yes,stroke
+trouble speaking and my face feels wrong,yes,stroke
+my left arm has gone weak suddenly,yes,stroke
+
+# --- breathing ---------------------------------------------------------------
+I can't breathe properly,yes,breathing
+struggling to breathe since this morning,yes,breathing
+I'm gasping for air,yes,breathing
+severe shortness of breath came on suddenly,yes,breathing
+I feel like I'm choking,yes,breathing
+cannot breathe when I lie down,yes,breathing
+
+# --- neuro -------------------------------------------------------------------
+worst headache of my life came on suddenly,yes,neuro
+thunderclap headache about an hour ago,yes,neuro
+I had a seizure this morning,yes,neuro
+I passed out at work today,yes,neuro
+I fainted and I'm not sure why,yes,neuro
+I blacked out earlier,yes,neuro
+sudden confusion and I can't think straight,yes,neuro
+I lost consciousness for a few seconds,yes,neuro
+sudden severe headache unlike anything before,yes,neuro
+
+# --- self harm ---------------------------------------------------------------
+I've been thinking about killing myself,yes,selfharm
+I want to end my life,yes,selfharm
+I feel suicidal,yes,selfharm
+thinking about ending it all,yes,selfharm
+I want to hurt myself,yes,selfharm
+I don't want to live anymore,yes,selfharm
+everyone would be better off dead without me,yes,selfharm
+I've been self harming again,yes,selfharm
+I have no reason to live,yes,selfharm
+
+# --- negated: the phrase is present and the meaning is inverted ---------------
+no chest pain but I get breathless on stairs,no,negated
+I don't have chest pain,no,negated
+no chest tightness at all,no,negated
+never had a heart attack,no,negated
+I have not had a seizure,no,negated
+I haven't passed out or fainted,no,negated
+no trouble speaking and no weakness,no,negated
+I'm not suicidal I just feel low,no,negated
+I don't want to hurt myself I just can't sleep,no,negated
+no shortness of breath when I exercise,no,negated
+I can breathe fine it's the snoring that bothers me,no,negated
+without any chest pain should I still worry about cholesterol,no,negated
+denies chest pain but reports fatigue,no,negated
+I have never fainted in my life,no,negated
+no history of stroke or heart attack,no,negated
+
+# --- attributed: somebody else's symptom -------------------------------------
+my dad had chest pain last year am I at risk,no,attributed
+my father had a heart attack at 50,no,attributed
+my mother had a stroke should I be checked,no,attributed
+my brother is suicidal and I'm worried about him,no,attributed
+my husband snores and gasps for air at night,no,attributed
+a friend told me her chest pain turned out to be nothing,no,attributed
+my grandmother had a seizure when she was older,no,attributed
+family history of heart attack on my dad's side,no,attributed
+my wife says I stop breathing in my sleep,no,attributed
+my son had a seizure and I want to know about my own health,no,attributed
+my colleague passed out at work last week,no,attributed
+my partner had a stroke and I want to check my own risk,no,attributed
+
+# --- incidental: emergency words scattered through an unrelated sentence -----
+I get pain in my knee and some chest congestion,no,incidental
+back pain and a chest infection for two weeks,no,incidental
+I want to build chest muscle without joint pain,no,incidental
+my chest is congested and my legs ache,no,incidental
+the pain in my shoulder is worse than in my chest cold,no,incidental
+I need to lose weight around my chest and my joints hurt,no,incidental
+my speech is fine but I have trouble sleeping,no,incidental
+I want to end my dependence on caffeine,no,incidental
+how do I end my snacking habit,no,incidental
+my life is stressful and I want to get fit,no,incidental
+I want to improve my fitness,no,incidental
+weakness in my legs after the gym one side more than the other,no,incidental
+
+# --- ordinary: what people actually type -------------------------------------
+I snore and I'm tired all day,no,ordinary
+trouble falling asleep most nights,no,ordinary
+recurring headaches around my period,no,ordinary
+I want to check my blood pressure risk,no,ordinary
+what is my BMI,no,ordinary
+how many calories should I eat,no,ordinary
+my cholesterol was high at my last check,no,ordinary
+I've been getting migraines twice a week,no,ordinary
+I feel tired all the time,no,ordinary
+I want to know if I'm drinking too much,no,ordinary
+how much sugar is in a banana,no,ordinary
+I keep waking up with a headache,no,ordinary
+I'm worried about my weight,no,ordinary
+my sleep has been bad since I started a new job,no,ordinary
+I get short of breath climbing stairs sometimes,no,ordinary
+I'd like to know my heart disease risk,no,ordinary
+stress at work and poor sleep,no,ordinary
+what should my resting heart rate be,no,ordinary
+I want to stop smoking,no,ordinary
+my diet is poor and I don't exercise,no,ordinary
+headaches when I look at screens too long,no,ordinary
+I wake up unrested even after eight hours,no,ordinary
+is my blood pressure reading normal,no,ordinary
+I feel low and unmotivated lately,no,ordinary
+I want to eat better,no,ordinary
+how much water should I drink a day,no,ordinary
