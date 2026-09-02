@@ -2,7 +2,7 @@
 #   pip install -r requirements.txt -r requirements-dev.txt
 -r requirements.txt
 
-pytest==8.4.2
+pytest==9.1.1
 
 # Gates that run in CI alongside the tests.
 #   ruff        lint; see ruff.toml for what is selected and why
