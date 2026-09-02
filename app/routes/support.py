@@ -17,14 +17,14 @@ from flask import current_app, render_template, request
 from app.ml.bundle import ModelNotAvailable
 from app.ml.features import FeatureContractError, describe_value, label_for
 from app.ml.guidance import questions_for
-from app.ml.sleep_risk import SLEEPINESS_LABELS, SNORING_LABELS
-from app.observability import current_request_id
 from app.ml.safety import (
     ImpossibleValue,
     check_possible,
     check_red_flags,
     check_training_range,
 )
+from app.ml.sleep_risk import SLEEPINESS_LABELS, SNORING_LABELS
+from app.observability import current_request_id
 
 
 class FormError(ValueError):

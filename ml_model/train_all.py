@@ -24,7 +24,7 @@ import argparse
 import json
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import joblib
@@ -37,17 +37,13 @@ sys.path.insert(0, str(ROOT))
 import sklearn
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import HistGradientBoostingClassifier
-from sklearn.linear_model import LinearRegression, RidgeCV
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
     balanced_accuracy_score,
     brier_score_loss,
-    classification_report,
     f1_score,
-    mean_absolute_error,
     precision_score,
-    r2_score,
     recall_score,
     roc_auc_score,
     roc_curve,
@@ -80,7 +76,7 @@ def _save(name, model, scaler, feature_names, metadata):
 
     metadata = dict(metadata)
     metadata.update(
-        trained_utc=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        trained_utc=datetime.now(UTC).isoformat(timespec="seconds"),
         n_features=len(feature_names),
         library_versions={
             "scikit-learn": sklearn.__version__,
@@ -362,7 +358,9 @@ def train_heart():
     X_train, X_val, y_train, y_val = train_test_split(
         X_fit, y_fit, test_size=0.2, random_state=SEED, stratify=y_fit
     )
-    w_train = weights.loc[X_train.index].to_numpy()
+    # No w_train: the fit is deliberately unweighted, for the reason set out
+    # above. The validation and test weights are what the threshold and every
+    # reported metric are computed against.
     w_val = weights.loc[X_val.index].to_numpy()
     w_test = weights.loc[X_test.index].to_numpy()
 
@@ -444,13 +442,13 @@ def train_heart():
                      f"{row['roc_auc']:.3f}" if "roc_auc" in row else "  -  ")
 
     metrics["baseline_note"] = (
-        "Accuracy is not a meaningful headline here: predicting 'no disease' "
-        "for everyone scores %.3f. Judge this model on ROC-AUC and PR-AUC. "
-        "Every figure in this block is survey-weighted, so it describes US "
-        "adults rather than BRFSS respondents. Predicted probabilities are "
-        "calibrated against that population -- mean predicted risk tracks "
-        "observed prevalence -- so the percentage shown to users is literal."
-        % metrics["baseline_majority_accuracy"]
+        f"Accuracy is not a meaningful headline here: predicting 'no disease' "
+        f"for everyone scores {metrics['baseline_majority_accuracy']:.3f}. Judge "
+        f"this model on ROC-AUC and PR-AUC. Every figure in this block is "
+        f"survey-weighted, so it describes US adults rather than BRFSS "
+        f"respondents. Predicted probabilities are calibrated against that "
+        f"population -- mean predicted risk tracks observed prevalence -- so "
+        f"the percentage shown to users is literal."
     )
 
     log.info("  ROC-AUC %.4f | PR-AUC %.4f (baseline %.4f) | balanced acc %.4f",
@@ -493,12 +491,12 @@ def train_heart():
             "weighted_prevalence": weighted_prevalence,
             "unweighted_prevalence": unweighted_prevalence,
             "note": (
-                "Complete cases only -- respondents missing any of the 15 "
-                "answers are dropped before training, and dropping is not "
-                "random. These %d rows carry %.0f million adults, short of the "
-                "full cycle, so read every figure here as describing US adults "
-                "who answered every question."
-                % (len(y), df["SurveyWeight"].sum() / 1e6)
+                f"Complete cases only -- respondents missing any of the 15 "
+                f"answers are dropped before training, and dropping is not "
+                f"random. These {len(y)} rows carry "
+                f"{df['SurveyWeight'].sum() / 1e6:.0f} million adults, short of "
+                f"the full cycle, so read every figure here as describing US "
+                f"adults who answered every question."
             ),
         },
         "raw_profile": _profile(df, F.HEART_RAW, weights=df["SurveyWeight"]),

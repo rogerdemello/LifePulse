@@ -14,7 +14,6 @@ import pytest
 
 from app.ml.triage import CONCERNS, check_emergency, match_concerns
 
-
 # --------------------------------------------------------------------------
 # emergencies -- must fire
 # --------------------------------------------------------------------------

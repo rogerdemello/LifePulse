@@ -5,7 +5,6 @@ one class forever, so "87.2% accurate" was worse than useless as a headline.
 Every check here is against the relevant baseline, not an absolute number.
 """
 
-import json
 import re
 import sys
 from pathlib import Path

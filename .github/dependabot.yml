@@ -1,0 +1,37 @@
+version: 2
+
+updates:
+  # The runtime pins. requirements.txt explains why the scientific stack is
+  # pinned to what built the model pickles, so a bump to scikit-learn, numpy,
+  # pandas, scipy or joblib is not a routine merge -- it needs
+  # `python ml_model/train_all.py` run afterwards and the artifacts committed.
+  # Everything else is ordinary.
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: ["dependencies"]
+    groups:
+      # One pull request for the web stack rather than six. These move together
+      # and their tests are the same tests.
+      web:
+        patterns: ["Flask", "Werkzeug", "Jinja2", "itsdangerous", "click",
+                   "python-dotenv", "gunicorn", "requests"]
+      dev:
+        patterns: ["pytest*", "ruff", "pip-audit"]
+    ignore:
+      # Not ignored forever -- ignored from *automatic* pull requests, because
+      # merging one without retraining leaves artifacts that may not load. Bump
+      # these by hand, retrain, and commit the two together.
+      - dependency-name: "scikit-learn"
+      - dependency-name: "numpy"
+      - dependency-name: "pandas"
+      - dependency-name: "scipy"
+      - dependency-name: "joblib"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    labels: ["dependencies"]

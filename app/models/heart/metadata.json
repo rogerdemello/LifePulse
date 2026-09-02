@@ -627,7 +627,7 @@
     }
   },
   "subgroup_note": "Weighted metrics on the held-out test split, by group. Race, income and education are evaluation strata only -- the model is never given them as inputs. 'observed_over_predicted' above 1 means the model under-states risk for that group. Read every row against its own n: a small cell moves a lot on a few cases.",
-  "trained_utc": "2026-09-02T15:29:31+00:00",
+  "trained_utc": "2026-09-02T17:07:20+00:00",
   "n_features": 23,
   "library_versions": {
     "scikit-learn": "1.8.0",

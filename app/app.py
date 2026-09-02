@@ -7,14 +7,14 @@ from flask import Flask, render_template
 from app.ml.bundle import all_metadata
 from app.ml.triage import CONCERNS
 from app.observability import init_app as init_observability
-from app.security import init_app as init_security
 from app.routes.calculator_routes import calculator_bp
 from app.routes.health_score import health_score_bp
 from app.routes.heart import heart_disease_bp
 from app.routes.migraine import migraine_bp
 from app.routes.nutrition import nutrition_bp
-from app.routes.start import start_bp
 from app.routes.sleep import sleep_bp
+from app.routes.start import start_bp
+from app.security import init_app as init_security
 
 load_dotenv()
 
@@ -106,9 +106,8 @@ def create_app():
     @app.route("/healthz")
     def healthz():
         """Liveness probe that also reports which models loaded."""
-        from app.ml.bundle import MODEL_NAMES, try_get_model
-
         from app.azure_openai import describe_configuration
+        from app.ml.bundle import MODEL_NAMES, try_get_model
 
         models = {name: try_get_model(name) is not None for name in MODEL_NAMES}
         status = 200 if all(models.values()) else 503
