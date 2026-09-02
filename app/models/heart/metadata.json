@@ -243,6 +243,59 @@
     }
   ],
   "risk_bins_note": "Observed outcome rate among held-out test respondents whose predicted risk fell in each band, with a 95% Wilson interval. The result page quotes the reader's own band so the percentage arrives with a width rather than four significant figures. Rates are survey-weighted; the counts the interval is computed from are not.",
+  "risk_bins_80plus": [
+    {
+      "low": 0.02,
+      "high": 0.05,
+      "n": 284,
+      "effective_n": 28.4,
+      "mean_predicted": 0.03799206214253476,
+      "observed": 0.18007577572823938,
+      "observed_low": 0.08021733093026434,
+      "observed_high": 0.35611405421932707
+    },
+    {
+      "low": 0.05,
+      "high": 0.1,
+      "n": 789,
+      "effective_n": 189.0,
+      "mean_predicted": 0.07485545203879135,
+      "observed": 0.046033782412210913,
+      "observed_low": 0.024147354177683333,
+      "observed_high": 0.08600900780050136
+    },
+    {
+      "low": 0.1,
+      "high": 0.2,
+      "n": 1956,
+      "effective_n": 285.4,
+      "mean_predicted": 0.14649134797981198,
+      "observed": 0.12685324588544575,
+      "observed_low": 0.09313505330778202,
+      "observed_high": 0.17048376211482638
+    },
+    {
+      "low": 0.2,
+      "high": 0.35,
+      "n": 1823,
+      "effective_n": 386.5,
+      "mean_predicted": 0.26895469430939944,
+      "observed": 0.26433882862227276,
+      "observed_low": 0.22284860384573568,
+      "observed_high": 0.3104677779262156
+    },
+    {
+      "low": 0.35,
+      "high": 1.0,
+      "n": 860,
+      "effective_n": 137.2,
+      "mean_predicted": 0.4374503326836736,
+      "observed": 0.3772204100699467,
+      "observed_low": 0.3004926753686235,
+      "observed_high": 0.46063833352893163
+    }
+  ],
+  "risk_bins_80plus_note": "The same calculation as risk_bins, restricted to test respondents in the 80+ age band (n=5718 here against 62434 overall), because that is the band where the model discriminates worst -- see subgroups.age_band['80+'].roc_auc. The result page reads a reader's interval from here instead of risk_bins when they are in that band, and only falls back to risk_bins for a probability this smaller sample didn't produce a bin for.",
   "subgroups": {
     "sex": {
       "Female": {
@@ -690,7 +743,7 @@
     }
   },
   "subgroup_note": "Weighted metrics on the held-out test split, by group. Race, income and education are evaluation strata only -- the model is never given them as inputs. 'observed_over_predicted' above 1 means the model under-states risk for that group. Read every row against its own n: a small cell moves a lot on a few cases.",
-  "trained_utc": "2026-09-02T18:38:38+00:00",
+  "trained_utc": "2026-09-02T19:24:20+00:00",
   "n_features": 23,
   "library_versions": {
     "scikit-learn": "1.8.0",
