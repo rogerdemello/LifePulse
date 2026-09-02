@@ -1,0 +1,93 @@
+tests/data/emergency_phrasings.csv
+  s_8455530e9fb213::t_89d55efe43b790 1-12,25-28,31-42,46-50,54,58-64,71-74,78-81,87,90-104,111-123,127-132,136-137,142-144
+.gitignore
+  s_f57d0ffcc5919d::t_b78264df395469 57-60,62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "autter_version": "1.6.9",
+  "base_commit_sha": "164eec19745b2d43331113bf6f59f7cbd30abcf3",
+  "branch": "fix/tests-data-gitignore",
+  "prompts": {
+    "s_8455530e9fb213": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "051482fc-31f9-4023-a93b-f01ed1db67b1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:5e256cc3d9cbdc9c8a55147d10cc6eb870dbec39a49ec3fbc0091112ff8360f1",
+      "total_additions": 275,
+      "total_deletions": 0,
+      "accepted_lines": 360,
+      "overriden_lines": 25
+    },
+    "s_f57d0ffcc5919d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d1c3fab-fd7e-4614-b519-175a70e058cf",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:e752c251f4ae4f30350e314b67d79a21fb175ee38f18042fef9e96af3748e259",
+      "total_additions": 5,
+      "total_deletions": 1,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_8455530e9fb213": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "051482fc-31f9-4023-a93b-f01ed1db67b1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:5e256cc3d9cbdc9c8a55147d10cc6eb870dbec39a49ec3fbc0091112ff8360f1",
+      "stats": {
+        "total_additions": 275,
+        "total_deletions": 0,
+        "accepted_lines": 360,
+        "overriden_lines": 25,
+        "files": {
+          "plan.md": {
+            "total_additions": 275,
+            "total_deletions": 0,
+            "accepted_lines": 275,
+            "overriden_lines": 0
+          },
+          "tests/data/emergency_phrasings.csv": {
+            "total_additions": 0,
+            "total_deletions": 0,
+            "accepted_lines": 85,
+            "overriden_lines": 25
+          }
+        }
+      }
+    },
+    "s_f57d0ffcc5919d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d1c3fab-fd7e-4614-b519-175a70e058cf",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:e752c251f4ae4f30350e314b67d79a21fb175ee38f18042fef9e96af3748e259",
+      "stats": {
+        "total_additions": 5,
+        "total_deletions": 1,
+        "accepted_lines": 5,
+        "overriden_lines": 0,
+        "files": {
+          ".gitignore": {
+            "total_additions": 5,
+            "total_deletions": 1,
+            "accepted_lines": 5,
+            "overriden_lines": 0
+          }
+        }
+      }
+    }
+  }
+}
