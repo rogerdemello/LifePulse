@@ -65,7 +65,7 @@
             <p class="mt-4 mb-2 mx-auto" style="max-width: 42rem;">
               Out of 100 people who answered the way you did, we'd expect
               <strong>about {{ probability|float|round|int }}</strong> to have heart
-              disease. Across everyone in the survey, it's about
+              disease. Across {{ population }}, it's about
               {{ '%.0f'|format(metrics.observed_prevalence * 100) }} in 100.
             </p>
             <p class="text-muted small mb-0 mx-auto" style="max-width: 42rem;">
@@ -87,6 +87,9 @@
                 Anything at or above {{ threshold }}% is flagged for follow-up &mdash;
                 a threshold tuned by Youden's J on a held-out validation split, not a
                 hardcoded 0.5.
+                Every figure here is weighted by the survey's own sampling weights,
+                so it describes {{ population }} rather than the people BRFSS
+                happened to reach.
               </p>
             </details>
           </div>

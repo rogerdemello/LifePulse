@@ -105,17 +105,65 @@ the app displays — no figure below is hardcoded anywhere in the UI.
 
 | | Algorithm | Headline | Baseline it beats | Size |
 |---|---|---|---|---|
-| Heart disease | HistGradientBoosting | **ROC-AUC 0.840**, PR-AUC 0.349 | PR-AUC 0.090 (prevalence) | 0.14 MB |
+| Heart disease | HistGradientBoosting | **ROC-AUC 0.855**, PR-AUC 0.321 | PR-AUC 0.073 (prevalence) | 0.14 MB |
 | Migraine | HistGradientBoosting | **84.0%** accuracy, ROC-AUC 0.924 | 60.0% (majority class) | 0.12 MB |
 | Sleep | *empirical lookup* | — | — | — |
 | Lifestyle score | *rubric* | — | — | — |
 
 ### Why baselines are quoted
 
-Only 9.0% of the heart dataset is positive, so predicting "no disease" for
-everyone scores **91.0% accuracy**. A bare accuracy figure would look impressive
-and mean nothing. Heart is judged on ROC-AUC and PR-AUC; everything else is
-reported against the majority-class rate it has to beat.
+Only 7.3% of the held-out test split is positive once it is weighted to US
+adults, so predicting "no disease" for everyone scores **92.7% accuracy**. A bare
+accuracy figure would look impressive and mean nothing. Heart is judged on
+ROC-AUC and PR-AUC; everything else is reported against the majority-class rate
+it has to beat.
+
+### Survey weights, and what they are and aren't for
+
+BRFSS is a stratified survey raked to census margins. A row is not a person —
+it is `_LLCPWT` people, and that weight spans 0.16 to 69,786. Ignoring it is not
+a rounding error:
+
+| Across all 312,166 rows | Prevalence |
+|---|---|
+| Unweighted — people BRFSS reached | 0.090 |
+| **Weighted — US adults** | **0.072** |
+
+The app tells people its percentages are literal, so they have to be percentages
+of a population somebody belongs to. It was quoting the first number as though it
+were the second: a 25% overstatement of how common heart disease is, used as the
+comparator on every result.
+
+Where the weight is applied is a separate question from whether it is used at
+all, and the answer is not "everywhere":
+
+- **Evaluation, the threshold, and the "typical person"** an explanation compares
+  you against are all weighted. Each is a claim about a population.
+- **The extrapolation bounds** (`p1`/`p99` in `raw_profile`) stay unweighted.
+  Those ask what the model actually saw, and a survey weight doesn't change what
+  was in the training rows.
+- **The fit is unweighted**, which is the one worth explaining. Weighting a loss
+  corrects for a design that makes the sample's `P(Y|X)` differ from the
+  population's. Here it doesn't: BRFSS rakes on age and sex, and age and sex are
+  both features, so the model already conditions on what the design selected on.
+  Weighting then buys no correction and costs effective sample size. Over five
+  splits, all scored survey-weighted:
+
+  | | ROC-AUC | Brier | Calibration gap |
+  |---|---|---|---|
+  | **Unweighted fit (shipped)** | **0.8524 ± 0.0022** | **0.0567** | **−0.0011** |
+  | Weighted fit | 0.8474 ± 0.0029 | 0.0574 | −0.0029 |
+
+  The unweighted fit won on every split and was the better *population*-calibrated
+  of the two. So the weight belongs in how this model is judged, not in how it is
+  fitted — and the estimator that ships is byte-for-byte the one that shipped
+  before this work. What changed is that it is now scored, thresholded and
+  described against the country rather than against the survey.
+
+`_PSU` is deliberately not carried. It looks like a cluster identifier, but ids
+are numbered within stratum and every `(_STSTR, _PSU)` pair in the cycle is
+unique — one record per cluster, so there is nothing for a "cluster-aware" split
+to group by.
 
 ### Calibration and the decision threshold
 
@@ -124,14 +172,15 @@ current data, rebalancing leaves ranking untouched and wrecks calibration:
 
 | | ROC-AUC | Brier | Mean predicted risk |
 |---|---|---|---|
-| Unweighted (shipped) | 0.8403 | **0.069** | **0.091** |
-| `class_weight="balanced"` | 0.8405 | 0.172 | 0.354 |
+| No class weighting (shipped) | 0.8551 | **0.057** | **0.073** |
+| `class_weight="balanced"` | 0.8506 | 0.136 | 0.291 |
 
-Observed prevalence is 0.090. The page shows the user a percentage, so that
-percentage has to be literal. Class imbalance is handled at the decision
-threshold instead — tuned by Youden's J on a validation split, stored as
-`decision_threshold` in the metadata, and read at request time. Never a
-hardcoded 0.5, which on a 9% base rate would flag almost nobody.
+Observed prevalence is 0.073. The page shows the user a percentage, so that
+percentage has to be literal — and mean predicted risk lands within 0.0004 of it.
+Class imbalance is handled at the decision threshold instead — tuned by Youden's
+J on a weighted validation split, stored as `decision_threshold` in the metadata,
+and read at request time. Never a hardcoded 0.5, which on a 7% base rate would
+flag almost nobody.
 
 ### Why the heart model uses BRFSS 2023
 
@@ -140,16 +189,22 @@ unrefreshable, because whoever built that file did the variable mapping and
 never wrote it down. `ml_model/fetch_brfss.py` does the mapping in the open
 against CDC's own release and verifies it before writing.
 
-**The newer model scores slightly lower**: ROC-AUC 0.840 against 0.848, PR-AUC
-lift 3.7× against 4.0×. That is real and it is not a mapping bug — every
-feature's prevalence matches the old file within a point (HighBP 0.429→0.435,
-HighChol 0.424→0.424, Stroke 0.041→0.044), and the shifts that exist run the
-right way (smoking 44%→39%).
+**Compared like for like the newer model scores slightly lower**: unweighted
+ROC-AUC 0.840 against the 2015 file's 0.848, PR-AUC lift 3.7× against 4.0×. That
+is real and it is not a mapping bug — every feature's prevalence matches the old
+file within a point (HighBP 0.429→0.435, HighChol 0.424→0.424, Stroke
+0.041→0.044), and the shifts that exist run the right way (smoking 44%→39%).
 
 It ships anyway: eight years of currency, a mapping anyone can audit, 312k
 respondents instead of 254k, and an annual refresh path outweigh 0.008 ROC-AUC.
 The old file's provenance could never be checked at all, which is the class of
-problem the rest of this work removed.
+problem the rest of this work removed. It also carries the survey weights, which
+the Kaggle derivative had dropped — so the 2015 file could never have been
+scored against the population at all.
+
+The headline 0.855 above is the same model scored *survey-weighted*. Both numbers
+are in `metadata.json`, under `metrics` and `metrics_unweighted`, so the size of
+the correction stays visible instead of becoming a claim in a commit message.
 
 Fruit and vegetable intake went with it. They moved ROC-AUC from 0.8485 to
 0.8486, and BRFSS stopped running that module after 2015 — so two questions
@@ -393,12 +448,13 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-**424 tests** (423 pass; one skips when the gitignored data is absent), covering:
+**427 tests** (426 pass; one skips when the gitignored data is absent), covering:
 
 - **Feature contract** — builder output matches each trained artifact exactly, in order
 - **Fail-fast** — a missing or unrecognised input raises instead of defaulting to zero
 - **Training/serving parity** — a CSV row and the equivalent form dict produce identical vectors
-- **Model quality** — each model beats its baseline; heart stays calibrated; the heart data stays recent
+- **Model quality** — each model beats its baseline; heart stays calibrated; the heart
+  data stays recent; the survey weights stay applied and the correction stays visible
 - **Safety** — each tier fires correctly, including the BP 190/125 and HR 0 cases that once returned a calm "No Sleep Disorder"
 - **Triage** — emergency phrasings are caught, including inflections like "ending my life"; ordinary ones like "improve my fitness" never trigger a false alarm
 - **Sleep & lifestyle** — the lookup table is monotonic and the rubric's components sum to its total
@@ -464,7 +520,7 @@ LifePulse/
 │   ├── fetch_brfss.py          # CDC BRFSS -> data/brfss_heart.csv
 │   ├── fetch_nhanes.py         # CDC NHANES -> data/nhanes_sleep.csv
 │   └── train_all.py            # retrains both models
-├── tests/                      # 424 tests
+├── tests/                      # 427 tests
 ├── data/                       # training inputs (gitignored)
 ├── .github/workflows/ci.yml    # pytest + boot check + contract check
 ├── requirements.txt            # pinned runtime deps

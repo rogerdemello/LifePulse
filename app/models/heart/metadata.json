@@ -6,11 +6,30 @@
     "Yes"
   ],
   "positive_class_index": 1,
-  "decision_threshold": 0.0894108152817044,
-  "threshold_rule": "Youden's J, tuned on a held-out validation split",
+  "decision_threshold": 0.062058437331221586,
+  "threshold_rule": "Youden's J, tuned on a held-out validation split, survey-weighted",
   "dataset": "BRFSS 2023 (CDC Behavioral Risk Factor Surveillance System)",
   "n_rows": 312166,
   "estimator": "HistGradientBoostingClassifier",
+  "weighting": {
+    "variable": "_LLCPWT",
+    "design": "stratified, raked to census margins; no usable clustering",
+    "applied_to": [
+      "metrics",
+      "decision_threshold",
+      "raw_profile.median"
+    ],
+    "not_applied_to": [
+      "model.fit",
+      "raw_profile.p1",
+      "raw_profile.p99"
+    ],
+    "population": "US adults",
+    "represents_adults": 170772077,
+    "weighted_prevalence": 0.07162392329556479,
+    "unweighted_prevalence": 0.09029170377299257,
+    "note": "Complete cases only -- respondents missing any of the 15 answers are dropped before training, and dropping is not random. These 312166 rows carry 171 million adults, short of the full cycle, so read every figure here as describing US adults who answered every question."
+  },
   "raw_profile": {
     "HighBP": {
       "kind": "numeric",
@@ -40,7 +59,7 @@
       "kind": "numeric",
       "min": 12.02,
       "p1": 18.01,
-      "median": 27.46,
+      "median": 27.48,
       "p99": 49.78,
       "max": 99.82
     },
@@ -128,26 +147,39 @@
       "kind": "numeric",
       "min": 1.0,
       "p1": 1.0,
-      "median": 9.0,
+      "median": 7.0,
       "p99": 13.0,
       "max": 13.0
     }
   },
   "metrics": {
+    "roc_auc": 0.855146684246086,
+    "pr_auc": 0.32134056451127857,
+    "balanced_accuracy": 0.7817132052466327,
+    "accuracy": 0.7272219658028517,
+    "recall": 0.8455182434444626,
+    "precision": 0.19093005902793045,
+    "brier_score": 0.057055245571713584,
+    "mean_predicted_risk": 0.072643835737278,
+    "observed_prevalence": 0.07298638961057716,
+    "baseline_majority_accuracy": 0.9270136103894229,
+    "baseline_pr_auc": 0.07298638961057716,
+    "baseline_note": "Accuracy is not a meaningful headline here: predicting 'no disease' for everyone scores 0.927. Judge this model on ROC-AUC and PR-AUC. Every figure in this block is survey-weighted, so it describes US adults rather than BRFSS respondents. Predicted probabilities are calibrated against that population -- mean predicted risk tracks observed prevalence -- so the percentage shown to users is literal."
+  },
+  "metrics_unweighted": {
     "roc_auc": 0.8399488848690619,
     "pr_auc": 0.34911061798745313,
-    "balanced_accuracy": 0.7649963313099778,
-    "accuracy": 0.7240445910881891,
-    "recall": 0.8149725031044882,
-    "precision": 0.22107795957651588,
+    "balanced_accuracy": 0.7556021363742583,
+    "accuracy": 0.653458051702598,
+    "recall": 0.8802554550292709,
+    "precision": 0.19141303089920148,
     "brier_score": 0.06888714047029344,
     "mean_predicted_risk": 0.09075185690712974,
     "observed_prevalence": 0.090287343434667,
-    "baseline_majority_accuracy": 0.9097082962270074,
-    "baseline_pr_auc": 0.090287343434667,
-    "baseline_note": "Accuracy is not a meaningful headline here: predicting 'no disease' for everyone scores 0.910. Judge this model on ROC-AUC and PR-AUC. Predicted probabilities are calibrated -- mean predicted risk tracks observed prevalence -- so the percentage shown to users is literal."
+    "baseline_majority_accuracy": 0.909712656565333,
+    "baseline_pr_auc": 0.090287343434667
   },
-  "trained_utc": "2026-08-01T14:28:29+00:00",
+  "trained_utc": "2026-09-02T13:33:18+00:00",
   "n_features": 23,
   "library_versions": {
     "scikit-learn": "1.8.0",

@@ -83,12 +83,24 @@ def predict_heart_disease():
     metrics = model.metadata.get("metrics", {})
     prevalence = metrics.get("observed_prevalence", 0) * 100
 
+    # What the comparison figure is a figure *about*. BRFSS is a weighted
+    # survey, so its rows are not a cross-section of the country. This model is
+    # scored and thresholded with those weights -- see ml_model/train_all.py for
+    # why the fit deliberately isn't -- which makes the prevalence above an
+    # estimate for US adults rather than for people who answer phone surveys.
+    # The wording comes from the model's own metadata so that retraining on some
+    # other population cannot leave this sentence behind describing the old one.
+    population = model.metadata.get("weighting", {}).get(
+        "population", "the survey population"
+    )
+
     return render_template(
         "result_heart.html",
         prediction="Yes" if probability >= threshold else "No",
         probability=f"{probability * 100:.2f}",
         threshold=f"{threshold * 100:.1f}",
         metrics=metrics,
+        population=population,
         caveats=caveats,
         factors=factors,
         factor_noun="your estimate",
@@ -97,7 +109,7 @@ def predict_heart_disease():
             title="Heart disease risk",
             headline=f"{probability * 100:.1f}% estimated risk",
             detail=(
-                f"Compared with {prevalence:.1f}% across the survey population. "
+                f"Compared with {prevalence:.1f}% among {population}. "
                 f"This assessment flags anything above {threshold * 100:.1f}% "
                 f"for follow-up."
             ),
