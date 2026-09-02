@@ -1,0 +1,113 @@
+tests/test_frontend.py
+  s_8455530e9fb213::t_e9de788340e934 764-781
+tests/test_model_quality.py
+  s_8455530e9fb213::t_3a7147efc078ab 295-334
+app/models/migraine/metadata.json
+  s_8455530e9fb213::t_1f29e0496cbc93 15,114
+  s_8455530e9fb213::t_c9fd203b2c8506 12-14,16-17,107-110
+app/templates/result_migraine.html
+  s_8455530e9fb213::t_a04c15a601d38e 9
+ml_model/train_all.py
+  s_8455530e9fb213::t_1f29e0496cbc93 596-599,602-606
+  s_8455530e9fb213::t_c9fd203b2c8506 538-545,563-570,578-580,590-595,600-601,607-612
+app/templates/predict_migraine.html
+  s_8455530e9fb213::t_a04c15a601d38e 6
+README.md
+  s_8455530e9fb213::t_4b7f9753e909e1 208-221,636,722,808-813
+app/templates/_provenance.html
+  s_8455530e9fb213::t_4daab5ffb4759f 1-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "autter_version": "1.6.9",
+  "base_commit_sha": "c33aca00dd695cb7ac1100e89ba0604cec685282",
+  "branch": "feat/self-hosted-frontend-and-hardening",
+  "prompts": {
+    "s_8455530e9fb213": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "051482fc-31f9-4023-a93b-f01ed1db67b1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:7af7c943b1361bf341da082a10228aac2e4c4d6f0ac3a953599729244388c5eb",
+      "total_additions": 181,
+      "total_deletions": 17,
+      "accepted_lines": 2585,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_8455530e9fb213": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "051482fc-31f9-4023-a93b-f01ed1db67b1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:7af7c943b1361bf341da082a10228aac2e4c4d6f0ac3a953599729244388c5eb",
+      "stats": {
+        "total_additions": 181,
+        "total_deletions": 17,
+        "accepted_lines": 2585,
+        "overriden_lines": 0,
+        "files": {
+          "README.md": {
+            "total_additions": 22,
+            "total_deletions": 2,
+            "accepted_lines": 848,
+            "overriden_lines": 0
+          },
+          "app/models/migraine/metadata.json": {
+            "total_additions": 13,
+            "total_deletions": 3,
+            "accepted_lines": 121,
+            "overriden_lines": 0
+          },
+          "app/templates/_provenance.html": {
+            "total_additions": 32,
+            "total_deletions": 0,
+            "accepted_lines": 32,
+            "overriden_lines": 0
+          },
+          "app/templates/predict_migraine.html": {
+            "total_additions": 1,
+            "total_deletions": 0,
+            "accepted_lines": 1,
+            "overriden_lines": 0
+          },
+          "app/templates/result_migraine.html": {
+            "total_additions": 1,
+            "total_deletions": 0,
+            "accepted_lines": 1,
+            "overriden_lines": 0
+          },
+          "ml_model/train_all.py": {
+            "total_additions": 47,
+            "total_deletions": 5,
+            "accepted_lines": 650,
+            "overriden_lines": 0
+          },
+          "tests/data/emergency_phrasings.csv": {
+            "total_additions": 0,
+            "total_deletions": 0,
+            "accepted_lines": 111,
+            "overriden_lines": 0
+          },
+          "tests/test_frontend.py": {
+            "total_additions": 25,
+            "total_deletions": 7,
+            "accepted_lines": 781,
+            "overriden_lines": 0
+          },
+          "tests/test_model_quality.py": {
+            "total_additions": 40,
+            "total_deletions": 0,
+            "accepted_lines": 40,
+            "overriden_lines": 0
+          }
+        }
+      }
+    }
+  }
+}
