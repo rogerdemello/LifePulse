@@ -1,0 +1,211 @@
+ml_model/train_all.py
+  s_8455530e9fb213::t_fc7dfca92a4fd3 27,79
+  s_8455530e9fb213::t_8752eae2f1b91d 445-451,494-499
+  s_8455530e9fb213::t_23d2696f9b0920 361-363
+requirements.txt
+  s_8455530e9fb213::t_4115ce4ced90a1 10-16,19-20,31
+requirements-dev.txt
+  s_8455530e9fb213::t_a9bd92284d8274 6-14
+.github/dependabot.yml
+  s_8455530e9fb213::t_f4dcf63e8c11dd 1-37
+app/routes/calculator_routes.py
+  s_8455530e9fb213::t_fc7dfca92a4fd3 1
+tests/test_training_serving_parity.py
+  s_8455530e9fb213::t_fc7dfca92a4fd3 12
+app/app.py
+  s_8455530e9fb213::t_fc7dfca92a4fd3 16-17,110
+app/routes/sleep.py
+  s_8455530e9fb213::t_23d2696f9b0920 62-65,73-74
+README.md
+  s_8455530e9fb213::t_543d325d6b9c3e 32,531-553,580-585
+  s_8455530e9fb213::t_4c433f0a92972b 474-530,564,620,635-637,646-648,650-655,657
+app/ml/bundle.py
+  s_8455530e9fb213::t_68036574e12f96 231-234
+  s_8455530e9fb213::t_9fd918f26bddee 170-174
+ruff.toml
+  s_8455530e9fb213::t_fc7dfca92a4fd3 1-41
+app/models/heart/metadata.json
+  s_8455530e9fb213::t_91d554b755adb5 630
+.dockerignore
+  s_8455530e9fb213::t_3c3b258bb50dce 1-24
+app/routes/support.py
+  s_8455530e9fb213::t_fc7dfca92a4fd3 26-27
+.github/workflows/ci.yml
+  s_8455530e9fb213::t_e805580904ba23 34-41,43-46,82-116
+tests/test_deploy.py
+  s_8455530e9fb213::t_21aff268ee5c07 85-117
+Dockerfile
+  s_8455530e9fb213::t_4b425782f590ea 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "autter_version": "1.6.9",
+  "base_commit_sha": "38de30dc6c3a3c1e71e99fcafe4f47bddc4b6065",
+  "branch": "feat/self-hosted-frontend-and-hardening",
+  "prompts": {
+    "s_8455530e9fb213": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "051482fc-31f9-4023-a93b-f01ed1db67b1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:a09b17fd60a2a522a763428228b9988e41a407de47fbe0ff9e493af3bf5f54f2",
+      "total_additions": 401,
+      "total_deletions": 67,
+      "accepted_lines": 3293,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_8455530e9fb213": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "051482fc-31f9-4023-a93b-f01ed1db67b1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "messages_url": "cas:a09b17fd60a2a522a763428228b9988e41a407de47fbe0ff9e493af3bf5f54f2",
+      "stats": {
+        "total_additions": 401,
+        "total_deletions": 67,
+        "accepted_lines": 3293,
+        "overriden_lines": 0,
+        "files": {
+          ".dockerignore": {
+            "total_additions": 24,
+            "total_deletions": 0,
+            "accepted_lines": 24,
+            "overriden_lines": 0
+          },
+          ".github/dependabot.yml": {
+            "total_additions": 37,
+            "total_deletions": 0,
+            "accepted_lines": 37,
+            "overriden_lines": 0
+          },
+          ".github/workflows/ci.yml": {
+            "total_additions": 47,
+            "total_deletions": 1,
+            "accepted_lines": 47,
+            "overriden_lines": 0
+          },
+          "Dockerfile": {
+            "total_additions": 48,
+            "total_deletions": 0,
+            "accepted_lines": 48,
+            "overriden_lines": 0
+          },
+          "README.md": {
+            "total_additions": 102,
+            "total_deletions": 11,
+            "accepted_lines": 768,
+            "overriden_lines": 0
+          },
+          "app/app.py": {
+            "total_additions": 3,
+            "total_deletions": 4,
+            "accepted_lines": 166,
+            "overriden_lines": 0
+          },
+          "app/ml/bundle.py": {
+            "total_additions": 9,
+            "total_deletions": 2,
+            "accepted_lines": 315,
+            "overriden_lines": 0
+          },
+          "app/models/heart/metadata.json": {
+            "total_additions": 1,
+            "total_deletions": 1,
+            "accepted_lines": 637,
+            "overriden_lines": 0
+          },
+          "app/routes/calculator_routes.py": {
+            "total_additions": 1,
+            "total_deletions": 1,
+            "accepted_lines": 1,
+            "overriden_lines": 0
+          },
+          "app/routes/sleep.py": {
+            "total_additions": 6,
+            "total_deletions": 4,
+            "accepted_lines": 112,
+            "overriden_lines": 0
+          },
+          "app/routes/support.py": {
+            "total_additions": 2,
+            "total_deletions": 2,
+            "accepted_lines": 316,
+            "overriden_lines": 0
+          },
+          "app/utils/calculator.py": {
+            "total_additions": 0,
+            "total_deletions": 1,
+            "accepted_lines": 0,
+            "overriden_lines": 0
+          },
+          "ml_model/generate_phrasings.py": {
+            "total_additions": 0,
+            "total_deletions": 1,
+            "accepted_lines": 0,
+            "overriden_lines": 0
+          },
+          "ml_model/train_all.py": {
+            "total_additions": 18,
+            "total_deletions": 20,
+            "accepted_lines": 608,
+            "overriden_lines": 0
+          },
+          "requirements-dev.txt": {
+            "total_additions": 12,
+            "total_deletions": 3,
+            "accepted_lines": 14,
+            "overriden_lines": 0
+          },
+          "requirements.txt": {
+            "total_additions": 10,
+            "total_deletions": 5,
+            "accepted_lines": 38,
+            "overriden_lines": 0
+          },
+          "ruff.toml": {
+            "total_additions": 47,
+            "total_deletions": 6,
+            "accepted_lines": 41,
+            "overriden_lines": 0
+          },
+          "tests/test_deploy.py": {
+            "total_additions": 33,
+            "total_deletions": 0,
+            "accepted_lines": 33,
+            "overriden_lines": 0
+          },
+          "tests/test_model_quality.py": {
+            "total_additions": 0,
+            "total_deletions": 1,
+            "accepted_lines": 0,
+            "overriden_lines": 0
+          },
+          "tests/test_observability.py": {
+            "total_additions": 0,
+            "total_deletions": 2,
+            "accepted_lines": 0,
+            "overriden_lines": 0
+          },
+          "tests/test_training_serving_parity.py": {
+            "total_additions": 1,
+            "total_deletions": 1,
+            "accepted_lines": 88,
+            "overriden_lines": 0
+          },
+          "tests/test_triage.py": {
+            "total_additions": 0,
+            "total_deletions": 1,
+            "accepted_lines": 0,
+            "overriden_lines": 0
+          }
+        }
+      }
+    }
+  }
+}
