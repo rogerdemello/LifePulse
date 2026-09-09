@@ -9,6 +9,6 @@ pytest==9.1.1
 #   pip-audit   known vulnerabilities in the pinned runtime dependencies. It
 #               found seven across five packages the first time it ran.
 #   pytest-cov  a coverage floor, so a change cannot quietly stop being tested
-ruff==0.16.5
+ruff==0.16.6
 pip-audit==2.10.1
 pytest-cov==7.1.0
