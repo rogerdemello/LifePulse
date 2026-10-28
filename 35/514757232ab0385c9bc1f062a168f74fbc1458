@@ -1,0 +1,47 @@
+plan.md
+  s_f57d0ffcc5919d::t_98d34c90ddc14d 148-173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "autter_version": "1.6.9",
+  "base_commit_sha": "35514757232ab0385c9bc1f062a168f74fbc1458",
+  "branch": "feat/heart-peer-comparator",
+  "prompts": {
+    "s_f57d0ffcc5919d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d1c3fab-fd7e-4614-b519-175a70e058cf",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "total_additions": 26,
+      "total_deletions": 10,
+      "accepted_lines": 26,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_f57d0ffcc5919d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d1c3fab-fd7e-4614-b519-175a70e058cf",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "rogerdemello <rogerdemello289@gmail.com>",
+      "stats": {
+        "total_additions": 26,
+        "total_deletions": 10,
+        "accepted_lines": 26,
+        "overriden_lines": 0,
+        "files": {
+          "plan.md": {
+            "total_additions": 26,
+            "total_deletions": 10,
+            "accepted_lines": 26,
+            "overriden_lines": 0
+          }
+        }
+      }
+    }
+  }
+}
