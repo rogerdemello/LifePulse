@@ -784,6 +784,8 @@ footer p { margin: 0; }
    anything smaller and iOS Safari zooms the viewport when it is tapped. */
 .form-control,
 .form-select {
+  display: block;
+  width: 100%;
   padding: 0.75rem 0.95rem;
   font-size: 1rem;
   color: var(--ink);
@@ -805,6 +807,19 @@ footer p { margin: 0; }
 .form-select.is-invalid { border-color: var(--danger); }
 
 .form-control::placeholder { color: var(--ink-faint); }
+
+/* A field with something attached to it: the homepage and /start boxes, the
+   sleep page's blood-pressure pair, the nutrition search. `width: 1%` with
+   `flex: 1 1 auto` is the long-standing trick for letting the field take the
+   leftover space without overflowing, and `min-width: 0` lets it shrink. */
+.input-group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.input-group > .form-control { flex: 1 1 auto; width: 1%; min-width: 0; }
+.input-group > .input-group-text { display: flex; align-items: center; padding: 0 0.9rem; }
 
 .form-control + small,
 .form-select + small,
