@@ -642,6 +642,22 @@ with decoration.
 from it in `tests/test_design_system.py`, so a palette change fails a test rather
 than showing up in a screenshot months later.
 
+### Brand
+
+Violet on warm paper, with serif headings and a ring-and-pulse mark.
+
+| | |
+|---|---|
+| Accent | Deep violet `#4f36c4` (`#a99bff` in dark mode). Chosen because it is the one hue the semantic colours leave free, so the brand never reads as a status. |
+| Surfaces | Warm paper page `#f6f3ee`, surface `#fffdf9`; a violet-tinted charcoal in dark mode |
+| Type | Headings (h1–h3, the wordmark) in the system serif stack — Iowan Old Style, Palatino, Georgia. Body in the platform UI font. No web fonts are fetched. |
+| Shape | 10px controls, 14px surfaces; buttons are soft squares rather than pills |
+| Mark | A circle with a pulse line, inline in the navbar (`.brand-mark`), as the SVG favicon, and as `app/static/img/icons/logo.png` |
+| Social card | `app/static/img/social-card.png`, 1200×630, used for Open Graph and Twitter cards |
+
+Semantic colours (red, amber, green, blue) are unchanged, and so are the print
+styles: a printed summary is still black on white with the same four meanings.
+
 ### Nothing loads from a CDN
 
 The page used to pull Bootstrap's CSS, its icon font and Inter from jsDelivr and

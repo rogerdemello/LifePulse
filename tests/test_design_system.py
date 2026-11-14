@@ -136,9 +136,14 @@ def test_the_stylesheet_stayed_small():
     unstyled -- and lost twenty lines of --bs-* variable mappings that existed
     only to keep Bootstrap's palette in step with ours. There is no second
     palette now, so there is nothing to map.
+
+    The rebrand took it from 833 to 866 rule lines: the wordmark and ring mark
+    (`.navbar-brand`, `.brand-mark`), the homepage eyebrow and pulse line, and
+    the display and body font tokens. That is identity, not decoration, so the
+    ceiling moved from 850 to 880 rather than squeezing rules onto fewer lines.
     """
     rules = [line for line in CSS_RULES.splitlines() if line.strip()]
-    assert len(rules) < 850
+    assert len(rules) < 880
 
 
 @pytest.mark.parametrize("selector", [
