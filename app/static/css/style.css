@@ -1,8 +1,10 @@
 /* ==========================================================================
    LifePulse
 
-   A calm, clinical system. The guiding rule is that colour carries meaning:
-   red means seek care, amber means worth raising, green means reassuring, and
+   Violet on warm paper, with serif headings and a ring-and-pulse mark. The
+   guiding rule is unchanged by the rebrand, and it is why the accent is
+   violet, the one hue the semantic set leaves free: colour carries meaning.
+   Red means seek care, amber means worth raising, green means reassuring, and
    everything else is neutral. The previous stylesheet put a gradient on every
    card and a float animation on every icon, which meant the genuinely urgent
    red panels -- a hypertensive crisis interstitial, say -- had to compete with
@@ -26,29 +28,30 @@
    -------------------------------------------------------------------------- */
 
 :root {
-  /* Accent. One blue, used for navigation and the primary action, and
-     deliberately absent from result content where it would compete with the
-     semantic colours that actually mean something.
+  /* Accent. A deep violet, chosen because it is the one hue the semantic set
+     does not use: red, amber, green and blue each mean something in a result,
+     so the brand has to live somewhere else on the wheel or it reads as a
+     status. It is used for navigation, the primary action and the logo mark,
+     and stays out of result content.
 
-     #0066cc rather than Apple's #0071e3: white on the lighter one lands at
-     4.70:1, which passes by 0.2 and leaves no room for a future tweak. This
-     one clears 5.5:1 both ways. */
-  --brand: #0066cc;
-  --brand-strong: #0055ad;
-  --brand-soft: rgba(0, 102, 204, 0.08);
+     White on it lands at 7.9:1 and it clears 7:1 on the page, so there is
+     headroom for a future tweak rather than a pass by a hair. */
+  --brand: #4f36c4;
+  --brand-strong: #3f2aa8;
+  --brand-soft: rgba(79, 54, 196, 0.08);
 
-  /* Neutrals. Warm-free greys: an off-white page with pure white surfaces
-     floating on it, and a hairline rather than a shadow doing the separating.
-     --ink-faint is #6b6b70 and not the #86868b it wants to be, because that
-     grey reads at 3.6:1 on white and this is a health tool. */
-  --page: #fbfbfd;
-  --surface: #ffffff;
-  --surface-sunken: #f5f5f7;
-  --border: #d2d2d7;
-  --border-strong: #86868b;
-  --ink: #1d1d1f;
-  --ink-muted: #6e6e73;
-  --ink-faint: #6b6b70;
+  /* Neutrals. A warm paper page with a slightly lighter surface on it, and a
+     hairline rather than a shadow doing the separating. --ink-faint is
+     #66646f because the lighter greys that suit this palette fall under 4.5:1
+     on the surface, and this is a health tool. */
+  --page: #f6f3ee;
+  --surface: #fffdf9;
+  --surface-sunken: #eeeae3;
+  --border: #d9d3c7;
+  --border-strong: #8a8478;
+  --ink: #1b1a22;
+  --ink-muted: #5a5866;
+  --ink-faint: #66646f;
 
   /* Semantic. Only these carry meaning; nothing decorative uses them. */
   --danger: #bf2c1f;
@@ -60,16 +63,24 @@
   --info: #115ea3;
   --info-soft: rgba(17, 94, 163, 0.07);
 
-  /* Geometry. Larger radii and a pill for buttons; the old 12px corners on a
-     56px control read as a web form rather than a considered surface. */
-  --radius: 18px;
-  --radius-sm: 12px;
-  --radius-pill: 980px;
+  /* Geometry. Softer-square rather than pill: controls are 10px, surfaces 14px.
+     It reads as printed stationery, which suits a page whose end product is a
+     sheet to hand to a doctor. */
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-btn: 10px;
+
+  /* Type. Headings are serif, from the system -- no web font is fetched, so the
+     "nothing loads from a CDN" promise holds. Body and controls stay sans. */
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino,
+                  'Book Antiqua', Georgia, serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI',
+               Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   /* Depth is carried by the hairline border. The shadows are barely there on
-     purpose -- enough to lift a card off the page, not enough to notice. */
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 6px 20px rgba(0, 0, 0, 0.04);
-  --shadow-lifted: 0 2px 6px rgba(0, 0, 0, 0.05), 0 16px 40px rgba(0, 0, 0, 0.09);
+     purpose, and tinted with the ink colour so they sit warm on the paper. */
+  --shadow: 0 1px 2px rgba(27, 26, 34, 0.04), 0 6px 20px rgba(27, 26, 34, 0.05);
+  --shadow-lifted: 0 2px 6px rgba(27, 26, 34, 0.06), 0 16px 40px rgba(27, 26, 34, 0.10);
 
   --transition: 220ms cubic-bezier(0.25, 0.1, 0.25, 1);
 
@@ -101,16 +112,12 @@
 
 body {
   margin: 0;
-  /* System font first. On a Mac or an iPhone this resolves to SF Pro, which
-     is what the type is spaced for; Inter is the fallback everywhere else and
-     is close enough that the rhythm holds. Putting Inter first meant macOS
-     users downloaded a webfont to render something less appropriate than the
-     one already on their machine. */
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter',
-               'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* The platform's own UI font: nothing to download, and it is the one the
+     reader's eye is already tuned to. */
+  font-family: var(--font-body);
   font-size: 1.0625rem;
   line-height: 1.55;
-  letter-spacing: -0.003em;
+  letter-spacing: 0;
   color: var(--ink);
   background: var(--page);
   -webkit-font-smoothing: antialiased;
@@ -144,19 +151,21 @@ h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
   color: var(--ink);
   font-weight: 600;
-  line-height: 1.08;
-  /* Tracking tightens as the type grows; the per-size values below refine it.
-     Display type set at body spacing is the single clearest tell of a page
-     that has not been typeset. */
-  letter-spacing: -0.02em;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
 }
 
-h1, .h1 { font-size: clamp(2.1rem, 1.5rem + 2.6vw, 3.25rem); letter-spacing: -0.028em; }
-h2, .h2 { font-size: clamp(1.6rem, 1.3rem + 1.4vw, 2.1rem); letter-spacing: -0.024em; }
-h3, .h3 { font-size: 1.35rem; letter-spacing: -0.018em; }
-h4, .h4 { font-size: 1.2rem;  letter-spacing: -0.014em; }
-h5, .h5 { font-size: 1.0625rem; letter-spacing: -0.01em; line-height: 1.3; }
-h6, .h6 { font-size: 0.9375rem; letter-spacing: -0.006em; line-height: 1.35; }
+/* Serif for the three levels that name a page or a section; the small
+   headings inside cards stay sans so a dense result still scans as UI. */
+h1, h2, h3,
+.h1, .h2, .h3 { font-family: var(--font-display); }
+
+h1, .h1 { font-size: clamp(2.1rem, 1.5rem + 2.6vw, 3.25rem); line-height: 1.08; letter-spacing: -0.02em; }
+h2, .h2 { font-size: clamp(1.6rem, 1.3rem + 1.4vw, 2.1rem); letter-spacing: -0.016em; }
+h3, .h3 { font-size: 1.35rem; letter-spacing: -0.012em; }
+h4, .h4 { font-size: 1.2rem;  letter-spacing: -0.008em; }
+h5, .h5 { font-size: 1.0625rem; letter-spacing: -0.004em; line-height: 1.3; }
+h6, .h6 { font-size: 0.9375rem; letter-spacing: 0; line-height: 1.35; }
 
 p { margin-top: 0; }
 
@@ -254,7 +263,7 @@ summary:focus-visible,
   top: 0;
   z-index: 1030;
   padding: 0.35rem 0;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 253, 249, 0.78);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid var(--border);
@@ -273,12 +282,34 @@ summary:focus-visible,
   justify-content: space-between;
 }
 
+/* The wordmark: a ring-and-pulse mark beside "Life" in ink and "Pulse" in the
+   brand colour. Both halves are one text node's worth of words, so the link's
+   accessible name is still "LifePulse". */
 .navbar-brand {
-  font-size: 1.3125rem;
-  font-weight: 600;
-  letter-spacing: -0.022em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  text-decoration: none;
   color: var(--ink) !important;
 }
+
+.navbar-brand .brand-pulse { color: var(--brand); }
+
+.brand-mark {
+  flex-shrink: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+  color: var(--brand);
+}
+
+/* The pulse line is cut out of the ring in the surface colour, so the mark
+   inverts correctly in dark mode instead of keeping a white line on a pale
+   violet disc. */
+.brand-mark path { stroke: var(--surface); }
 
 /* Below 992px the menu is hidden until the toggle adds .is-open; at and above
    it, it is always laid out in a row and the toggle is gone. Bootstrap's
@@ -357,6 +388,7 @@ summary:focus-visible,
 .navbar-nav .nav-link.active {
   color: var(--brand) !important;
   background: var(--brand-soft);
+  box-shadow: inset 0 -2px 0 var(--brand);
 }
 
 /* The hero is the one place the brand gradient still earns its keep: it is
@@ -378,9 +410,28 @@ summary:focus-visible,
   max-width: 40rem;
   margin: 1rem auto 0;
   font-size: 1.25rem;
-  line-height: 1.45;
-  letter-spacing: -0.012em;
+  line-height: 1.5;
   color: var(--ink-muted);
+}
+
+/* The one decorative flourish on the page: the brand's pulse line, drawn under
+   the headline. It is identity, not information, and is hidden from assistive
+   technology. */
+.home-eyebrow {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.home-pulse {
+  display: block;
+  width: min(15rem, 60%);
+  height: 2rem;
+  margin: 1.5rem auto 0;
+  color: var(--brand);
 }
 
 .home-start { border-color: var(--border); }
@@ -389,6 +440,7 @@ summary:focus-visible,
    the one above it. */
 .home-section-heading {
   margin: clamp(3rem, 7vw, 4.5rem) 0 1.25rem;
+  font-family: var(--font-body);
   font-size: 0.9375rem;
   font-weight: 500;
   letter-spacing: -0.006em;
@@ -402,11 +454,11 @@ summary:focus-visible,
    the stacked phone layout all behave normally. */
 .home-start .input-group > .form-control {
   padding-left: 1.25rem;
-  border-radius: var(--radius-pill) 0 0 var(--radius-pill);
+  border-radius: var(--radius-btn) 0 0 var(--radius-btn);
 }
 
 .home-start .input-group > .btn {
-  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  border-radius: 0 var(--radius-btn) var(--radius-btn) 0;
 }
 
 /* One link per assessment rather than a card wrapping a button: the whole tile
@@ -658,15 +710,14 @@ footer p { margin: 0; }
    6. CONTROLS
    -------------------------------------------------------------------------- */
 
-/* Pill buttons. A 12px radius on a 48px-tall control reads as a web form;
-   the full round reads as a control. No uppercase, no letter-spacing, no
+/* Soft-square buttons with a firm weight. No uppercase, no letter-spacing, no
    expanding radial wash on hover -- just a slightly deeper fill. */
 .btn {
   padding: 0.7rem 1.4rem;
   font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  border-radius: var(--radius-pill);
+  font-weight: 600;
+  letter-spacing: 0;
+  border-radius: var(--radius-btn);
   transition: background var(--transition), border-color var(--transition),
               color var(--transition), transform var(--transition);
 }
@@ -865,7 +916,7 @@ footer p { margin: 0; }
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(31, 39, 51, 0.72);
+  background: rgba(27, 22, 52, 0.74);
   backdrop-filter: blur(2px);
 }
 
@@ -1003,18 +1054,18 @@ footer p { margin: 0; }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --brand: #409cff;
-    --brand-strong: #6cb2ff;
-    --brand-soft: rgba(64, 156, 255, 0.16);
+    --brand: #a99bff;
+    --brand-strong: #c3b9ff;
+    --brand-soft: rgba(169, 155, 255, 0.16);
 
-    --page: #000000;
-    --surface: #1c1c1e;
-    --surface-sunken: #2c2c2e;
-    --border: #38383a;
-    --border-strong: #545458;
-    --ink: #f5f5f7;
-    --ink-muted: #a1a1a6;
-    --ink-faint: #8e8e93;
+    --page: #141218;
+    --surface: #1d1a24;
+    --surface-sunken: #2a2633;
+    --border: #3a3544;
+    --border-strong: #5a5468;
+    --ink: #f3f0f8;
+    --ink-muted: #b0abbd;
+    --ink-faint: #9893a6;
 
     --danger: #ff6961;
     --danger-soft: rgba(255, 105, 97, 0.15);
@@ -1027,7 +1078,6 @@ footer p { margin: 0; }
 
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 4px 16px rgba(0, 0, 0, 0.35);
     --shadow-lifted: 0 2px 4px rgba(0, 0, 0, 0.40), 0 12px 32px rgba(0, 0, 0, 0.50);
-
   }
 
   /* Where a token is a light hue, anything filled with it needs dark ink. */
@@ -1035,25 +1085,26 @@ footer p { margin: 0; }
   .bg-primary,
   .bg-success,
   .bg-danger,
-  .bg-info { color: #1c1c1e !important; }
+  .bg-info { color: #14121a !important; }
 
   .btn-primary,
   .btn-danger,
   .btn-success,
   .btn-info,
-  .btn-warning { color: #1c1c1e; }
+  .btn-warning { color: #14121a; }
 
-  .result-header { color: #1c1c1e; }
+  .result-header { color: #14121a; }
   .result-header h1,
   .result-header h2,
-  .result-header h3 { color: #1c1c1e; }
-  .result-header p { color: rgba(28, 28, 30, 0.78); }
+  .result-header h3 { color: #14121a; }
+  .result-header p { color: rgba(20, 18, 26, 0.78); }
 
-  .loading-overlay { background: rgba(0, 0, 0, 0.78); }
+  .loading-overlay { background: rgba(10, 8, 16, 0.80); }
 
-  /* The sticky bar's translucent fill is a literal white in the light theme
-     and has to be restated, or it stays a bright band across a black page. */
-  .navbar { background: rgba(22, 22, 24, 0.72); }
+  /* The sticky bar's translucent fill is a literal paper tone in the light
+     theme and has to be restated, or it stays a bright band across a dark
+     page. */
+  .navbar { background: rgba(24, 21, 31, 0.78); }
 }
 
 /* --------------------------------------------------------------------------

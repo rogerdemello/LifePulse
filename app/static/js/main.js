@@ -1,7 +1,7 @@
-// main.js - LifePulse Enhanced Global JavaScript
+// main.js - LifePulse global JavaScript
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("LifePulse loaded 🚀");
+  console.log("LifePulse loaded");
 
   // ========================================
   // SMOOTH SCROLL

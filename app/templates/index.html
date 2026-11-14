@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}LifePulse - is this worth seeing a doctor about?{% endblock %}
+{% block title %}LifePulse - health screening you can take to your doctor{% endblock %}
 {% block description %}Six health checks against real population survey data. Each one shows its working, tells you what it cannot know, and gives you something to take to an appointment. Nothing you enter is stored on our server.{% endblock %}
 
-{% block og_title %}LifePulse - is this worth seeing a doctor about?{% endblock %}
+{% block og_title %}LifePulse - health screening you can take to your doctor{% endblock %}
 {% block og_description %}Six health checks against real population data, each showing its working. For the moment before you decide whether something is worth an appointment.{% endblock %}
 
-{% block twitter_title %}LifePulse - is this worth seeing a doctor about?{% endblock %}
+{% block twitter_title %}LifePulse - health screening you can take to your doctor{% endblock %}
 {% block twitter_description %}Six health checks against real population data, each showing its working. Nothing you enter is stored on our server.{% endblock %}
 
 {% block content %}
@@ -15,11 +15,17 @@
    LifePulse" sat in a purple gradient above the fold and told a visitor
    nothing they could act on; the brand is already in the navigation. #}
 <div class="home-lede">
+  <div class="home-eyebrow">Health screening you can take to your doctor</div>
   <h1>Work out whether something&rsquo;s worth seeing a doctor about</h1>
   <p>
     Six checks against real population survey data. Each one shows its working,
     says what it cannot know, and gives you a page to take to an appointment.
   </p>
+  {# The brand's pulse line. Decorative, so hidden from assistive technology. #}
+  <svg class="home-pulse" viewBox="0 0 240 32" fill="none" stroke="currentColor"
+       stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M2 16h82l8-11 12 22 10-16 7 5h117"/>
+  </svg>
 </div>
 
 {# The symptom box was previously a button that led to a page containing this

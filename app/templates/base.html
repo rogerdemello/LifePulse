@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   
   <!-- Title -->
-  <title>{% block title %}LifePulse - Smart Health Insights{% endblock %}</title>
-  
+  <title>{% block title %}LifePulse - health screening you can take to your doctor{% endblock %}</title>
+
   <!-- SEO Meta Tags -->
-  <meta name="description" content="{% block description %}LifePulse - AI-powered health assessment platform. Get personalized insights on heart health, sleep quality, migraine risk, nutrition, and overall wellness with machine learning predictions.{% endblock %}" />
+  <meta name="description" content="{% block description %}LifePulse - describe what you've noticed, get a result that shows its working, and print a summary for your appointment. Heart, sleep, migraine, lifestyle and nutrition checks. Nothing you enter is stored on our server.{% endblock %}" />
   <meta name="keywords" content="health assessment, AI health, heart disease prediction, sleep disorder, migraine risk, nutrition tracker, health calculator, BMI, wellness, machine learning health" />
   <meta name="author" content="LifePulse" />
   <meta name="robots" content="index, follow" />
@@ -16,34 +16,34 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="{% block og_url %}{{ request.url }}{% endblock %}" />
-  <meta property="og:title" content="{% block og_title %}LifePulse - Smart Health Insights{% endblock %}" />
-  <meta property="og:description" content="{% block og_description %}AI-powered health assessment platform with personalized insights for heart health, sleep quality, migraine risk, and nutrition analysis.{% endblock %}" />
-  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/health-banner.png', _external=True) }}{% endblock %}" />
-  <meta property="og:image:width" content="3780" />
-  <meta property="og:image:height" content="1890" />
+  <meta property="og:title" content="{% block og_title %}LifePulse - health screening you can take to your doctor{% endblock %}" />
+  <meta property="og:description" content="{% block og_description %}Health checks that show their working, say what they cannot know, and give you a summary to take to an appointment.{% endblock %}" />
+  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/social-card.png', _external=True) }}{% endblock %}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:site_name" content="LifePulse" />
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="{% block twitter_url %}{{ request.url }}{% endblock %}" />
-  <meta name="twitter:title" content="{% block twitter_title %}LifePulse - Smart Health Insights{% endblock %}" />
-  <meta name="twitter:description" content="{% block twitter_description %}AI-powered health assessment platform with personalized insights for heart health, sleep quality, migraine risk, and nutrition.{% endblock %}" />
-  <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/health-banner.png', _external=True) }}{% endblock %}" />
+  <meta name="twitter:title" content="{% block twitter_title %}LifePulse - health screening you can take to your doctor{% endblock %}" />
+  <meta name="twitter:description" content="{% block twitter_description %}Health checks that show their working, say what they cannot know, and give you a summary to take to an appointment.{% endblock %}" />
+  <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/social-card.png', _external=True) }}{% endblock %}" />
 
   <!-- Favicon. An inline SVG rather than PNG files: it stays crisp at every
        size, needs no build step, and the three PNGs previously referenced here
        did not exist, so every page load fetched three 404s. -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235b62d6'/%3E%3Cpath d='M4 17h5l2.5-6 4 12 3-8 2 2h7' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234f36c4'/%3E%3Cpath d='M5.5 17h5l2.4-6 4 11 2.8-6.5 1.7 1.5h5.1' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/logo.png') }}" />
   
   <!-- Theme Color -->
   {# The page colour, not the brand colour: on a phone this tints the browser's
      own chrome, and matching the page makes the bar disappear into it rather
-     than putting an indigo band above a white page. Both were still the old
-     indigo after the palette changed. #}
-  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
-  <meta name="msapplication-TileColor" content="#0066cc" />
+     than putting a violet band above a paper page. Keep these in step with
+     --page in style.css. #}
+  <meta name="theme-color" content="#f6f3ee" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#141218" media="(prefers-color-scheme: dark)" />
+  <meta name="msapplication-TileColor" content="#4f36c4" />
 
   {# ------------------------------------------------------------------------
      Every asset below is served from this origin. Nothing here reaches a CDN.
@@ -132,7 +132,14 @@
    and the homepage's own list of assessments all still work. #}
 <nav class="navbar" aria-label="Main navigation">
   <div class="container">
-    <a class="navbar-brand" href="/">LifePulse</a>
+    <a class="navbar-brand" href="/">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <circle cx="16" cy="16" r="16" fill="currentColor"/>
+        <path d="M5.5 17h5l2.4-6 4 11 2.8-6.5 1.7 1.5h5.1" fill="none"
+              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Life<span class="brand-pulse">Pulse</span></span>
+    </a>
 
     <button class="navbar-toggler" type="button" data-nav-toggle
             aria-controls="navbarNav" aria-expanded="false" aria-label="Menu">
